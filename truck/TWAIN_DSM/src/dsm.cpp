@@ -1,5 +1,5 @@
 /***************************************************************************
- * Copyright © 2006 TWAIN Working Group:  Adobe Systems Incorporated,
+ * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
  * AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
@@ -31,7 +31,7 @@
  *
  *
  *
- * Copyright © 2006 TWAIN Working Group:  Adobe Systems Incorporated,
+ * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
  * AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
@@ -39,7 +39,7 @@
  */
 
 
-#if defined(_WIN32)
+#ifdef _WIN32
   #include "stdafx.h"
   #include <direct.h>
 #else
@@ -227,7 +227,8 @@ TW_INT16 EntryDS(pTW_IDENTITY _pAppIdentity,
 TW_INT16 LoadDS(pTW_IDENTITY _pAppIdentity,
                 char* _pPath,
                 TW_INT16 _index,
-                pDS_LIST _pList);
+                pDS_LIST _pList,
+                bool _boolKeepOpen);
 
 
 /**
@@ -537,7 +538,7 @@ DSM_Entry(pTW_IDENTITY _pOrigin,
   {
     if(_pOrigin->Id > 0 && _pOrigin->Id <= MAX_NUM_APPS)
     {
-      pAPP_INFO pAppInfo = &(_gApplications.AppInfo[kIN(_pOrigin->Id)]);
+      pAPP_INFO pAppInfo = &(_gApplications.AppInfo[_pOrigin->Id]);
 
       if(TRUE == pAppInfo->Callback.bCallbackPending)
       {
@@ -563,45 +564,37 @@ DSM_Entry(pTW_IDENTITY _pOrigin,
   }
 
   // Is this msg for us?
-  if(0 == _pDest)
+  switch (_DAT)
   {
-    switch (_DAT)
-    {
-      case DAT_PARENT:
-        rcDSM = DSM_Parent(_pOrigin, _MSG);
-        break;
+    default:
+      // check if the application is open or not.  If it isn't, we have a bad sequence
+      if( _pOrigin->Id > 0 && _pOrigin->Id <= MAX_NUM_APPS &&
+            dsmState_Open == _gApplications.AppInfo[_pOrigin->Id].CurrentState )
+      {
+          rcDSM = EntryDS(_pOrigin, _pDest, _DG, _DAT, _MSG, _pData);
+      }
+      else
+      {
+          setConditionCode(_pOrigin, TWCC_SEQERROR);
+          rcDSM = TWRC_FAILURE;
+      }
+      break;
 
-      case DAT_IDENTITY:
-        rcDSM = DSM_Identity(_pOrigin, _MSG, (pTW_IDENTITY)_pData);
-        break;
+    case DAT_PARENT:
+      rcDSM = DSM_Parent(_pOrigin, _MSG);
+      break;
 
-      case DAT_STATUS:
-        rcDSM = DSM_Status(_pOrigin, _MSG, (pTW_STATUS)_pData);
-        break;
+    case DAT_IDENTITY:
+      rcDSM = DSM_Identity(_pOrigin, _MSG, (pTW_IDENTITY)_pData);
+      break;
 
-      case DAT_CALLBACK:
-        rcDSM = DSM_Callback(_pOrigin, _MSG, (pTW_CALLBACK)_pData);
-        break;
+    case DAT_STATUS:
+      rcDSM = DSM_Status(_pOrigin, _MSG, (pTW_STATUS)_pData);
+      break;
 
-      default:
-        setConditionCode(_pOrigin, TWCC_BADPROTOCOL);
-        rcDSM = TWRC_FAILURE;
-        break;
-    }
-  }
-  else // Not for us, send to appropriate source
-  {
-    // check if the application is open or not.  If it isn't, we have a bad sequence
-    if( _pOrigin->Id > 0 && _pOrigin->Id <= MAX_NUM_APPS &&
-        dsmState_Open == _gApplications.AppInfo[kIN(_pOrigin->Id)].CurrentState )
-    {
-      rcDSM = EntryDS(_pOrigin, _pDest, _DG, _DAT, _MSG, _pData);
-    }
-    else
-    {
-      setConditionCode(_pOrigin, TWCC_SEQERROR);
-      rcDSM = TWRC_FAILURE;
-    }
+    case DAT_CALLBACK:
+      rcDSM = DSM_Callback(_pOrigin, _MSG, (pTW_CALLBACK)_pData);
+      break;
   }
 
   if( bPrinted )
@@ -671,7 +664,7 @@ TW_INT16 DSM_Parent(pTW_IDENTITY _pAppIdentity, TW_UINT16 _MSG)
       if(result == TWRC_SUCCESS)
       {
         assert(_pAppIdentity->Id <= MAX_NUM_APPS);
-        pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+        pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
 
         // move DSM to state 3 for this app
         pAppInfo->CurrentState = dsmState_Open;
@@ -683,7 +676,7 @@ TW_INT16 DSM_Parent(pTW_IDENTITY _pAppIdentity, TW_UINT16 _MSG)
     case MSG_CLOSEDSM:
       {
         assert(_pAppIdentity->Id > 0 && _pAppIdentity->Id <= MAX_NUM_APPS);
-        pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+        pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
         // To close the DSM we must be open ... 
         if(dsmState_Open != pAppInfo->CurrentState)
         {
@@ -756,7 +749,7 @@ TW_INT16 DSM_Identity(pTW_IDENTITY _pAppIdentity, TW_UINT16 _MSG, pTW_IDENTITY _
 {
   TW_INT16 result = TWRC_SUCCESS;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
 
   if(dsmState_Open == pAppInfo->CurrentState)
   {
@@ -808,7 +801,7 @@ TW_INT16 DSM_Callback(pTW_IDENTITY _pAppIdentity,
 {
   TW_INT16 result = TWRC_SUCCESS;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
 
   switch(_MSG)
   {
@@ -830,7 +823,7 @@ TW_INT16 DSM_Callback(pTW_IDENTITY _pAppIdentity,
 }
 
 //////////////////////////////////////////////////////////////////////////////
-TW_INT16 DSM_InitializeDSM(pTW_IDENTITY _pAppIdentity)
+TW_INT16 DSM_InitializeDSM(pTW_IDENTITY /*_pAppIdentity*/)
 {
   TW_INT16 ret = TWRC_SUCCESS;
 
@@ -842,8 +835,10 @@ TW_INT16 DSM_InitializeDSM(pTW_IDENTITY _pAppIdentity)
 #endif // _WIN32
 
   // see if a logfile is to be used
-  char* logpath = getenv(kLOGENV);
-  if(0 != logpath && 0 == gpLogFile)
+  char logpath[MAX_PATH];
+  logpath[0] = 0;
+  SGETENV(logpath,NCHARS(logpath),kLOGENV);
+  if(0 != logpath[0] && 0 == gpLogFile)
   {
     gpLogFile = new ofstream(logpath, ios::app);
 
@@ -869,7 +864,7 @@ TW_INT16 OpenDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
 {
   TW_INT16 result = TWRC_FAILURE;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
 
   // check that we are in the proper state
   if(dsmState_Open != pAppInfo->CurrentState)
@@ -919,8 +914,23 @@ TW_INT16 OpenDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
     return(TWRC_FAILURE);
   }
 
+  // Load the ds...
+  result = LoadDS
+  (
+    _pAppIdentity,
+    pAppInfo->pDSList->DSInfo[_pSourceIdentity->Id].szPath,
+    (TW_UINT16)_pSourceIdentity->Id,
+    pAppInfo->pDSList,
+    true
+  );
+  if (result != TWRC_SUCCESS)
+  {
+    setConditionCode(_pAppIdentity, TWCC_NODS);
+    return(TWRC_FAILURE);
+  }
+
   // open the ds
-  pDS_INFO pDSInfo = &pAppInfo->pDSList->DSInfo[kIN(_pSourceIdentity->Id)];
+  pDS_INFO pDSInfo = &pAppInfo->pDSList->DSInfo[_pSourceIdentity->Id];
   if(0 != pDSInfo->DS_Entry)
   {
     result = pDSInfo->DS_Entry(_pAppIdentity,
@@ -932,7 +942,7 @@ TW_INT16 OpenDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
     if(TWRC_SUCCESS == result)
     {
       // update the applications datastruct with the successfully opened source.
-      pAppInfo->OpenSource = TW_INT16(kIN(_pSourceIdentity->Id));
+      pAppInfo->OpenSource = TW_INT16(_pSourceIdentity->Id);
       pDSInfo->bOpen = TRUE;
     }
     else
@@ -949,7 +959,7 @@ TW_INT16 CloseDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
 {
   TW_INT16 result = TWRC_SUCCESS;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
 
   // check that we are in the proper state
   if(dsmState_Open != pAppInfo->CurrentState)
@@ -959,7 +969,7 @@ TW_INT16 CloseDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
   }
 
   // close the ds
-  pDS_INFO pDSInfo = &pAppInfo->pDSList->DSInfo[kIN(_pSourceIdentity->Id)];
+  pDS_INFO pDSInfo = &pAppInfo->pDSList->DSInfo[_pSourceIdentity->Id];
   if(0 != pDSInfo->DS_Entry)
   {
     result = pDSInfo->DS_Entry(_pAppIdentity,
@@ -972,6 +982,9 @@ TW_INT16 CloseDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
     {
       pAppInfo->OpenSource = -1;
       pDSInfo->bOpen = FALSE;
+      UNLOADLIBRARY(pDSInfo->pHandle);
+      pDSInfo->pHandle = NULL;
+      pDSInfo->DS_Entry = NULL;
     }
     else
     {
@@ -997,19 +1010,19 @@ pDS_LIST      g_pSelectDlgDSList;   /**< @param[in]     The list of DS to displa
 * @param[in] lParam
 * @return TRUE if message is handled
 */
-BOOL CALLBACK SelectDlgProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK SelectDlgProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM /*lParam*/)
 {
   switch(Message)
   {
     case WM_INITDIALOG:
     {
-      HWND hListBox = ::GetDlgItem(hWnd, ID_LST_SOURCES);	
+      HWND hListBox = ::GetDlgItem(hWnd, ID_LST_SOURCES);   
       if ( hListBox ) 
       {
         assert(g_pSelectDlgDSList);
         int       nIndex;
 
-        for(int x = 0; x < g_pSelectDlgDSList->NumFiles; ++x)
+        for(int x = 1; x < g_pSelectDlgDSList->NumFiles; ++x)
         {
           pTW_IDENTITY ptmpIdent = &g_pSelectDlgDSList->DSInfo[x].Identity;
 
@@ -1041,12 +1054,18 @@ BOOL CALLBACK SelectDlgProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lPara
       }
       return TRUE;
     }
+
     case WM_COMMAND:
       switch(LOWORD(wParam))
       {
+        case ID_LST_SOURCES: 
+          if (HIWORD(wParam) != LBN_DBLCLK) 
+            break; 
+            // drop through...
+
         case IDOK:
           {
-            HWND hListBox = ::GetDlgItem(hWnd, ID_LST_SOURCES);	
+            HWND hListBox = ::GetDlgItem(hWnd, ID_LST_SOURCES); 
             int  nIndex   = 0;
             if ( hListBox ) 
             {
@@ -1060,7 +1079,7 @@ BOOL CALLBACK SelectDlgProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lPara
               if(LB_ERR != nIndex)
               {
                 assert(nIndex <= g_pSelectDlgDSList->NumFiles);
-                g_pSelectDlgSourceID = &g_pSelectDlgDSList->DSInfo[kIN(nIndex)].Identity;
+                g_pSelectDlgSourceID = &g_pSelectDlgDSList->DSInfo[nIndex].Identity;
               }
             }
             EndDialog(hWnd, IDOK);
@@ -1093,7 +1112,7 @@ TW_INT16 DSM_SelectDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
   }
 
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO   pAppInfo        = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO   pAppInfo        = &_gApplications.AppInfo[_pAppIdentity->Id];
     
   // If passed in a DS name we want to select it
   if(SourceIdentity.ProductName[0] != 0)
@@ -1110,10 +1129,10 @@ TW_INT16 DSM_SelectDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
     // If no match continue anyway.
   }
 
-	// create	the	dialog window	
+    // create   the dialog window   
   g_pSelectDlgSourceID  = &SourceIdentity;
   g_pSelectDlgDSList    = pAppInfo->pDSList;
-  int ret = DialogBox(g_hinstDLL, (LPCTSTR)IDD_DLG_SOURCE, (HWND)NULL, SelectDlgProc);
+  int ret = (int)DialogBox(g_hinstDLL, (LPCTSTR)IDD_DLG_SOURCE, (HWND)NULL, SelectDlgProc);
   if(ret == IDOK)
   {
     assert(g_pSelectDlgSourceID);
@@ -1121,25 +1140,38 @@ TW_INT16 DSM_SelectDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
 
     // save default source to Registry  
 #ifdef _WIN32
-  HKEY hKey;
-  long status = ERROR_SUCCESS;
-  char *szPath = pAppInfo->pDSList->DSInfo[kIN(g_pSelectDlgSourceID->Id)].szPath;
-
-  // Open the key, creating it if it doesn't exist.
-  if( RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows NT\\CurrentVersion\\Twain",
-           NULL, NULL, NULL, KEY_READ | KEY_WRITE, NULL, &hKey, NULL) == ERROR_SUCCESS )
+  // sanity check...
+  if (   (g_pSelectDlgSourceID->Id == 0)
+      || (g_pSelectDlgSourceID->Id >= MAX_NUM_DS))
   {
-    status = RegSetValueEx( hKey, "Default Source", 0, REG_SZ, (LPBYTE)szPath, (DWORD)strlen((char*)szPath)+1 );
-    if( status != ERROR_SUCCESS )
-    {
-      // Failed to save default DS to registry
-      kLOGERR << "Failed to save default DS to registry" << endl;
-      // Nothing preventing us from using the default right now
-      setConditionCode(_pAppIdentity, TWCC_BUMMER);
-    }
+    // Failed to save default DS to registry
+    kLOGERR << "Id is out of range 0 - 49..." << endl;
+    // Nothing preventing us from using the default right now
+    setConditionCode(_pAppIdentity, TWCC_BUMMER);
   }
-  // Close the key.
-  RegCloseKey(hKey);
+
+  else
+  {
+    HKEY hKey;
+    long status = ERROR_SUCCESS;
+    char *szPath = pAppInfo->pDSList->DSInfo[g_pSelectDlgSourceID->Id].szPath;
+
+    // Open the key, creating it if it doesn't exist.
+    if( RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows NT\\CurrentVersion\\Twain",
+         NULL, NULL, NULL, KEY_READ | KEY_WRITE, NULL, &hKey, NULL) == ERROR_SUCCESS )
+    {
+        status = RegSetValueEx( hKey, "Default Source", 0, REG_SZ, (LPBYTE)szPath, (DWORD)strlen((char*)szPath)+1 );
+        if( status != ERROR_SUCCESS )
+        {
+        // Failed to save default DS to registry
+        kLOGERR << "Failed to save default DS to registry" << endl;
+        // Nothing preventing us from using the default right now
+        setConditionCode(_pAppIdentity, TWCC_BUMMER);
+        }
+    }
+    // Close the key.
+    RegCloseKey(hKey);
+  }
 #else
   // TODO: other OS save the default Source from stored location
   assert(0);
@@ -1154,7 +1186,7 @@ TW_INT16 DSM_SelectDS(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
   }
   else if(ret == -1)
   {
-    DWORD dwError = GetLastError();
+    //DWORD dwError = GetLastError();
     MessageBox(NULL, "Dialog failed!", "Error", MB_OK | MB_ICONINFORMATION);
     setConditionCode(_pAppIdentity, TWCC_BUMMER);
     result = TWRC_FAILURE;
@@ -1174,9 +1206,9 @@ TW_INT16 EntryDS(pTW_IDENTITY _pAppIdentity,
 {
   TW_UINT16 result = TWRC_SUCCESS;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
   assert(_pSourceIdentity && _pSourceIdentity->Id <= MAX_NUM_DS);
-  pDS_INFO  pDSInfo  = &pAppInfo->pDSList->DSInfo[kIN(_pSourceIdentity->Id)];
+  pDS_INFO  pDSInfo  = &pAppInfo->pDSList->DSInfo[_pSourceIdentity->Id];
 
   if(0 != pDSInfo->DS_Entry)
   {
@@ -1206,9 +1238,9 @@ TW_INT16 GetDSFromProductName(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceI
     return ret;
   }
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &(_gApplications.AppInfo[kIN(_pAppIdentity->Id)]);
+  pAPP_INFO pAppInfo = &(_gApplications.AppInfo[_pAppIdentity->Id]);
 
-  for(int x = 0; x < pAppInfo->pDSList->NumFiles; ++x)
+  for(int x = 1; x < pAppInfo->pDSList->NumFiles; ++x)
   {
     if(0 == strncmp(_pSourceIdentity->ProductName, pAppInfo->pDSList->DSInfo[x].Identity.ProductName, sizeof(TW_STR32)))
     {
@@ -1252,57 +1284,65 @@ int scanDSDir(char* _szAbsPath, pTW_IDENTITY _pAppIdentity, pDS_LIST _pList)
   char              szPrevWorkDir[PATH_MAX];
 
   // Start searching for .ds files in the root directory.
-  strcpy(szABSFilename, _szAbsPath);
-  strcat(szABSFilename, "\\*.ds");
-  hSearch = FindFirstFile(szABSFilename, &FileData);
-  if (hSearch == INVALID_HANDLE_VALUE)
-  {
-    return EXIT_FAILURE;
-  }
+  SSTRCPY(szABSFilename, NCHARS(szABSFilename), _szAbsPath);
+  SSTRCAT(szABSFilename, NCHARS(szABSFilename), "\\*.ds");
+  hSearch = FindFirstFile(szABSFilename,&FileData);
 
-  /* Save the current working directory: */
-  _getcwd( szPrevWorkDir, PATH_MAX );
-  _chdir( _szAbsPath );
-
-  while (!bFinished)
+  // If we find something, squirrel it away and anything else we find...
+  if (hSearch != INVALID_HANDLE_VALUE)
   {
-    if(SNPRINTF(szABSFilename, PATH_MAX, "%s\\%s", _szAbsPath, FileData.cFileName) > 0)
+    /* Save the current working directory: */
+    char *szResult = _getcwd( szPrevWorkDir, PATH_MAX );
+    if (szResult == (char*)NULL)
     {
-      if(TWRC_SUCCESS == LoadDS(_pAppIdentity, szABSFilename, kOUT(_pList->NumFiles), _pList))
+      return EXIT_FAILURE;
+    }
+    int iResult = _chdir( _szAbsPath );
+    if (iResult != 0)
+    {
+      return EXIT_FAILURE;
+    }
+    
+    while (!bFinished)
+    {
+      if(SSNPRINTF(szABSFilename, NCHARS(szABSFilename), PATH_MAX, "%s\\%s", _szAbsPath, FileData.cFileName) > 0)
       {
-        _pList->NumFiles++;
+        if(TWRC_SUCCESS == LoadDS(_pAppIdentity, szABSFilename, _pList->NumFiles+1, _pList, false))
+        {
+          _pList->NumFiles++;
+        }
+      }
+      
+      if (!FindNextFile(hSearch, &FileData))
+      {
+        bFinished = TRUE;
       }
     }
-  
-    if (!FindNextFile(hSearch, &FileData))
+    
+    if (!FindClose (hSearch))
     {
-      bFinished = TRUE;
+      (void)_chdir( szPrevWorkDir );
+      return EXIT_FAILURE;
     }
-  }
-  
-  if (!FindClose (hSearch))
-  {
-    _chdir( szPrevWorkDir );
-    return EXIT_FAILURE;
-  }
+}
 
   // Start searching sub directories.
-  strcpy(szABSFilename, _szAbsPath);
-  strcat(szABSFilename, "\\*.*");
+  SSTRCPY(szABSFilename, NCHARS(szABSFilename), _szAbsPath);
+  SSTRCAT(szABSFilename, NCHARS(szABSFilename), "\\*.*");
   hSearch = FindFirstFile(szABSFilename, &FileData);
   bFinished = FALSE;
   if (hSearch == INVALID_HANDLE_VALUE)
   {
-    _chdir( szPrevWorkDir );
+    (void)_chdir( szPrevWorkDir );
     return EXIT_FAILURE;
   }
   while (!bFinished)
   {
-    if((strcmp(".", FileData.cFileName) != 0) &&
-       (strcmp("..", FileData.cFileName) != 0) && 
-       FileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    if( (strcmp(".", FileData.cFileName) != 0)
+     && (strcmp("..", FileData.cFileName) != 0)
+     && (FileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) )
     {
-      if(SNPRINTF(szABSFilename, PATH_MAX, "%s\\%s", _szAbsPath, FileData.cFileName) > 0)
+      if(SSNPRINTF(szABSFilename, NCHARS(szABSFilename), PATH_MAX, "%s\\%s", _szAbsPath, FileData.cFileName) > 0)
       {
         scanDSDir(szABSFilename, _pAppIdentity, _pList);
       }
@@ -1314,7 +1354,7 @@ int scanDSDir(char* _szAbsPath, pTW_IDENTITY _pAppIdentity, pDS_LIST _pList)
     }
   }
   
-  _chdir( szPrevWorkDir );
+  (void)_chdir( szPrevWorkDir );
 
   if (!FindClose (hSearch))
   {
@@ -1336,8 +1376,8 @@ int scanDSDir(char* _szAbsPath, pTW_IDENTITY _pAppIdentity, pDS_LIST _pList)
   struct dirent *pfile; 
   while(errno=0, ((pfile=readdir(pdir)) != 0))
   { 
-    if((strcmp(".", pfile->d_name) == 0) ||
-       (strcmp("..", pfile->d_name) == 0))
+    if( (strcmp(".", pfile->d_name) == 0)
+     || (strcmp("..", pfile->d_name) == 0) )
     {
       continue;
     }
@@ -1360,7 +1400,7 @@ int scanDSDir(char* _szAbsPath, pTW_IDENTITY _pAppIdentity, pDS_LIST _pList)
     }
     else if(S_ISREG(st.st_mode) && (0 != strstr(pfile->d_name, ".ds")))
     {
-      if(TWRC_SUCCESS == LoadDS(_pAppIdentity, szABSFilename, kOUT(_pList->NumFiles), _pList))
+      if(TWRC_SUCCESS == LoadDS(_pAppIdentity, szABSFilename, _pList->NumFiles+1, _pList, false))
       {
         _pList->NumFiles++;
       }
@@ -1375,7 +1415,6 @@ int scanDSDir(char* _szAbsPath, pTW_IDENTITY _pAppIdentity, pDS_LIST _pList)
   closedir(pdir); 
   return EXIT_SUCCESS;
 #endif
-  return 0;
 }
 
 
@@ -1383,83 +1422,98 @@ int scanDSDir(char* _szAbsPath, pTW_IDENTITY _pAppIdentity, pDS_LIST _pList)
 TW_INT16 LoadDS(pTW_IDENTITY _pAppIdentity,
                 char* _pPath,
                 TW_INT16 _index,
-                pDS_LIST _pList)
+                pDS_LIST _pList,
+                bool _boolKeepOpen)
 {
-  TW_INT16 result = TWRC_SUCCESS;
+  TW_INT16    result = TWRC_SUCCESS;
+  DS_INFO *pDSInfo;
 
-  if(0 != _pPath && _index < MAX_NUM_DS)
+  // Validate...
+  if ( (0 == _pPath)
+    || (_index >= MAX_NUM_DS) )
   {
-    if((_pList->DSInfo[kIN(_index)].pHandle = LOADLIBRARY(_pPath)) == 0)
-    {
-#ifndef _WIN32
+    // bad path or too many DS's already open
+    setConditionCode(_pAppIdentity, TWCC_OPERATIONERROR);
+    return TWRC_FAILURE;
+  }
+
+  // Initialize stuff...
+  pDSInfo = &_pList->DSInfo[_index];
+
+  // Try to load the driver...
+  pDSInfo->pHandle = LOADLIBRARY(_pPath);
+  if (pDSInfo->pHandle == 0)
+  {
+    #ifndef _WIN32
       kLOGERR << "dlopen: " << dlerror() << endl;
-#else
+    #else
       kLOGERR << "Could not load library: " << _pPath << endl;
-#endif //_WIN32
-      result = TWRC_FAILURE;
-    }
-    else
-    {
-      if((_pList->DSInfo[kIN(_index)].DS_Entry = (DSENTRYPROC)LOADFUNCTION(_pList->DSInfo[kIN(_index)].pHandle, "DS_Entry")) == 0)
-      {
-#ifdef _WIN32 // dlsym returning NULL is not an error on Unix
-        kLOGERR << "Could not find DSM_Entry function in DS: " << _pPath << endl;
-        UNLOADLIBRARY(_pList->DSInfo[kIN(_index)].pHandle);
-        _pList->DSInfo[kIN(_index)].pHandle = NULL;
-        return TWRC_FAILURE; 
-#endif //_WIN32
-      }
-#ifndef _WIN32
+    #endif //_WIN32
+    return TWRC_FAILURE;
+  }
+
+  // Try to get the entry point...
+  pDSInfo->DS_Entry = (DSENTRYPROC)LOADFUNCTION(pDSInfo->pHandle, "DS_Entry");
+  if (pDSInfo->DS_Entry == 0)
+  {
+    #ifdef _WIN32 // dlsym returning NULL is not an error on Unix
+      kLOGERR << "Could not find DSM_Entry function in DS: " << _pPath << endl;
+      UNLOADLIBRARY(pDSInfo->pHandle);
+      pDSInfo->pHandle = NULL;
+      return TWRC_FAILURE; 
+    #else
       char *error;
       if ((error = dlerror()) != 0)
       {
         kLOGERR << "dlsym: " << error << endl;
         return TWRC_FAILURE;
       }
-#endif //_WIN32
-
-      if(0 != _pList->DSInfo[kIN(_index)].DS_Entry) // was dlsym successful?
-      {
-        kLOG << "Loaded library: " << _pPath << endl;
-        _pList->DSInfo[kIN(_index)].Identity.Id = _index;
-        // Get the source to fill in the identity structure
-        // This operation should never fail on any DS
-        result = _pList->DSInfo[kIN(_index)].DS_Entry(_pAppIdentity, DG_CONTROL, DAT_IDENTITY, MSG_GET, (TW_MEMREF) &(_pList->DSInfo[kIN(_index)].Identity) );
-
-        // Check to see if it is a match to the the application
-        if(TWRC_SUCCESS != result ||
-           TRUE != SupportedMatch(_pAppIdentity, &(_pList->DSInfo[kIN(_index)].Identity)) )
-        {
-          UNLOADLIBRARY(_pList->DSInfo[kIN(_index)].pHandle);
-          _pList->DSInfo[kIN(_index)].pHandle = NULL;
-          _pList->DSInfo[kIN(_index)].DS_Entry = NULL;
-          return TWRC_FAILURE;
-        }
-        else
-        {
-          _pList->DSInfo[kIN(_index)].bOpen = FALSE;
-          // The DS should not modify the Id
-          // eventhough the spec states that the id will not be assigned until DSM 
-          // sends MSG_OPENDS to DS
-          // assert( _pList->DSInfo[kIN(_index)].Identity.Id == _index );
-          _pList->DSInfo[kIN(_index)].Identity.Id = _index;
-          strncpy(_pList->DSInfo[kIN(_index)].szPath, _pPath, MAX_PATH);
-        }
-      }
-      else // bad dlsym
-      {
-        result = TWRC_FAILURE;
-      }
-    }
+    #endif //_WIN32
   }
-  else // bad path or too many DS's already open
+
+  // Report success and squirrel away the index...
+  kLOG << "Loaded library: " << _pPath << endl;
+  pDSInfo->Identity.Id = _index;
+
+  // Get the source to fill in the identity structure
+  // This operation should never fail on any DS
+  // We need the NULL to be backwards compatible with the
+  // older DSM.  This is the only way a driver can tell if
+  // it's being talked to directly by the DSM instead of
+  // by the application (with the DSM as a passthru)...
+  result = pDSInfo->DS_Entry(NULL, DG_CONTROL, DAT_IDENTITY, MSG_GET, (TW_MEMREF) &pDSInfo->Identity );
+
+  // Check to see if it is a match to the the application
+  if ( (TWRC_SUCCESS != result)
+    || (TRUE != SupportedMatch(_pAppIdentity, &(pDSInfo->Identity))) )
   {
-    result = TWRC_FAILURE;
-    setConditionCode(_pAppIdentity, TWCC_OPERATIONERROR);
+    UNLOADLIBRARY(pDSInfo->pHandle);
+    pDSInfo->pHandle = NULL;
+    pDSInfo->DS_Entry = NULL;
+    return TWRC_FAILURE;
+  }
+
+  // Okay then...
+  pDSInfo->bOpen = FALSE;
+  // The DS should not modify the Id
+  // eventhough the spec states that the id will not be assigned until DSM 
+  // sends MSG_OPENDS to DS
+  // assert( _pList->DSInfo[_index].Identity.Id == _index );
+  pDSInfo->Identity.Id = _index;
+  SSTRNCPY(pDSInfo->szPath, NCHARS(pDSInfo->szPath), _pPath, MAX_PATH);
+
+  // We have to clear the DLL because of a limitation that prevents
+  // loading identically named modules.
+  if (_boolKeepOpen == false)
+  {
+    UNLOADLIBRARY(pDSInfo->pHandle);
+    pDSInfo->pHandle = NULL;
+    pDSInfo->DS_Entry = NULL;
   }
 
   return result;
 }
+
 
 //////////////////////////////////////////////////////////////////////////////
 TW_BOOL SupportedMatch(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIdentity)
@@ -1483,10 +1537,10 @@ TW_INT16 UnLoadAllDS(pTW_IDENTITY _pAppIdentity)
 {
   TW_INT16 result = TWRC_SUCCESS;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO   pAppInfo        = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO   pAppInfo        = &_gApplications.AppInfo[_pAppIdentity->Id];
   pDS_INFO    pDSInfo         = NULL;
 
-  for( int i =0; i < pAppInfo->pDSList->NumFiles; i++)
+  for( int i =1; i < pAppInfo->pDSList->NumFiles; i++)
   {
     pDSInfo = &pAppInfo->pDSList->DSInfo[i];
     if(0 != pDSInfo->DS_Entry)
@@ -1522,7 +1576,7 @@ TW_INT16 DSM_GetFirst(pTW_IDENTITY _pAppIdentity,
 {
   TW_INT16 ret = TWRC_SUCCESS;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
 
   // reset which source the app is pointing to
   pAppInfo->OpenSource = 0;
@@ -1547,7 +1601,7 @@ TW_INT16 DSM_GetNext(pTW_IDENTITY _pAppIdentity,
 {
   TW_INT16 ret = TWRC_SUCCESS;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
 
   TW_INT16 srcId = pAppInfo->OpenSource;
 
@@ -1577,7 +1631,7 @@ TW_INT16 GetMatchingDefault(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIde
 {
   TW_INT16 ret = TWRC_SUCCESS;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
 
   bool bMatchFnd = false;
 
@@ -1610,6 +1664,15 @@ TW_INT16 GetMatchingDefault(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIde
     DWORD DWsize = sizeof(_gDefaultDSPath);
     BOOL bRunAtStartup = ( RegQueryValueEx( hKey, "Default Source", NULL, &DWtype, (LPBYTE)_gDefaultDSPath, &DWsize) == ERROR_SUCCESS );
 
+    /// @TODO: Check the result...
+    // There wasn't any use of bRunAtStartup before I added this, and
+    // this is obviously pretty lame, but until I find out how the value
+    // was to be used I don't want to get rid of it...
+    if (bRunAtStartup)
+    {
+        bRunAtStartup = bRunAtStartup;
+    }
+
     // Close the registry key handle.
     RegCloseKey(hKey);
   }
@@ -1621,7 +1684,7 @@ TW_INT16 GetMatchingDefault(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIde
 
   // If current default source is not a match find a new default source
   // that will match this app
-  for(int x = 0; x < pAppInfo->pDSList->NumFiles; ++x)
+  for(int x = 1; x < pAppInfo->pDSList->NumFiles; ++x)
   {
     pTW_IDENTITY ptmpIdent = &(pAppInfo->pDSList->DSInfo[x].Identity);
 
@@ -1634,7 +1697,7 @@ TW_INT16 GetMatchingDefault(pTW_IDENTITY _pAppIdentity, pTW_IDENTITY _pSourceIde
         bMatchFnd = true;
       }
       // If the system default is a match we will use it and stop looking.
-      if(0 == strnicmp(_gDefaultDSPath, pAppInfo->pDSList->DSInfo[x].szPath, sizeof(pAppInfo->pDSList->DSInfo[x].szPath)))
+      if(0 == _strnicmp(_gDefaultDSPath, pAppInfo->pDSList->DSInfo[x].szPath, sizeof(pAppInfo->pDSList->DSInfo[x].szPath)))
       {
         *_pSourceIdentity = *ptmpIdent;
         bMatchFnd = true;
@@ -1661,16 +1724,16 @@ TW_INT16 AddApplication(pTW_IDENTITY _pAppIdentity)
 
   //Go through the list and find an empty location
   // Already tested that there is enough room to fit
-  for (i=0; i<MAX_NUM_APPS; i++)
+  for (i=1; i<MAX_NUM_APPS; i++)
   {
     if(_gApplications.AppInfo[i].pOrigin == NULL)
     {
       // The application ID is always +1 greater then the array index it resides in.
-      // The kOUT and kIN definitions help manage this.
+      // We just let the 0-index stay empty...
       _gApplications.NumApps++;
 
-      _pAppIdentity->Id         = kOUT(i);
-      pAPP_INFO pAppInfo        = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+      _pAppIdentity->Id         = i;
+      pAPP_INFO pAppInfo        = &_gApplications.AppInfo[_pAppIdentity->Id];
 
       pAppInfo->pOrigin         = _pAppIdentity;
       pAppInfo->OpenSource      = -1;
@@ -1716,7 +1779,7 @@ TW_UINT16 getConditionCode(pTW_IDENTITY _pAppIdentity)
 {
   TW_UINT16 retCC = TWCC_SUCCESS;
   assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-  pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+  pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
 
   // If the application has not registered with the DSM yet, then act on the
   // global condition code instead of the application specific one.
@@ -1756,7 +1819,7 @@ TW_BOOL setConditionCode(pTW_IDENTITY _pAppIdentity, TW_UINT16 _ConditionCode)
     else
     {
       assert(_pAppIdentity && _pAppIdentity->Id <= MAX_NUM_APPS);
-      pAPP_INFO pAppInfo = &_gApplications.AppInfo[kIN(_pAppIdentity->Id)];
+      pAPP_INFO pAppInfo = &_gApplications.AppInfo[_pAppIdentity->Id];
       pAppInfo->ConditionCode = _ConditionCode;
     }
   }
@@ -1806,7 +1869,7 @@ bool printTripletsInfo(const TW_UINT32    _DG,
     if(nCount > TRACECOUNTLIMIT)
     {
       TW_STR32 sCount;
-      SNPRINTF(sCount, 32, "%d", nCount - TRACECOUNTLIMIT);
+      SSNPRINTF(sCount, NCHARS(sCount), 32, "%d", nCount - TRACECOUNTLIMIT);
 
       kLOG << "(last message repeated " << sCount << " more times, but not printed.)" << endl;
     }
@@ -1875,7 +1938,7 @@ TW_INT16 DSM_Null(pTW_IDENTITY _pOrigin,
     return TWRC_FAILURE;
   }
 
-  pAPP_INFO pAppInfo = &(_gApplications.AppInfo[kIN(_pDest->Id)]);
+  pAPP_INFO pAppInfo = &(_gApplications.AppInfo[_pDest->Id]);
   pTW_CALLBACK pCallback = &(pAppInfo->Callback.callback);
   if( 0 != pCallback->CallBackProc)
   {
@@ -1917,7 +1980,7 @@ string StringFromDG(const TW_UINT32 _DG)
   }
 
   TW_STR32 hex;
-  SNPRINTF(hex, 32, "0x%04lx", _DG);
+  SSNPRINTF(hex, NCHARS(hex), 32, "0x%04lx", _DG);
 
   return hex;
 }
@@ -2056,7 +2119,7 @@ string StringFromDat(const TW_UINT16 _DAT)
   }
 
   TW_STR32 hex;
-  SNPRINTF(hex, 32, "0x%04x", _DAT);
+  SSNPRINTF(hex, NCHARS(hex), 32, "0x%04x", _DAT);
 
   return hex;
 }
@@ -2176,7 +2239,7 @@ string StringFromMsg(const TW_UINT16 _MSG)
   }
 
   TW_STR32 hex;
-  SNPRINTF(hex, 32, "0x%04x", _MSG);
+  SSNPRINTF(hex, NCHARS(hex), 32, "0x%04x", _MSG);
 
   return hex;
 }
@@ -2688,7 +2751,7 @@ string StringFromCap(const TW_UINT16 _Cap)
   }
 
   TW_STR32 hex;
-  SNPRINTF(hex, 32, "CAP 0x%04x", _Cap);
+  SSNPRINTF(hex, NCHARS(hex), 32, "CAP 0x%04x", _Cap);
 
   return hex;
 }
@@ -2739,7 +2802,7 @@ string StringFromRC(const TW_UINT16 rc)
   }
 
   TW_STR32 hex;
-  SNPRINTF(hex, 32, "TWRC 0x%04x", rc);
+  SSNPRINTF(hex, NCHARS(hex), 32, "TWRC 0x%04x", rc);
 
   return hex;
 }
@@ -2838,7 +2901,7 @@ string StringFromCC(const TW_UINT16 cc)
   }
 
   TW_STR32 hex;
-  SNPRINTF(hex, 32, "TWCC 0x%04x", cc);
+  SSNPRINTF(hex, NCHARS(hex), 32, "TWCC 0x%04x", cc);
 
   return hex;
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- * Copyright © 2006 TWAIN Working Group:  Adobe Systems Incorporated,
+ * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
  * AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.

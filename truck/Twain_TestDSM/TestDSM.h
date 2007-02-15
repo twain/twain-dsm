@@ -1,5 +1,5 @@
 /***************************************************************************
- * Copyright © 2006 TWAIN Working Group:  Adobe Systems Incorporated,
+ * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
  * AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
@@ -20,10 +20,10 @@
 #pragma once
 
 #ifndef __AFXWIN_H__
-	#error include 'stdafx.h' before including this file for PCH
+  #error include 'stdafx.h' before including this file for PCH
 #endif
 
-#include "resource.h"		// main symbols
+#include "resource.h"  // main symbols
 
 
 // CTestDSMApp:
@@ -33,15 +33,15 @@
 class CTestDSMApp : public CWinApp
 {
 public:
-	CTestDSMApp();
+  CTestDSMApp();
 
 // Overrides
-	public:
-	virtual BOOL InitInstance();
+  public:
+  virtual BOOL InitInstance();
 
 // Implementation
 
-	DECLARE_MESSAGE_MAP()
+  DECLARE_MESSAGE_MAP()
 };
 
 extern CTestDSMApp theApp;

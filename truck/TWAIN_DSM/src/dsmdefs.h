@@ -1,5 +1,5 @@
 /***************************************************************************
- * Copyright © 2006 TWAIN Working Group:  Adobe Systems Incorporated,
+ * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
  * AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
@@ -50,33 +50,58 @@
   #define LOADLIBRARY(lib) LoadLibrary(lib) 
   #define LOADFUNCTION(lib, func) GetProcAddress(lib, func)
   #define UNLOADLIBRARY(lib) FreeLibrary(lib)
+  #define NCHARS(s) sizeof(s)
   #define SNPRINTF _snprintf
 #else
   #define DllExport
   #define LOADLIBRARY(lib) dlopen(lib, RTLD_NOW)
   #define LOADFUNCTION(lib, func) dlsym(lib, func)
   #define UNLOADLIBRARY(lib) dlclose(lib)
+  #define NCHARS(s) sizeof(s)
   #define SNPRINTF snprintf
 #endif
 
-/**
-* correctly set the id of incoming systems IDs.
-* The application ID is always +1 greater then the array index it resides in.
-*/
-#define kIN(id) ((id)-1)
-/**
-* correctly set the id of outgoing systems IDs.
-* The application ID is always +1 greater then the array index it resides in.
-*/
-#define kOUT(id) ((id)+1)
+// Use the secure version of the string function in the source.
+// These secure funtions were introduced starting with Microsoft Visual Studio 2005.
+// These macros are for backwards compatibility for older versions
+#if _MSC_VER >= 1400// For Visual Studio 2005 and newer
+  #define SSTRCPY(d,z,s) strcpy_s(d,z,s)
+  #define SSTRCAT(d,z,s) strcat_s(d,z,s)
+  #define SSTRNCPY(d,z,s,m) strncpy_s(d,z,s,m)
+  #define SGETENV(d,z,n) ::GetEnvironmentVariable(n,d,z)
+  inline int SSNPRINTF(char *d, size_t z, size_t c, const char *f,...)
+  {
+      int result;
+      va_list valist;
+      va_start(valist,f);
+      result = _vsnprintf_s(d,z,c,f,valist);
+      va_end(valist);
+      return result;
+  }
+#else// For backwards compatibility
+  #define SSTRCPY(d,z,s) strcpy(d,s)
+  #define SSTRCAT(d,z,s) strcat(d,s)
+  #define SSTRNCPY(d,z,s,m) strncpy(d,s,m)
+  #define SGETENV(d,z,n) strcpy(d,getenv(n))
+  inline int SSNPRINTF(char *d, size_t z, size_t c, const char *f,...)
+  {
+    z = z; // Fix compiler warning
+      int result;
+      va_list valist;
+      va_start(f,valist);
+      result = SNPRINTF(d,c,f,valist);
+      va_end(valist);
+      return result;
+  }
+#endif
 
 /**
-* Maximun number of Data Souces that can be opened
+* Maximum number of Data Souces that can be opened
 */
 #define MAX_NUM_DS 50
 
 /**
-* Maximun number of Applications that can be opened
+* Maximum number of Applications that can be opened
 */
 #define MAX_NUM_APPS 50
 
