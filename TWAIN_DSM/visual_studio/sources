@@ -1,0 +1,52 @@
+#############################################################
+#
+# Copyright (c) 2000-2004 Eastman Kodak Company
+# Build the KDS TWAIN Driver...
+#
+#############################################################
+
+TARGETNAME=TWAIN_DSM
+BUILD_CONSUMES=dsm
+TARGETPATH=obj
+TARGETTYPE=DYNLINK
+UMTYPE=windows
+DLLENTRY=_DllMainCRTStartup
+NO_NTDLL=1
+386_WARNING_LEVEL=-W4
+C_DEFINES=$(C_DEFINES) /DTWAIN_DSM_EXPORTS /D_MBCS /D_WIN32
+USER_C_FLAGS=/EHsc
+386_STDCALL=0
+NO_SAFESEH=1
+NO_BUFFER_OVERFLOW_CHECKS=1
+
+DLLBASE=0x1c300000
+DLLDEF=TWAIN_DSM.def
+USE_LIBCMT=1
+USE_ATL=1
+USE_STL=1
+
+INCLUDES=\
+	$(SDK_INC_PATH)\crt\stl60;\
+	$(ATL_INC_ROOT)\crt\atl71;\
+	..\includes;\
+	..\..\pub\external\include
+
+SOURCES=\
+	stdafx.cpp\
+	TWAIN_DSM.cpp\
+	TWAIN_DSM.rc
+
+LINKLIBS=$(LINKLIBS)\
+	..\src\$(_OBJ_DIR)\*\dsm.lib\
+	$(SDK_LIB_PATH)\kernel32.lib\
+	$(SDK_LIB_PATH)\advapi32.lib\
+	$(SDK_LIB_PATH)\user32.lib\
+	$(SDK_LIB_PATH)\gdi32.lib\
+	$(SDK_LIB_PATH)\ole32.lib\
+	$(SDK_LIB_PATH)\uuid.lib\
+	$(SDK_LIB_PATH)\oleaut32.lib\
+	$(SDK_LIB_PATH)\version.lib\
+	$(SDK_LIB_PATH)\shfolder.lib\
+	$(SDK_LIB_PATH)\ws2_32.lib\
+	$(SDK_LIB_PATH)\strsafe.lib\
+ 	$(ATL_LIB_PATH)\atlsd.lib

@@ -1,0 +1,4 @@
+LIBRARY	    "TWAIN_DSM"
+
+EXPORTS
+    DSM_Entry

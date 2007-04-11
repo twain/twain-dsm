@@ -1,0 +1,4 @@
+base referer
+rect $structDS__INFO.html 418,364 498,391
+rect $structTW__IDENTITY.html 124,273 236,300
+rect $structTW__VERSION.html 291,156 403,183

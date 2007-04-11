@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TWAIN_DSM", "TWAIN_DSM_VS2003.vcproj", "{5F73EBC7-6A0E-4CBF-A37C-CB167E4CC379}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{5F73EBC7-6A0E-4CBF-A37C-CB167E4CC379}.Debug.ActiveCfg = Debug|Win32
+		{5F73EBC7-6A0E-4CBF-A37C-CB167E4CC379}.Debug.Build.0 = Debug|Win32
+		{5F73EBC7-6A0E-4CBF-A37C-CB167E4CC379}.Release.ActiveCfg = Release|Win32
+		{5F73EBC7-6A0E-4CBF-A37C-CB167E4CC379}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
