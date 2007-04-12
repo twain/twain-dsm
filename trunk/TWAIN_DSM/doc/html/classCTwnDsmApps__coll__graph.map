@@ -1,0 +1,39 @@
+<area shape="rect" href="$classCTwnDsmAppsImpl.html" title="Impl Class to hold list of connected applications." alt="" coords="371,459,509,485">
+<area shape="rect" title="m_ptwndsmappsimpl" alt="" coords="436,481,444,489">
+<area shape="rect" title="m_ptwndsmappsimpl" alt="" coords="436,545,444,553">
+<area shape="rect" href="$structCTwnDsmAppsImpl_1_1__pod.html" title="We use a pod system because it help prevents us from making dumb initialization mistakes..." alt="" coords="352,368,528,395">
+<area shape="rect" title="pod" alt="" coords="436,391,444,399">
+<area shape="rect" title="pod" alt="" coords="436,455,444,463">
+<area shape="rect" title="m_conditioncode" alt="" coords="515,119,523,127">
+<area shape="rect" title="m_conditioncode" alt="" coords="444,364,452,372">
+<area shape="rect" href="$structDS__LIST.html" title="Structure to hold a list of Data Sources." alt="" coords="421,187,496,213">
+<area shape="rect" title="NumFiles" alt="" coords="483,119,491,127">
+<area shape="rect" title="NumFiles" alt="" coords="452,183,460,191">
+<area shape="rect" href="$structAPP__INFO.html" title="Structure to hold data about a connected application, we use DS_LIST so we don&#39;t..." alt="" coords="240,277,331,304">
+<area shape="rect" title="m_AppInfo" alt="" coords="304,300,312,308">
+<area shape="rect" title="m_AppInfo" alt="" coords="413,364,421,372">
+<area shape="rect" title="identity" alt="" coords="55,28,63,36">
+<area shape="rect" title="identity" alt="" coords="236,277,244,285">
+<area shape="rect" href="$structDS__INFO.html" title="Describes everything we need to know about the Data Source over the course of the..." alt="" coords="348,96,428,123">
+<area shape="rect" title="Identity" alt="" coords="73,28,81,36">
+<area shape="rect" title="Identity" alt="" coords="344,101,352,109">
+<area shape="rect" title="hwnd" alt="" coords="137,209,145,217">
+<area shape="rect" title="hwnd" alt="" coords="236,273,244,281">
+<area shape="rect" title="pDSList" alt="" coords="447,209,455,217">
+<area shape="rect" title="pDSList" alt="" coords="327,280,335,288">
+<area shape="rect" title="DSInfo" alt="" coords="387,119,395,127">
+<area shape="rect" title="DSInfo" alt="" coords="431,183,439,191">
+<area shape="rect" title="pHandle" alt="" coords="648,28,656,36">
+<area shape="rect" title="pHandle" alt="" coords="424,97,432,105">
+<area shape="rect" title="bCallbackPending" alt="" coords="183,28,191,36">
+<area shape="rect" title="bCallbackPending" alt="" coords="344,101,352,109">
+<area shape="rect" title="szPath" alt="" coords="295,28,303,36">
+<area shape="rect" title="szPath" alt="" coords="367,92,375,100">
+<area shape="rect" title="DS_Entry" alt="" coords="391,28,399,36">
+<area shape="rect" title="DS_Entry" alt="" coords="385,92,393,100">
+<area shape="rect" title="twcallback" alt="" coords="517,28,525,36">
+<area shape="rect" title="twcallback" alt="" coords="408,92,416,100">
+<area shape="rect" title="CurrentState" alt="" coords="225,209,233,217">
+<area shape="rect" title="CurrentState" alt="" coords="252,273,260,281">
+<area shape="rect" title="ConditionCode" alt="" coords="332,209,340,217">
+<area shape="rect" title="ConditionCode" alt="" coords="291,273,299,281">

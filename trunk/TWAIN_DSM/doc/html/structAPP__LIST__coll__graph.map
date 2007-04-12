@@ -1,8 +1,0 @@
-base referer
-rect $structAPP__INFO.html 410,561 500,588
-rect $structTW__IDENTITY.html 886,273 998,300
-rect $structDS__INFO.html 612,364 692,391
-rect $structTW__CALLBACK.html 115,364 235,391
-rect $structTW__VERSION.html 650,156 762,183
-rect $structDS__LIST.html 359,471 434,497
-rect $structCallBackInfo.html 118,471 216,497
