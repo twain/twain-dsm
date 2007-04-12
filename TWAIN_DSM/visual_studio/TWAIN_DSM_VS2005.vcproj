@@ -28,8 +28,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="Copy twian.h to pub\include\twain folder"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain &amp; copy $(ProjectDir)\..\includes\twain\twain.h $(ProjectDir)\..\..\pub\include\twain"
+				Description="Make ..\..\pub\bin folder"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin mkdir $(ProjectDir)\..\..\pub\bin"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -46,7 +46,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\includes;..\..\pub\external\include;."
+				AdditionalIncludeDirectories="..\src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;TWAIN_DSM_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -68,16 +68,102 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)\$(ProjectName).dll"
-				LinkIncremental="0"
+				OutputFile="$(OutDir)\TWAINDSM32.dll"
+				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
-				ModuleDefinitionFile="TWAIN_DSM.def"
+				ModuleDefinitionFile="..\src\dsm.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/TWAIN_DSM.pdb"
 				SubSystem="2"
 				ImportLibrary="$(OutDir)/TWAIN_DSM.lib"
 				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			OutputDirectory="x64\$(ConfigurationName)"
+			IntermediateDirectory="x64\$(ConfigurationName)"
+			ConfigurationType="2"
+			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+				CommandLine=""
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="."
+				PreprocessorDefinitions="_DEBUG;_WINDOWS;_USRDLL;TWAIN_DSM_EXPORTS;WIN64"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(ProjectDir)\..\..\pub\bin\TWAINDSM64.dll"
+				LinkIncremental="0"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
+				ModuleDefinitionFile="..\src\dsm.def"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(OutDir)/TWAIN_DSM.pdb"
+				SubSystem="2"
+				ImportLibrary="$(OutDir)/TWAIN_DSMx64.lib"
+				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -115,8 +201,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="Copy twian.h to pub\include\twain folder"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain &amp; copy $(ProjectDir)\..\includes\twain\twain.h $(ProjectDir)\..\..\pub\include\twain"
+				Description="Make ..\..\pub\bin folder"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin mkdir $(ProjectDir)\..\..\pub\bin"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -132,10 +218,10 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\pub\include;."
+				AdditionalIncludeDirectories="."
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;TWAIN_DSM_EXPORTS"
 				RuntimeLibrary="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
@@ -151,9 +237,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/TWAIN_DSM.dll"
+				OutputFile="$(OutDir)/TWAINDSM32.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
+				ModuleDefinitionFile="..\src\dsm.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -188,97 +275,11 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug|x64"
-			OutputDirectory="x64\$(ConfigurationName)"
-			IntermediateDirectory="x64\$(ConfigurationName)"
-			ConfigurationType="2"
-			InheritedPropertySheets="UpgradeFromVC71.vsprops"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-				CommandLine="copy $(ProjectDir)\..\includes\twain\twain.h $(ProjectDir)\..\..\pub\include\twain"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="3"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\..\pub\include;..\..\pub\external\include;."
-				PreprocessorDefinitions="_DEBUG;_WINDOWS;_USRDLL;TWAIN_DSM_EXPORTS;WIN64"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				OutputFile="$(ProjectDir)\..\..\pub\bin\TWAIN_DSMx64.dll"
-				LinkIncremental="0"
-				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
-				ModuleDefinitionFile="TWAIN_DSM.def"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/TWAIN_DSM.pdb"
-				SubSystem="2"
-				ImportLibrary="$(OutDir)/TWAIN_DSMx64.lib"
-				TargetMachine="17"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine=""
-			/>
-		</Configuration>
-		<Configuration
 			Name="Release|x64"
 			OutputDirectory="x64\$(ConfigurationName)"
 			IntermediateDirectory="x64\$(ConfigurationName)"
 			ConfigurationType="2"
-			InheritedPropertySheets="UpgradeFromVC71.vsprops"
+			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -299,7 +300,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\pub\include;."
+				AdditionalIncludeDirectories="."
 				PreprocessorDefinitions="NDEBUG;_WINDOWS;_USRDLL;TWAIN_DSM_EXPORTS;WIN64"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -318,10 +319,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(ProjectDir)\..\..\pub\bin\TWAIN_DSMx64.dll"
+				OutputFile="$(ProjectDir)\..\..\pub\bin\TWAINDSM64.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
-				ModuleDefinitionFile="TWAIN_DSM.def"
+				ModuleDefinitionFile="..\src\dsm.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -352,7 +353,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\..\includes\twain\twain.h $(ProjectDir)\..\..\pub\include\twain"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>
@@ -365,51 +366,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\src\apps.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\dsm.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\TWAIN_DSM.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\TWAIN_DSM.def"
+				RelativePath="..\src\log.cpp"
 				>
 			</File>
 		</Filter>
@@ -423,19 +388,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\dsmdefs.h"
+				RelativePath="..\src\resource.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\dsmprv.h"
-				>
-			</File>
-			<File
-				RelativePath=".\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath="..\includes\twain\twain.h"
+				RelativePath="..\src\twain.h"
 				>
 			</File>
 		</Filter>
@@ -445,14 +402,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\TWAIN_DSM.rc"
+				RelativePath="..\src\dsm.rc"
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
