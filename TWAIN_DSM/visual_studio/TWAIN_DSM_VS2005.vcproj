@@ -20,16 +20,16 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ProjectDir)\..\..\pub\bin"
-			IntermediateDirectory="Debug"
+			OutputDirectory="x32$(ConfigurationName)"
+			IntermediateDirectory="x32$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="Make ..\..\pub\bin folder"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin mkdir $(ProjectDir)\..\..\pub\bin"
+				Description="create pub folders if do not exist"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -46,7 +46,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src"
+				AdditionalIncludeDirectories="."
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;TWAIN_DSM_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -102,20 +102,22 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
+				Description="Copy $(TargetFileName) and twain.h to pub directory"
+				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="x64\$(ConfigurationName)"
-			IntermediateDirectory="x64\$(ConfigurationName)"
+			OutputDirectory="x64$(ConfigurationName)"
+			IntermediateDirectory="x64$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				Description="create pub folders if do not exist"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -154,7 +156,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(ProjectDir)\..\..\pub\bin\TWAINDSM64.dll"
+				OutputFile="$(ProjectDir)\$(OutDir)\TWAINDSM64.dll"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
@@ -188,21 +190,22 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
+				Description="Copy $(TargetFileName) and twain.h to pub directory"
+				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(ProjectDir)\..\..\pub\bin"
-			IntermediateDirectory="Release"
+			OutputDirectory="x32$(ConfigurationName)"
+			IntermediateDirectory="x32$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="Make ..\..\pub\bin folder"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin mkdir $(ProjectDir)\..\..\pub\bin"
+				Description="create pub folders if do not exist"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -237,7 +240,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/TWAINDSM32.dll"
+				OutputFile="$(OutDir)\TWAINDSM32.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
 				ModuleDefinitionFile="..\src\dsm.def"
@@ -271,19 +274,22 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
+				Description="Copy $(TargetFileName) and twain.h to pub directory"
+				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="x64\$(ConfigurationName)"
-			IntermediateDirectory="x64\$(ConfigurationName)"
+			OutputDirectory="x64$(ConfigurationName)"
+			IntermediateDirectory="x64$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="create pub folders if do not exist"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -319,7 +325,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(ProjectDir)\..\..\pub\bin\TWAINDSM64.dll"
+				OutputFile="$(ProjectDir)\$(OutDir)\TWAINDSM64.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
 				ModuleDefinitionFile="..\src\dsm.def"
@@ -353,7 +359,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
+				Description="Copy $(TargetFileName) and twain.h to pub directory"
+				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
 			/>
 		</Configuration>
 	</Configurations>
