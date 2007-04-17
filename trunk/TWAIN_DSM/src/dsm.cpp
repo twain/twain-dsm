@@ -220,8 +220,8 @@ CTwnDsm::~CTwnDsm()
 * This is where we finish up the DSM_Entry duties inside of the
 * context of the class...
 */
-TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pAppId,
-                             TW_IDENTITY  *_pDsId,
+TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
+                             TW_IDENTITY  *_pDest,
                              TW_UINT32    _DG,
                              TW_UINT16    _DAT,
                              TW_UINT16    _MSG,
@@ -235,11 +235,16 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pAppId,
   bPrinted = printTripletsInfo(_DG,_DAT,_MSG,_pData);
 
   // Check that the id is valid...
-  if (!pod.m_ptwndsmapps->AppValidateId(_pAppId))
-  {
- 	pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
-    return TWRC_FAILURE;
-  }
+  // JMW ** We don't know yet if _POrigin is an App or DS 
+  //        TODO move this code down where it should be.probably needs duplicated 
+  //        else handle special cases of messages coming from DS first all the rest are from App
+  //
+  //if (!pod.m_ptwndsmapps->AppValidateId(_pOrigin))
+  //{
+  //  pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
+  //  return TWRC_FAILURE;
+  //}
+  // JMW we also need to validate _pDest when it should be
 
   // Sniff for the application forwarding an event to the
   // DS. It may be possible that the app has a message waiting for
@@ -247,12 +252,12 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pAppId,
   if (	 (DAT_EVENT == _DAT)
 	  && (MSG_PROCESSEVENT == _MSG))
   {
-	if (pod.m_ptwndsmapps->DsCallbackIsWaiting(_pAppId,_pDsId->Id))
+	if (pod.m_ptwndsmapps->DsCallbackIsWaiting(_pOrigin,_pDest->Id))
 	{
-	  ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pAppId,_pDsId->Id);
+	  ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pOrigin,_pDest->Id);
 	  ((TW_EVENT*)(_pData))->TWMessage = ptwcallback->Message;
 	  ptwcallback->Message = 0;
-	  pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,_pDsId->Id,FALSE);
+	  pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
 	  return TWRC_DSEVENT;
 	}
 	// No callback, so fall on through...
@@ -263,12 +268,12 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pAppId,
   {
     default:
       // check if the application is open or not.  If it isn't, we have a bad sequence
-      if (dsmState_Open == pod.m_ptwndsmapps->AppGetState(_pAppId))
+      if (dsmState_Open == pod.m_ptwndsmapps->AppGetState(_pOrigin))
       {
 		  // Issue the command...
-		  if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))
+		  if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pOrigin,_pDest->Id))
 		  {
-			rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))(_pAppId,
+			rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(_pOrigin,_pDest->Id))(_pOrigin,
 																			_DG,
 																			_DAT,
 																			_MSG,
@@ -278,39 +283,41 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pAppId,
 		  // For some reason we have no pointer to the dsentry function...
 		  else
 		  {
-			pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-			kLOG((kLOGERR,"DS_Entry is null...%ld",_pAppId->Id));
+			pod.m_ptwndsmapps->AppSetConditionCode(_pOrigin,TWCC_OPERATIONERROR);
+			kLOG((kLOGERR,"DS_Entry is null...%ld",_pOrigin->Id));
 			rcDSM = TWRC_FAILURE;
 		  }
       }
       else
       {
-          pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_SEQERROR);
+          pod.m_ptwndsmapps->AppSetConditionCode(_pOrigin,TWCC_SEQERROR);
           rcDSM = TWRC_FAILURE;
       }
       break;
 
     case DAT_PARENT:
-      rcDSM = DSM_Parent(_pAppId,_MSG,_pData);
+      rcDSM = DSM_Parent(_pOrigin,_MSG,_pData);
       break;
 
     case DAT_IDENTITY:
-      rcDSM = DSM_Identity(_pAppId,_MSG,(TW_IDENTITY*)_pData);
+      rcDSM = DSM_Identity(_pOrigin,_MSG,(TW_IDENTITY*)_pData);
       break;
 
     case DAT_STATUS:
-      rcDSM = DSM_Status(_pAppId,_MSG,(TW_STATUS*)_pData);
+      rcDSM = DSM_Status(_pOrigin,_MSG,(TW_STATUS*)_pData);
       break;
 
     case DAT_CALLBACK:
-      rcDSM = DSM_Callback(_pAppId,_pDsId,_MSG,(TW_CALLBACK*)_pData);
+		// DAT_CALLBACK can be either from an App registering, or from
+		// a DS Invoking a request
+      rcDSM = DSM_Callback(_pOrigin,_pDest,_MSG,(TW_CALLBACK*)_pData);
       break;
 
 	case DAT_NULL:
 	  // Note how the origin and destination are switched for this
 	  // call (and only this call).  Because, of course, this
 	  // message is being send from the driver to the application...
-      rcDSM = DSM_Null(_pDsId,_pAppId,_MSG);
+      rcDSM = DSM_Null(_pDest,_pOrigin,_MSG);
 	  break;
   }
 
@@ -480,13 +487,17 @@ TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
 
 
 /**
-* We've received a callback from the driver, make a note of it
-* so the next time the application hits us with a Windows message
-* for us to process, we can send it the callback message...
+* We've received a callback.  MSG_REGISTER_CALLBACK are from
+* the Application and MSG_INVOKE_CALLBACK (maybe Max OSx only) 
+* are from the DS.
+* If Callbacks have not been registered by the App then when the 
+* DS Invokes a callback, make a note of it so the next time the 
+* application hits us with a Windows message for us to process, 
+* we can send it the callback message...
 */
-TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pAppId,
-							   TW_IDENTITY *_pDsId,
-							   TW_UINT16   _MSG,
+TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
+							   TW_IDENTITY *_pDest,
+							   TW_UINT16    _MSG,
 							   TW_CALLBACK *_pData)
 {
   TW_INT16		result;
@@ -494,21 +505,44 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pAppId,
 
   // Init stuff...
   result = TWRC_SUCCESS;
-  ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pAppId,_pDsId->Id);
 
   // Take action on the message...
   switch (_MSG)
   {
     case MSG_REGISTER_CALLBACK:
       {
+		// Origin is an App
+		// Check that the id is valid...
+		if (!pod.m_ptwndsmapps->AppValidateId(_pOrigin))
+		{
+		  pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
+		  return TWRC_FAILURE;
+		}
+
+		if( 0 == _pDest 
+		 || 0 == _pDest->Id
+		 || 0 == _pDest->Id)
+		{
+		  pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
+		  return TWRC_FAILURE;
+		}
+		ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pOrigin,_pDest->Id);
 		memcpy(ptwcallback,_pData,sizeof(*ptwcallback));
-		pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,_pDsId->Id,FALSE);
+		pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
+
       }
       break;
 
+	case MSG_INVOKE_CALLBACK:
+	  {
+			// Origin is a DS
+
+	  }
+	  break;
+
     default:
       result = TWRC_FAILURE;
-      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
+      pod.m_ptwndsmapps->AppSetConditionCode(_pOrigin,TWCC_BADPROTOCOL);
       break;
   }
 

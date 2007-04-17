@@ -1582,6 +1582,7 @@ typedef struct TW_CALLBACK {
 
 /* used with DAT_CALLBACK */
 #define MSG_REGISTER_CALLBACK	0x0902
+#define MSG_INVOKE_CALLBACK     0x0903
 
 /****************************************************************************
  * Capabilities                                                             *

@@ -7,11 +7,6 @@
  *
  ***************************************************************************/
 
-#ifndef __DSM_H__
-#define __DSM_H__
-
-
-
 /**
 * @file dsm.h
 * Everything we need to make our .cpp files happy.
@@ -19,6 +14,9 @@
 * @author TWAIN Working Group
 * @date March 2007
 */
+
+#ifndef __DSM_H__
+#define __DSM_H__
 
 
 /**
