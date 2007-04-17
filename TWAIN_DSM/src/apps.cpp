@@ -358,15 +358,15 @@ TW_UINT16 CTwnDsmApps::AppGetConditionCode(TW_IDENTITY *_pAppId)
   // Return the application specific value...
   if (AppValidateId(_pAppId))
   {
-    conditioncode = m_ptwndsmappsimpl->pod.m_conditioncode;
-    m_ptwndsmappsimpl->pod.m_conditioncode = TWRC_SUCCESS;
+    conditioncode = m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].ConditionCode;
+    m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].ConditionCode = TWRC_SUCCESS;
 	return conditioncode;
   }
   // Uh-oh, we have no app, so return the global value...
   else
   {
-    conditioncode = m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].ConditionCode;
-    m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].ConditionCode = TWRC_SUCCESS;
+    conditioncode = m_ptwndsmappsimpl->pod.m_conditioncode;
+    m_ptwndsmappsimpl->pod.m_conditioncode = TWRC_SUCCESS;
 	return conditioncode;
   }
 }
