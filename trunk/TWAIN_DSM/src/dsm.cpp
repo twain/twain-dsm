@@ -46,9 +46,9 @@
 /*
 ** These are all the globals we should ever have in this project...
 */
-HINSTANCE	g_hinstance		= 0; /**< Windows Instance handle for the DSM DLL... */
-CTwnDsm		*g_ptwndsm		= 0; /**< The main DSM object */
-CTwnDsmLog	*g_ptwndsmlog	= 0; /**< The logging object, only access through macros */
+HINSTANCE   g_hinstance     = 0; /**< Windows Instance handle for the DSM DLL... */
+CTwnDsm    *g_ptwndsm       = 0; /**< The main DSM object */
+CTwnDsmLog *g_ptwndsmlog    = 0; /**< The logging object, only access through macros */
 
 
 
@@ -92,10 +92,10 @@ CTwnDsmLog	*g_ptwndsmlog	= 0; /**< The logging object, only access through macro
 */
 DSMENTRY DSM_Entry(TW_IDENTITY  *_pOrigin,
                    TW_IDENTITY  *_pDest,
-                   TW_UINT32    _DG,
-                   TW_UINT16    _DAT,
-                   TW_UINT16    _MSG,
-                   TW_MEMREF    _pData)
+                   TW_UINT32     _DG,
+                   TW_UINT16     _DAT,
+                   TW_UINT16     _MSG,
+                   TW_MEMREF     _pData)
 {
   TW_UINT16 rcDSM;
 
@@ -108,17 +108,17 @@ DSMENTRY DSM_Entry(TW_IDENTITY  *_pOrigin,
   // If we're processing DG_CONTROL/DAT_PARENT/MSG_OPENDSM then see
   // if we need to create our CTwnDsm object.  We don't want to
   // allocate any resources prior to new CTwnDsm!!!
-  if (	 (_MSG == MSG_OPENDSM)
-	  && (_DAT == DAT_PARENT)
-	  && (_DG  == DG_CONTROL)
-	  && (0 == g_ptwndsm))
+  if (   (_MSG == MSG_OPENDSM)
+      && (_DAT == DAT_PARENT)
+      && (_DG  == DG_CONTROL)
+      && (0 == g_ptwndsm))
   {
-	  g_ptwndsm = new CTwnDsm;
-	  if (0 == g_ptwndsm)
-	  {
+      g_ptwndsm = new CTwnDsm;
+      if (0 == g_ptwndsm)
+      {
           kPANIC("Failed to new CTwnDsm!!!");
-		  return TWRC_FAILURE;
-	  }
+          return TWRC_FAILURE;
+      }
   }
 
   // If we have no CTwnDsm object, then we're in trouble, but
@@ -126,19 +126,19 @@ DSMENTRY DSM_Entry(TW_IDENTITY  *_pOrigin,
   // MSG_OPENDSM or after MSG_CLOSEDSM...
   if (0 == g_ptwndsm)
   {
-	  if (	 (_MSG == MSG_GET)
-		  && (_DAT == DAT_STATUS)
-		  && (_DG  == DG_CONTROL)
-		  && (0 != _pData))
-	  {
+      if (   (_MSG == MSG_GET)
+          && (_DAT == DAT_STATUS)
+          && (_DG  == DG_CONTROL)
+          && (0 != _pData))
+      {
         ((TW_STATUS*)_pData)->ConditionCode = TWCC_BUMMER;
-		return (TWRC_SUCCESS);
-	  }
-	  else
-	  {
+        return (TWRC_SUCCESS);
+      }
+      else
+      {
         //kLOG((kLOGERR,"DAT_STATUS called before MSG_OPENDSM or after MSG_CLOSEDSM..."));
-		return (TWRC_FAILURE);
-	  }
+        return (TWRC_FAILURE);
+      }
   }
 
   // Transfer control over to our dsm object, otherwise we'll
@@ -148,13 +148,13 @@ DSMENTRY DSM_Entry(TW_IDENTITY  *_pOrigin,
   // If we successfully processed DG_CONTROL/DAT_PARENT/MSG_CLOSEDSM,
   // then destroy our object.  We don't want to have any resources
   // lingering around after we destroy our CTwnDsm object!!!
-  if (	 (TWRC_SUCCESS == rcDSM)
-	  && (_MSG == MSG_CLOSEDSM)
-	  && (_DAT == DAT_PARENT)
-	  && (_DG  == DG_CONTROL))
+  if (   (TWRC_SUCCESS == rcDSM)
+      && (_MSG == MSG_CLOSEDSM)
+      && (_DAT == DAT_PARENT)
+      && (_DG  == DG_CONTROL))
   {
-	  delete g_ptwndsm;
-	  g_ptwndsm = 0;
+      delete g_ptwndsm;
+      g_ptwndsm = 0;
   }
 
   // All done...
@@ -177,7 +177,7 @@ CTwnDsm::CTwnDsm()
   g_ptwndsmlog = new CTwnDsmLog;
   if (!g_ptwndsmlog)
   {
-	  kPANIC("Failed to new CTwnDsmLog!!!");
+      kPANIC("Failed to new CTwnDsmLog!!!");
   }
 
   // If logging is on, then this is a good chance to dump information
@@ -191,7 +191,7 @@ CTwnDsm::CTwnDsm()
   pod.m_ptwndsmapps = new CTwnDsmApps();
   if (!pod.m_ptwndsmapps)
   {
-	  kPANIC("Failed to new CTwnDsmApps!!!");
+      kPANIC("Failed to new CTwnDsmApps!!!");
   }
 }
 
@@ -222,103 +222,119 @@ CTwnDsm::~CTwnDsm()
 */
 TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
                              TW_IDENTITY  *_pDest,
-                             TW_UINT32    _DG,
-                             TW_UINT16    _DAT,
-                             TW_UINT16    _MSG,
-                             TW_MEMREF    _pData)
+                             TW_UINT32     _DG,
+                             TW_UINT16     _DAT,
+                             TW_UINT16     _MSG,
+                             TW_MEMREF     _pData)
 {
-  TW_UINT16		rcDSM;
-  bool			bPrinted;
-  TW_CALLBACK	*ptwcallback;
- 
+  TW_UINT16     rcDSM   = TWRC_SUCCESS;
+  bool          bPrinted;
+  TW_CALLBACK  *ptwcallback;
+  TW_IDENTITY  *pAppId  = _pOrigin;
+  TW_IDENTITY  *pDSId   = _pDest;
+
+  // Do a test to see if pOrigin is a DS instead of App, if so then switch pAppId and pDSId
+  // MSG_INVOKE_CALLBACK was only used on the Mac and is now deprecated (ver 2.1)
+  // it is here for backwords capabiltiy
+  if ( (_DAT == DAT_NULL /*&& _DG == DG_CONTROL */)
+    || (_DAT == DAT_CALLBACK && _MSG == MSG_INVOKE_CALLBACK /*&& _DG == DG_CONTROL */) )
+  {
+    pAppId  = _pDest;
+    pDSId   = _pOrigin;
+  }
+
   // Print the triplets to stdout for information purposes
   bPrinted = printTripletsInfo(_DG,_DAT,_MSG,_pData);
-
-  // Check that the id is valid...
-  // JMW ** We don't know yet if _POrigin is an App or DS 
-  //        TODO move this code down where it should be.probably needs duplicated 
-  //        else handle special cases of messages coming from DS first all the rest are from App
-  //
-  //if (!pod.m_ptwndsmapps->AppValidateId(_pOrigin))
-  //{
-  //  pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
-  //  return TWRC_FAILURE;
-  //}
-  // JMW we also need to validate _pDest when it should be
 
   // Sniff for the application forwarding an event to the
   // DS. It may be possible that the app has a message waiting for
   // it because it didn't register a callback.
-  if (	 (DAT_EVENT == _DAT)
-	  && (MSG_PROCESSEVENT == _MSG))
+  if (   (DAT_EVENT == _DAT)
+      && (MSG_PROCESSEVENT == _MSG))
   {
-	if (pod.m_ptwndsmapps->DsCallbackIsWaiting(_pOrigin,_pDest->Id))
-	{
-	  ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pOrigin,_pDest->Id);
-	  ((TW_EVENT*)(_pData))->TWMessage = ptwcallback->Message;
-	  ptwcallback->Message = 0;
-	  pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
-	  return TWRC_DSEVENT;
-	}
-	// No callback, so fall on through...
+    // Check that the AppID and DSID are valid...
+    if (!pod.m_ptwndsmapps->AppValidateIds(pAppId,pDSId))
+    {
+      pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
+      rcDSM = TWRC_FAILURE;
+    }
+    else if (pod.m_ptwndsmapps->DsCallbackIsWaiting(pAppId,pDSId->Id))
+    {
+      ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(pAppId,pDSId->Id);
+      ((TW_EVENT*)(_pData))->TWMessage = ptwcallback->Message;
+      ptwcallback->Message = 0;
+      pod.m_ptwndsmapps->DsCallbackSetWaiting(pAppId,pDSId->Id,FALSE);
+      rcDSM = TWRC_DSEVENT;
+    }
+    // No callback, so fall on through...
   }
 
   // Is this msg for us?
-  switch (_DAT)
+  if( TWRC_SUCCESS == rcDSM )
   {
-    default:
-      // check if the application is open or not.  If it isn't, we have a bad sequence
-      if (dsmState_Open == pod.m_ptwndsmapps->AppGetState(_pOrigin))
-      {
-		  // Issue the command...
-		  if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pOrigin,_pDest->Id))
-		  {
-			rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(_pOrigin,_pDest->Id))(_pOrigin,
-																			_DG,
-																			_DAT,
-																			_MSG,
-																			_pData);
-		  }
+  switch (_DAT)
+    {
+      default:
+        // check if the application is open or not.  If it isn't, we have a bad sequence
+        if (dsmState_Open == pod.m_ptwndsmapps->AppGetState(pAppId))
+        {
+            // Check that the AppID and DSID are valid...
+            if (!pod.m_ptwndsmapps->AppValidateIds(pAppId,pDSId))
+            {
+              pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
+              rcDSM = TWRC_FAILURE;
+            }
 
-		  // For some reason we have no pointer to the dsentry function...
-		  else
-		  {
-			pod.m_ptwndsmapps->AppSetConditionCode(_pOrigin,TWCC_OPERATIONERROR);
-			kLOG((kLOGERR,"DS_Entry is null...%ld",_pOrigin->Id));
-			rcDSM = TWRC_FAILURE;
-		  }
-      }
-      else
-      {
-          pod.m_ptwndsmapps->AppSetConditionCode(_pOrigin,TWCC_SEQERROR);
-          rcDSM = TWRC_FAILURE;
-      }
-      break;
+            // Issue the command...
+            else if (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))
+            {
+              rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(pAppId,
+                                                                              _DG,
+                                                                              _DAT,
+                                                                              _MSG,
+                                                                              _pData);
+            }
 
-    case DAT_PARENT:
-      rcDSM = DSM_Parent(_pOrigin,_MSG,_pData);
-      break;
+            // For some reason we have no pointer to the dsentry function...
+            else
+            {
+              pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_OPERATIONERROR);
+              kLOG((kLOGERR,"DS_Entry is null...%ld",pAppId->Id));
+              rcDSM = TWRC_FAILURE;
+            }
+        }
+        else
+        {
+            pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_SEQERROR);
+            rcDSM = TWRC_FAILURE;
+        }
+        break;
 
-    case DAT_IDENTITY:
-      rcDSM = DSM_Identity(_pOrigin,_MSG,(TW_IDENTITY*)_pData);
-      break;
+      case DAT_PARENT:
+        rcDSM = DSM_Parent(pAppId,_MSG,_pData);
+        break;
 
-    case DAT_STATUS:
-      rcDSM = DSM_Status(_pOrigin,_MSG,(TW_STATUS*)_pData);
-      break;
+      case DAT_IDENTITY:
+        rcDSM = DSM_Identity(pAppId,_MSG,(TW_IDENTITY*)_pData);
+        break;
 
-    case DAT_CALLBACK:
-		// DAT_CALLBACK can be either from an App registering, or from
-		// a DS Invoking a request
-      rcDSM = DSM_Callback(_pOrigin,_pDest,_MSG,(TW_CALLBACK*)_pData);
-      break;
+      case DAT_STATUS:
+        rcDSM = DSM_Status(pAppId,_MSG,(TW_STATUS*)_pData);
+        break;
 
-	case DAT_NULL:
-	  // Note how the origin and destination are switched for this
-	  // call (and only this call).  Because, of course, this
-	  // message is being send from the driver to the application...
-      rcDSM = DSM_Null(_pDest,_pOrigin,_MSG);
-	  break;
+      case DAT_CALLBACK:
+          // DAT_CALLBACK can be either from an App registering, or from
+          // a DS Invoking a request
+        rcDSM = DSM_Callback(_pOrigin,_pDest,_MSG,(TW_CALLBACK*)_pData);
+        break;
+
+      case DAT_NULL:
+        // Note how the origin and destination are switched for this
+        // call (and only this call).  Because, of course, this
+        // message is being send from the driver to the application...
+        rcDSM = DSM_Null(_pDest,_pOrigin,_MSG);
+        break;
+    }
   }
 
   // Log how it went...
@@ -342,16 +358,16 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
 * thing if it isn't for this function...
 */
 TW_INT16 CTwnDsm::DSM_Status(TW_IDENTITY  *_pAppId,
-							 TW_UINT16    _MSG,
-							 TW_STATUS    *_pStatus)
+                             TW_UINT16     _MSG,
+                             TW_STATUS    *_pStatus)
 {
   TW_INT16 result = TWRC_SUCCESS;
 
   switch (_MSG)
   {
     case MSG_GET:
-	case MSG_CHECKSTATUS:
-	   _pStatus->ConditionCode = pod.m_ptwndsmapps->AppGetConditionCode(_pAppId);
+    case MSG_CHECKSTATUS:
+       _pStatus->ConditionCode = pod.m_ptwndsmapps->AppGetConditionCode(_pAppId);
        _pStatus->Reserved = 0;
       break;
 
@@ -372,17 +388,17 @@ TW_INT16 CTwnDsm::DSM_Status(TW_IDENTITY  *_pAppId,
 * the application...
 */
 TW_INT16 CTwnDsm::DSM_Parent(TW_IDENTITY  *_pAppId,
-							 TW_UINT16    _MSG,
-							 TW_MEMREF	  _MemRef)
+                             TW_UINT16     _MSG,
+                             TW_MEMREF     _MemRef)
 {
   TW_UINT16 result;
 
   // Validate...
   if (0 == _pAppId)
   {
-	  kLOG((kLOGERR,"_pAppId is null"));
-	  pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-	  return TWRC_FAILURE;
+      kLOG((kLOGERR,"_pAppId is null"));
+      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+      return TWRC_FAILURE;
   }
 
   // Init stuff...
@@ -418,23 +434,23 @@ TW_INT16 CTwnDsm::DSM_Parent(TW_IDENTITY  *_pAppId,
 * the application...
 */
 TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
-							   TW_UINT16    _MSG,
-							   TW_IDENTITY  *_pDsId)
+                               TW_UINT16     _MSG,
+                               TW_IDENTITY  *_pDsId)
 {
   TW_INT16  result;
 
   // Validate...
   if (0 == _pAppId)
   {
-	  kLOG((kLOGERR,"_pAppId is null"));
-	  pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-	  return TWRC_FAILURE;
+      kLOG((kLOGERR,"_pAppId is null"));
+      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+      return TWRC_FAILURE;
   }
   else if (_pAppId->Id >= MAX_NUM_APPS)
   {
-	  kLOG((kLOGERR,"too many apps"));
-	  pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_MAXCONNECTIONS);
-	  return TWRC_FAILURE;
+      kLOG((kLOGERR,"too many apps"));
+      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_MAXCONNECTIONS);
+      return TWRC_FAILURE;
   }
 
   // Init stuff...
@@ -488,7 +504,7 @@ TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
 
 /**
 * We've received a callback.  MSG_REGISTER_CALLBACK are from
-* the Application and MSG_INVOKE_CALLBACK (maybe Max OSx only) 
+* the Application and MSG_INVOKE_CALLBACK (Mac OSx only) 
 * are from the DS.
 * If Callbacks have not been registered by the App then when the 
 * DS Invokes a callback, make a note of it so the next time the 
@@ -496,12 +512,12 @@ TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
 * we can send it the callback message...
 */
 TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
-							   TW_IDENTITY *_pDest,
-							   TW_UINT16    _MSG,
-							   TW_CALLBACK *_pData)
+                               TW_IDENTITY *_pDest,
+                               TW_UINT16    _MSG,
+                               TW_CALLBACK *_pData)
 {
-  TW_INT16		result;
-  TW_CALLBACK	*ptwcallback;
+  TW_INT16      result;
+  TW_CALLBACK  *ptwcallback;
 
   // Init stuff...
   result = TWRC_SUCCESS;
@@ -511,34 +527,49 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
   {
     case MSG_REGISTER_CALLBACK:
       {
-		// Origin is an App
-		// Check that the id is valid...
-		if (!pod.m_ptwndsmapps->AppValidateId(_pOrigin))
-		{
-		  pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
-		  return TWRC_FAILURE;
-		}
+        // Origin is an App
+        // Check that the ids are valid...
+        if (!pod.m_ptwndsmapps->AppValidateIds(_pOrigin,_pDest))
+        {
+          pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
+          return TWRC_FAILURE;
+        }
+        if(0 == _pData)
+        {
+          kLOG((kLOGERR,"Invalid data"));
+          pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADVALUE);
+          return TWRC_FAILURE;
+        }
 
-		if( 0 == _pDest 
-		 || 0 == _pDest->Id
-		 || 0 == _pDest->Id)
-		{
-		  pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
-		  return TWRC_FAILURE;
-		}
-		ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pOrigin,_pDest->Id);
-		memcpy(ptwcallback,_pData,sizeof(*ptwcallback));
-		pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
+        ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pOrigin,_pDest->Id);
+        memcpy(ptwcallback,_pData,sizeof(*ptwcallback));
+        pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
 
       }
       break;
 
-	case MSG_INVOKE_CALLBACK:
-	  {
-			// Origin is a DS
+    case MSG_INVOKE_CALLBACK:
+      {
+        // For backwards capability only.  MSG_INVOKE_CALLBACK is deprecated - use DAT_NULL
+        // Origin is a DS
+        // Check that the ids are valid...
+        kLOG((kLOGINFO,"MSG_INVOKE_CALLBACK is deprecated - use DAT_NULL"));
+        if (!pod.m_ptwndsmapps->AppValidateIds(_pDest,_pOrigin))
+        {
+          pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
+          return TWRC_FAILURE;
+        }
+        if(0 == _pData)
+        {
+          kLOG((kLOGERR,"Invalid data"));
+          pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADVALUE);
+          return TWRC_FAILURE;
+        }
 
-	  }
-	  break;
+        ptwcallback = (TW_CALLBACK*)_pData;
+        result = DSM_Null(_pDest,_pOrigin,ptwcallback->Message);
+      }
+      break;
 
     default:
       result = TWRC_FAILURE;
@@ -561,23 +592,23 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
 * directory...
 */
 TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
-						 TW_IDENTITY *_pDsId)
+                         TW_IDENTITY *_pDsId)
 {
   TW_INT16  result;
  
   // Validate...
   if (0 == _pAppId)
   {
-	  kLOG((kLOGERR,"_pAppId is null"));
-	  pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-	  return TWRC_FAILURE;
+      kLOG((kLOGERR,"_pAppId is null"));
+      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+      return TWRC_FAILURE;
   }
   else if (   (_pAppId->Id < 1)
-		   || (_pAppId->Id >= MAX_NUM_APPS))
+           || (_pAppId->Id >= MAX_NUM_APPS))
   {
-	  kLOG((kLOGERR,"id is out of range...%d",_pAppId->Id));
-	  pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_MAXCONNECTIONS);
-	  return TWRC_FAILURE;
+      kLOG((kLOGERR,"id is out of range...%d",_pAppId->Id));
+      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_MAXCONNECTIONS);
+      return TWRC_FAILURE;
   }
 
   // Init stuff...
@@ -588,6 +619,14 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   {
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_SEQERROR);
     return(TWRC_FAILURE);
+  }
+
+  // check for valid data
+  if(0 == _pDsId)
+  {
+    kLOG((kLOGERR,"_pDsId is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
+    return TWRC_FAILURE;
   }
 
   // Do we need to find a source to open
@@ -636,10 +675,10 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))
   {
     result = pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id)(_pAppId,
-																   DG_CONTROL,
-																   DAT_IDENTITY,
-																   MSG_OPENDS,
-																   (TW_MEMREF)_pDsId);
+                                                                   DG_CONTROL,
+                                                                   DAT_IDENTITY,
+                                                                   MSG_OPENDS,
+                                                                   (TW_MEMREF)_pDsId);
 
     if (TWRC_SUCCESS != result)
     {
@@ -651,30 +690,30 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   if (TWRC_SUCCESS == result)
   {
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
-	  // skip...
+      // skip...
     #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
-	  FILE *pfile;
-	  char *szHome;
-	  char szFile[FILENAME_MAX];
-	  szHome = getenv("HOME");
-	  if (szHome)
-	  {
-	    SSTRCPY(szFile,sizeof(szFile),szHome);
-	    SSTRCAT(szFile,sizeof(szFile),"/.twndsmrc");
-	    mkdir(szFile,0660);
-	    SSTRCAT(szFile,sizeof(szFile),"/defaultds");
-	    FOPEN(pfile,szFile,"w");
-	    if (pfile)
-	    {
-		  fwrite(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id),
-			     1,
-				 strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)),
-				 pfile);
-		  fclose(pfile);
-	    }
-	  }
+      FILE *pfile;
+      char *szHome;
+      char szFile[FILENAME_MAX];
+      szHome = getenv("HOME");
+      if (szHome)
+      {
+        SSTRCPY(szFile,sizeof(szFile),szHome);
+        SSTRCAT(szFile,sizeof(szFile),"/.twndsmrc");
+        mkdir(szFile,0660);
+        SSTRCAT(szFile,sizeof(szFile),"/defaultds");
+        FOPEN(pfile,szFile,"w");
+        if (pfile)
+        {
+          fwrite(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id),
+                 1,
+                 strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)),
+                 pfile);
+          fclose(pfile);
+        }
+      }
     #else
-	  #error Sorry, we don't recognize this system...
+      #error Sorry, we don't recognize this system...
     #endif
   }
 
@@ -688,23 +727,23 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
 * Close the specified driver...
 */
 TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
-						  TW_IDENTITY *_pDsId)
+                          TW_IDENTITY *_pDsId)
 {
   TW_INT16  result;
 
   // Validate...
   if (0 == _pAppId)
   {
-	kLOG((kLOGERR,"_pAppId is null"));
-	pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-	return TWRC_FAILURE;
+    kLOG((kLOGERR,"_pAppId is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
   }
-  else if (	  (_pAppId->Id < 1)
-		   || (_pAppId->Id >= MAX_NUM_APPS))
+  else if (   (_pAppId->Id < 1)
+           || (_pAppId->Id >= MAX_NUM_APPS))
   {
-	kLOG((kLOGERR,"id out of range...%d",_pAppId->Id));
-	pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-	return TWRC_FAILURE;
+    kLOG((kLOGERR,"id out of range...%d",_pAppId->Id));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
   }
 
   // Init stuff...
@@ -717,23 +756,31 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
+  // Check for valid DS
+  if(0 == _pDsId)
+  {
+    kLOG((kLOGERR,"_pDsId is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
+    return TWRC_FAILURE;
+  }
+
   // close the ds
   if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))
   {
     result = (pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))(_pAppId,
-																	 DG_CONTROL,
-																	 DAT_IDENTITY,
-																	 MSG_CLOSEDS,
-																	 (TW_MEMREF)_pDsId);
+                                                                     DG_CONTROL,
+                                                                     DAT_IDENTITY,
+                                                                     MSG_CLOSEDS,
+                                                                     (TW_MEMREF)_pDsId);
 
     if (TWRC_SUCCESS != result)
     {
       pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-	  return result;
-	}
+      return result;
+    }
 
-	// Cleanup...
-	pod.m_ptwndsmapps->UnloadDS(_pAppId,_pDsId->Id);
+    // Cleanup...
+    pod.m_ptwndsmapps->UnloadDS(_pAppId,_pDsId->Id);
   }
 
   // All done...
@@ -750,8 +797,8 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
 * safe...
 */
 BOOL WINAPI DllMain(HINSTANCE _hmodule,
-					DWORD     _dwReasonCalled,
-					LPVOID)
+                    DWORD     _dwReasonCalled,
+                    LPVOID)
 {
   switch (_dwReasonCalled)
   {
@@ -767,9 +814,9 @@ BOOL WINAPI DllMain(HINSTANCE _hmodule,
   return(TRUE);
 }
 #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
-	// Nothing for us to do...
+    // Nothing for us to do...
 #else
-	#error Sorry, we don't recognize this system...
+    #error Sorry, we don't recognize this system...
 #endif
 
 
@@ -781,9 +828,9 @@ BOOL WINAPI DllMain(HINSTANCE _hmodule,
 */
 #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
 BOOL CALLBACK SelectDlgProc(HWND   _hWnd,
-							UINT   _Message,
-							WPARAM _wParam,
-							LPARAM _lParam)
+                            UINT   _Message,
+                            WPARAM _wParam,
+                            LPARAM _lParam)
 {
   if (g_ptwndsm)
   {
@@ -811,15 +858,15 @@ BOOL CALLBACK SelectDlgProc(HWND   _hWnd,
 */
 #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
 BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
-							WPARAM wParam,
-							LPARAM /*lParam - unused*/)
+                            WPARAM wParam,
+                            LPARAM /*lParam - unused*/)
 {
-  TW_IDENTITY	*pAppId;
-  int			nIndex;
-  int			nSelect;
-  TW_UINT32		x;
-  char			*szProductName;
-  HWND			hListBox;
+  TW_IDENTITY  *pAppId;
+  int           nIndex;
+  int           nSelect;
+  TW_UINT32     x;
+  char         *szProductName;
+  HWND          hListBox;
 
   // Init stuff...
   nSelect = 0;
@@ -832,50 +879,50 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
       hListBox = ::GetDlgItem(hWnd,ID_LST_SOURCES);
       if (hListBox) 
       {
-		SendMessage(hListBox,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
+        SendMessage(hListBox,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
 
-		for (x = 1; x < MAX_NUM_DS; ++x)
+        for (x = 1; x < MAX_NUM_DS; ++x)
         {
-		  // We expect the list to be contiguous...
-		  szProductName = pod.m_ptwndsmapps->DsGetIdentity(pAppId,x)->ProductName;
-		  if (!szProductName[0])
-		  {
-			  break;
-		  }
-		  // Display the name...
+          // We expect the list to be contiguous...
+          szProductName = pod.m_ptwndsmapps->DsGetIdentity(pAppId,x)->ProductName;
+          if (!szProductName[0])
+          {
+              break;
+          }
+          // Display the name...
           nIndex = (int)SendMessage(hListBox,LB_ADDSTRING,(WPARAM)NULL,(LPARAM)szProductName);
           if (LB_ERR == nIndex)
           {
             break;
           }
-		  // Associate the id with the name...
+          // Associate the id with the name...
           nIndex = (int)SendMessage(hListBox,
-									LB_SETITEMDATA,
-									(WPARAM)nIndex,
-									(LPARAM)pod.m_ptwndsmapps->DsGetIdentity(pAppId,x)->Id);
+                                    LB_SETITEMDATA,
+                                    (WPARAM)nIndex,
+                                    (LPARAM)pod.m_ptwndsmapps->DsGetIdentity(pAppId,x)->Id);
           if (LB_ERR == nIndex)
           {
             break;
           }
-		  // Remember this item if it's the default...
-		  if (!strcmp(pod.m_ptwndsmapps->DsGetPath(pAppId,x),pod.m_DefaultDSPath))
-		  {
-		    nSelect = x;
-		  }
+          // Remember this item if it's the default...
+          if (!strcmp(pod.m_ptwndsmapps->DsGetPath(pAppId,x),pod.m_DefaultDSPath))
+          {
+            nSelect = x;
+          }
         }
-		// If we have no drivers, then disable the OK button...
-		if (pod.m_ptwndsmapps->AppGetNumDs(pAppId) < 1)
+        // If we have no drivers, then disable the OK button...
+        if (pod.m_ptwndsmapps->AppGetNumDs(pAppId) < 1)
         {
           HWND hOK= ::GetDlgItem(hWnd,IDOK);
           EnableWindow(hOK, FALSE);
         }
-		// Otherwise select the defaulted item...
+        // Otherwise select the defaulted item...
         else
         {
           nIndex = (int)SendMessage(hListBox,
-							        LB_FINDSTRINGEXACT,
-									(WPARAM)-1,
-									(LPARAM)pod.m_ptwndsmapps->DsGetIdentity(pAppId,nSelect)->ProductName);
+                                    LB_FINDSTRINGEXACT,
+                                    (WPARAM)-1,
+                                    (LPARAM)pod.m_ptwndsmapps->DsGetIdentity(pAppId,nSelect)->ProductName);
           if (LB_ERR == nIndex)
           {
             nIndex = 0;
@@ -903,7 +950,7 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
               if (LB_ERR == nIndex)
               {
                 // if there is no selection should not have OK available
-				// to press in the first place.
+                // to press in the first place.
                 return TRUE;
               }
               nIndex = (int)SendMessage(hListBox,LB_GETITEMDATA,(WPARAM)nIndex,(LPARAM)0);
@@ -938,29 +985,29 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
 * interfaces for all distributions...
 */
 TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
-							   TW_IDENTITY *_pDsId)
+                               TW_IDENTITY *_pDsId)
 {
   // Validate...
   if (0 == _pAppId)
   {
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-	return TWRC_FAILURE;
+    return TWRC_FAILURE;
   }
-  if (	 (_pAppId->Id < 1)
-	  || (_pAppId->Id >= MAX_NUM_APPS))
+  if (   (_pAppId->Id < 1)
+      || (_pAppId->Id >= MAX_NUM_APPS))
   {
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-	return TWRC_FAILURE;
+    return TWRC_FAILURE;
   }
   else if (0 == _pDsId)
   {
-    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-	return TWRC_FAILURE;
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
+    return TWRC_FAILURE;
   }
   else if (dsmState_Open != pod.m_ptwndsmapps->AppGetState(_pAppId))
   {
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_SEQERROR);
-	return TWRC_FAILURE;
+    return TWRC_FAILURE;
   }
 
   // Make sure the id is 0 before we go into this...
@@ -969,110 +1016,110 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
   // Windows...
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
 
-	  HKEY		hKey;
-	  long		status;
-	  char		*szPath;
-	  TW_INT16	result;
+      HKEY      hKey;
+      long      status;
+      char     *szPath;
+      TW_INT16  result;
 
-	  // Set the context...
-	  result = TWRC_SUCCESS;
-	  pod.m_pSelectDlgAppId = _pAppId;
-	    
-	  // If passed in a DS name we want to select it
-	  if (_pDsId->ProductName[0] != 0)
-	  {
-		result = GetDSFromProductName(_pAppId,_pDsId);
-		// If no match continue anyway.
-	  }
+      // Set the context...
+      result = TWRC_SUCCESS;
+      pod.m_pSelectDlgAppId = _pAppId;
+        
+      // If passed in a DS name we want to select it
+      if (_pDsId->ProductName[0] != 0)
+      {
+        result = GetDSFromProductName(_pAppId,_pDsId);
+        // If no match continue anyway.
+      }
 
-	  // If not passed a DS or the name was not currently found
-	  // then selete the default
-	  _pDsId->Id = 0;
-	  result = GetMatchingDefault(_pAppId,_pDsId);
-	  pod.m_pSelectDlgDsId = _pDsId;
+      // If not passed a DS or the name was not currently found
+      // then selete the default
+      _pDsId->Id = 0;
+      result = GetMatchingDefault(_pAppId,_pDsId);
+      pod.m_pSelectDlgDsId = _pDsId;
 
-	  // create the dialog window
-	  int ret = (int)::DialogBox(g_hinstance,
-					 		     (LPCTSTR)IDD_DLG_SOURCE,
-							     (HWND)NULL,
-							     (DLGPROC)::SelectDlgProc);
+      // create the dialog window
+      int ret = (int)::DialogBox(g_hinstance,
+                                 (LPCTSTR)IDD_DLG_SOURCE,
+                                 (HWND)NULL,
+                                 (DLGPROC)::SelectDlgProc);
 
-	  // User picked something...
-	  if (ret == IDOK)
-	  {
-	    // Validate the result...
+      // User picked something...
+      if (ret == IDOK)
+      {
+        // Validate the result...
         if (!pod.m_pSelectDlgDsId)
-		{
+        {
           kLOG((kLOGERR,"We came out of the Select Dialog with a null..."));
           pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-	      return TWRC_FAILURE;
-		}
+          return TWRC_FAILURE;
+        }
 
-		// Copy the data over...
-		*_pDsId = *pod.m_pSelectDlgDsId;
+        // Copy the data over...
+        *_pDsId = *pod.m_pSelectDlgDsId;
 
         // save default source to Registry  
-	    // sanity check...
-	    if (   (pod.m_pSelectDlgDsId->Id < 1)
-		    || (pod.m_pSelectDlgDsId->Id >= MAX_NUM_DS))
-	    {
-		  // Failed to save default DS to registry
-		  kLOG((kLOGERR,"Id is out of range 0 - 49..."));
-		  // Nothing preventing us from using the default right now
-		  pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BUMMER);
-	    }
+        // sanity check...
+        if (   (pod.m_pSelectDlgDsId->Id < 1)
+            || (pod.m_pSelectDlgDsId->Id >= MAX_NUM_DS))
+        {
+          // Failed to save default DS to registry
+          kLOG((kLOGERR,"Id is out of range 0 - 49..."));
+          // Nothing preventing us from using the default right now
+          pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BUMMER);
+        }
 
-	    else
-	    {
-		  // Get the path we're using...
-		  status = ERROR_SUCCESS;
-		  szPath = pod.m_ptwndsmapps->DsGetPath(pod.m_pSelectDlgAppId,pod.m_pSelectDlgDsId->Id);
+        else
+        {
+          // Get the path we're using...
+          status = ERROR_SUCCESS;
+          szPath = pod.m_ptwndsmapps->DsGetPath(pod.m_pSelectDlgAppId,pod.m_pSelectDlgDsId->Id);
 
-		  // Open the key, creating it if it doesn't exist.
-		  if (RegCreateKeyEx(HKEY_CURRENT_USER,
-							 "Software\\Microsoft\\Windows NT\\CurrentVersion\\Twain",
-		  					 NULL,
-							 NULL,
-							 NULL,
-							 KEY_READ | KEY_WRITE, NULL,
-							 &hKey,
-							 NULL) == ERROR_SUCCESS)
-		  {
-		    status = RegSetValueEx(hKey,"Default Source",0,REG_SZ,(LPBYTE)szPath,(DWORD)strlen((char*)szPath)+1);
-		    if (status != ERROR_SUCCESS)
-			{
-			  // Failed to save default DS to registry
-		 	  kLOG((kLOGERR,"Failed to save default DS to registry"));
-			  // Nothing preventing us from using the default right now
-			  pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BUMMER);
-			}
-		  }
-		  // Close the key.
-		  RegCloseKey(hKey);
-	    }
-	  }
+          // Open the key, creating it if it doesn't exist.
+          if (RegCreateKeyEx(HKEY_CURRENT_USER,
+                             "Software\\Microsoft\\Windows NT\\CurrentVersion\\Twain",
+                             NULL,
+                             NULL,
+                             NULL,
+                             KEY_READ | KEY_WRITE, NULL,
+                             &hKey,
+                             NULL) == ERROR_SUCCESS)
+          {
+            status = RegSetValueEx(hKey,"Default Source",0,REG_SZ,(LPBYTE)szPath,(DWORD)strlen((char*)szPath)+1);
+            if (status != ERROR_SUCCESS)
+            {
+              // Failed to save default DS to registry
+              kLOG((kLOGERR,"Failed to save default DS to registry"));
+              // Nothing preventing us from using the default right now
+              pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BUMMER);
+            }
+          }
+          // Close the key.
+          RegCloseKey(hKey);
+        }
+      }
 
-	  // We're cancelling...
-	  else if (ret == IDCANCEL)
-	  {
-		result = TWRC_CANCEL;
-	  }
+      // We're cancelling...
+      else if (ret == IDCANCEL)
+      {
+        result = TWRC_CANCEL;
+      }
 
-	  // Something back happened...
-	  else if (ret == -1)
-	  {
-		::MessageBox(NULL,"Dialog failed!","Error",MB_OK|MB_ICONINFORMATION);
-		pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BUMMER);
-		result = TWRC_FAILURE;
-	  }
+      // Something back happened...
+      else if (ret == -1)
+      {
+        ::MessageBox(NULL,"Dialog failed!","Error",MB_OK|MB_ICONINFORMATION);
+        pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BUMMER);
+        result = TWRC_FAILURE;
+      }
 
-	  return result;
+      return result;
 
   // We don't support the user selection box on linux...
   #elif  (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
 
-	pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
-	return TWRC_FAILURE;
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
+    return TWRC_FAILURE;
 
   // Ruh-roh, Reorge...
   #else
@@ -1089,15 +1136,15 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
 * interfaces for all distributions...
 */
 TW_INT16 CTwnDsm::GetDSFromProductName(TW_IDENTITY *_pAppId,
-									   TW_IDENTITY *_pDsId)
+                                       TW_IDENTITY *_pDsId)
 {
   TW_UINT32 ii;
 
   // Validate...
   if (   !pod.m_ptwndsmapps->AppValidateId(_pAppId)
-	  || (0 == _pDsId))
+      || (0 == _pDsId))
   {
-	kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
+    kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
     return TWRC_FAILURE;
   }
   else if (0 == _pDsId->ProductName[0])
@@ -1109,9 +1156,9 @@ TW_INT16 CTwnDsm::GetDSFromProductName(TW_IDENTITY *_pAppId,
   for (ii = 1; ii < MAX_NUM_DS; ++ii)
   {
     // Note that TW_STR32 type is NUL-filled, not NUL-terminated...
-	if (0 == strncmp(_pDsId->ProductName,
-					 pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii)->ProductName,
-					 sizeof(TW_STR32)))
+    if (0 == strncmp(_pDsId->ProductName,
+                     pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii)->ProductName,
+                     sizeof(TW_STR32)))
     {
       // match found, set the index
       *_pDsId = *pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii);
@@ -1130,14 +1177,14 @@ TW_INT16 CTwnDsm::GetDSFromProductName(TW_IDENTITY *_pAppId,
 * if we don't have any...
 */
 TW_INT16 CTwnDsm::DSM_GetFirst(TW_IDENTITY *_pAppId,
-						       TW_IDENTITY *_pDsId)
+                               TW_IDENTITY *_pDsId)
 {
   // Validate...
   if (   !pod.m_ptwndsmapps->AppValidateId(_pAppId)
-	  || (0 == _pDsId))
+      || (0 == _pDsId))
   {
-	kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
-	return TWRC_FAILURE;
+    kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
+    return TWRC_FAILURE;
   }
 
   // There are no supported drivers...
@@ -1147,6 +1194,15 @@ TW_INT16 CTwnDsm::DSM_GetFirst(TW_IDENTITY *_pAppId,
     pod.m_nextDsId = pod.m_ptwndsmapps->AppGetNumDs(_pAppId) + 1;
     return TWRC_ENDOFLIST;
   }
+
+  // Check for valid DS
+  if(0 == _pDsId)
+  {
+    kLOG((kLOGERR,"_pDsId is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
+    return TWRC_FAILURE;
+  }
+
 
   // Return info on the first driver we found...
   pod.m_nextDsId = 1;
@@ -1166,14 +1222,15 @@ TW_INT16 CTwnDsm::DSM_GetFirst(TW_IDENTITY *_pAppId,
 * if we've run out...
 */
 TW_INT16 CTwnDsm::DSM_GetNext(TW_IDENTITY *_pAppId,
-							  TW_IDENTITY *_pDsId)
+                              TW_IDENTITY *_pDsId)
 {
   // Validate...
   if (   !pod.m_ptwndsmapps->AppValidateId(_pAppId)
-	  || (0 == _pDsId))
+      || (0 == _pDsId))
   {
-	kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
-	return TWRC_FAILURE;
+    kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
+    return TWRC_FAILURE;
   }
 
   // Applications must call MSG_GETFIRST before making this call...
@@ -1185,7 +1242,7 @@ TW_INT16 CTwnDsm::DSM_GetNext(TW_IDENTITY *_pAppId,
   // We're out of items...
   else if (pod.m_nextDsId > pod.m_ptwndsmapps->AppGetNumDs(_pAppId))
   {
-	pod.m_nextDsId = 0;
+    pod.m_nextDsId = 0;
     return TWRC_ENDOFLIST;
   }
 
@@ -1206,16 +1263,17 @@ TW_INT16 CTwnDsm::DSM_GetNext(TW_IDENTITY *_pAppId,
 * if we've run out...
 */
 TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
-									 TW_IDENTITY *_pDsId)
+                                     TW_IDENTITY *_pDsId)
 {
-  bool		bMatchFnd = false;
-  TW_UINT32	ii;
+  bool      bMatchFnd = false;
+  TW_UINT32 ii;
 
   // Validate...
   if (   !pod.m_ptwndsmapps->AppValidateId(_pAppId)
-	  || (0 == _pDsId))
+      || (0 == _pDsId))
   {
     kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
     return TWRC_FAILURE;
   }
 
@@ -1244,10 +1302,10 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     HKEY hKey;
     if (RegOpenKeyEx(HKEY_CURRENT_USER,
-				     "Software\\Microsoft\\Windows NT\\CurrentVersion\\Twain",
-					 0,
-					 KEY_READ,
-					 &hKey) == ERROR_SUCCESS )
+                     "Software\\Microsoft\\Windows NT\\CurrentVersion\\Twain",
+                     0,
+                     KEY_READ,
+                     &hKey) == ERROR_SUCCESS )
     {
       // Look for the subkey "Default Source".
       DWORD DWtype = REG_SZ;
@@ -1269,22 +1327,22 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
 
   // Linux looks in the user's directory...
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
-	FILE *pfile;
-	char *szHome;
-	char szFile[FILENAME_MAX];
-	memset(pod.m_DefaultDSPath,0,sizeof(pod.m_DefaultDSPath));
-	szHome = getenv("HOME");
-	if (szHome)
-	{
-	  SSTRCPY(szFile,sizeof(szFile),szHome);
-	  SSTRCAT(szFile,sizeof(szFile),"/.twndsmrc/defaultds");
-	  FOPEN(pfile,szFile,"r");
-	  if (pfile)
-	  {
-		fread(pod.m_DefaultDSPath,1,sizeof(pod.m_DefaultDSPath)-1,pfile);
-		fclose(pfile);
-	  }
-	}
+    FILE *pfile;
+    char *szHome;
+    char szFile[FILENAME_MAX];
+    memset(pod.m_DefaultDSPath,0,sizeof(pod.m_DefaultDSPath));
+    szHome = getenv("HOME");
+    if (szHome)
+    {
+      SSTRCPY(szFile,sizeof(szFile),szHome);
+      SSTRCAT(szFile,sizeof(szFile),"/.twndsmrc/defaultds");
+      FOPEN(pfile,szFile,"r");
+      if (pfile)
+      {
+        fread(pod.m_DefaultDSPath,1,sizeof(pod.m_DefaultDSPath)-1,pfile);
+        fclose(pfile);
+      }
+    }
 
   // eek...
   #else
@@ -1296,20 +1354,20 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
   // that will match this app
   for (ii = 1; ii < MAX_NUM_DS; ++ii)
   {
-	// Mark the first match to use as default, if we don't
-	// find a match, this will be the one we go with...
+    // Mark the first match to use as default, if we don't
+    // find a match, this will be the one we go with...
     if (!bMatchFnd)
     {
-	  *_pDsId = *pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii);
+      *_pDsId = *pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii);
       bMatchFnd = true;
     }
 
     // If the system default is a match we will use it and stop looking.
-	if (0 == STRNICMP(pod.m_DefaultDSPath,
-					  pod.m_ptwndsmapps->DsGetPath(_pAppId,ii),
-					  sizeof(pod.m_DefaultDSPath)))
+    if (0 == STRNICMP(pod.m_DefaultDSPath,
+                      pod.m_ptwndsmapps->DsGetPath(_pAppId,ii),
+                      sizeof(pod.m_DefaultDSPath)))
     {
-	  *_pDsId = *pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii);
+      *_pDsId = *pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii);
       bMatchFnd = true;
       break;
     }
@@ -1342,7 +1400,7 @@ bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
 
   // too many of these messages to log...
   if (    (DG_CONTROL == _DG)
-	  &&  (DAT_EVENT == _DAT))
+      &&  (DAT_EVENT == _DAT))
   {
     return false;
   }
@@ -1359,8 +1417,8 @@ bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
   // If we're a capability, do some extra work and
   // try to tell them what cap it is...
   if (   (DG_CONTROL == _DG)
-	  && (DAT_CAPABILITY == _DAT)
-	  && (NULL != _pData))
+      && (DAT_CAPABILITY == _DAT)
+      && (NULL != _pData))
   {
     _pCap = (TW_CAPABILITY*)_pData;
     StringFromCap(szCap,NCHARS(szCap),_pCap->Cap);
@@ -1378,23 +1436,23 @@ bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
 * application, like MSG_XFERREADY...
 */
 TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
-						   TW_IDENTITY *_pDsId,
-						   TW_UINT16   _MSG)
+                           TW_IDENTITY *_pDsId,
+                           TW_UINT16    _MSG)
 {
   TW_CALLBACK *ptwcallback;
 
   // Validate...
-  if (	 !pod.m_ptwndsmapps->AppValidateId(_pAppId)
-	  || (0 == _pDsId))
+  if ( !pod.m_ptwndsmapps->AppValidateIds(_pAppId,_pDsId) )
   {
     kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
-	return TWRC_FAILURE;
+    return TWRC_FAILURE;
   }
 
   // Invoke the application's callback to send this message along.
   if (   (MSG_DEVICEEVENT != _MSG)
-	  && (MSG_CLOSEDSREQ  != _MSG)
-	  && (MSG_XFERREADY   != _MSG))
+      && (MSG_CLOSEDSOK   != _MSG)
+      && (MSG_CLOSEDSREQ  != _MSG)
+      && (MSG_XFERREADY   != _MSG))
   {
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
     return TWRC_FAILURE;
@@ -1408,8 +1466,8 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
   {
     // We should have a try/catch around this...
     ((DSMENTRYPROC)(ptwcallback->CallBackProc))(
-		pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
-		pod.m_ptwndsmapps->DsGetIdentity(_pAppId,_pDsId->Id),
+        pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+        pod.m_ptwndsmapps->DsGetIdentity(_pAppId,_pDsId->Id),
         DG_CONTROL,
         DAT_NULL,
         _MSG,
@@ -1418,13 +1476,13 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
 
   // Application has not registered a callback. As a result, the msg will
   // be sent to the app the next time it forwards an event.
-  /// @todo I don't like how we only store the last message for the app. If
-  /// multiple DS's make a callback to a single app, we are going to lose MSG's
+  // Each App's DS has a callback structure.   This way multiple DS's can make
+  // a callback to a single app, and we are not going to lose MSG's
   else
   {
-	ptwcallback->Message = _MSG;
-	pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,_pDsId->Id,TRUE);
-	pod.m_ptwndsmapps->AppWakeup(_pAppId);
+    ptwcallback->Message = _MSG;
+    pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,_pDsId->Id,TRUE);
+    pod.m_ptwndsmapps->AppWakeup(_pAppId);
   }
 
   return TWRC_SUCCESS;
@@ -1435,9 +1493,9 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
 /**
 * Convert a DG_ data group numerical value to a string...
 */
-void CTwnDsm::StringFromDg(char *_szDg,
-						   int _nChars,
-						   const TW_UINT32 _DG)
+void CTwnDsm::StringFromDg(char      *_szDg,
+                           int        _nChars,
+                     const TW_UINT32  _DG)
 {
   switch(_DG)
   {
@@ -1464,9 +1522,9 @@ void CTwnDsm::StringFromDg(char *_szDg,
 /**
 * Convert a DAT_ data argument type numerical value to a string...
 */
-void CTwnDsm::StringFromDat(char  *_szDat,
-							int   _nChars,
-							const TW_UINT16 _DAT)
+void CTwnDsm::StringFromDat(char     *_szDat,
+                            int       _nChars,
+                      const TW_UINT16 _DAT)
 {
   switch(_DAT)
   {
@@ -1608,15 +1666,15 @@ void CTwnDsm::StringFromDat(char  *_szDat,
 /**
 * Convert a MSG_ message numerical value to a string...
 */
-void CTwnDsm::StringFromMsg(char *_szMsg,
-							int _nChars,
-							const TW_UINT16 _MSG)
+void CTwnDsm::StringFromMsg(char     *_szMsg,
+                            int       _nChars,
+                      const TW_UINT16 _MSG)
 {
   switch (_MSG)
   {
     default:  
       SSNPRINTF(_szMsg,_nChars,_nChars,"MSG_0x%04x",_MSG);
-	  break;
+      break;
 
     case MSG_NULL:
       SSTRCPY(_szMsg,_nChars,"MSG_NULL");
@@ -1769,15 +1827,15 @@ void CTwnDsm::StringFromMsg(char *_szMsg,
 /**
 * Convert a CAP_ or ICAP_ capability numerical value to a string...
 */
-void CTwnDsm::StringFromCap(char *_szCap,
-							int _nChars,
-							const TW_UINT16 _Cap)
+void CTwnDsm::StringFromCap(char     *_szCap,
+                            int       _nChars,
+                      const TW_UINT16 _Cap)
 {
   switch (_Cap)
   {
     default:
       SSNPRINTF(_szCap,_nChars,_nChars,"CAP_0x%04x",_Cap);
-	  break;
+      break;
 
     case CAP_CUSTOMBASE:
       SSTRCPY(_szCap,_nChars,"CAP_CUSTOMBASE");
@@ -2286,15 +2344,15 @@ void CTwnDsm::StringFromCap(char *_szCap,
 /**
 * Convert a TWRC_ return code numerical value to a string...
 */
-void CTwnDsm::StringFromRC(char *_szRc,
-						   int _nChars,
-						   const TW_UINT16 _rc)
+void CTwnDsm::StringFromRC(char     *_szRc,
+                           int       _nChars,
+                     const TW_UINT16 _rc)
 {
   switch (_rc)
   {
     default:    
       SSNPRINTF(_szRc,_nChars,_nChars,"TWRC_0x%04x",_rc);
-	  break;
+      break;
 
     case TWRC_SUCCESS:
       SSTRCPY(_szRc,_nChars,"TWRC_SUCCESS");

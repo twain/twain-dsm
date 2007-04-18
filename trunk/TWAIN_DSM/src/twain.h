@@ -52,8 +52,8 @@
     version 1.8  August 1998     Added new types and definitions required
                                  for 1.8 Specification JMH
     version 1.8  January 1999    Changed search mode from SRCH_ to TWBD_ as
-                                 in 1.8 Specification, added TWBT_MAXICODE	JMH
-	  version 1.8  January 1999    Removed undocumented duplicate AUTO<cap> JMH
+                                 in 1.8 Specification, added TWBT_MAXICODE JMH
+    version 1.8  January 1999    Removed undocumented duplicate AUTO<cap> JMH
     version 1.8  March 1999      Removed undocumented 1.8 caps:
                                  CAP_FILESYSTEM
                                  CAP_PAPERBINDING
@@ -61,15 +61,18 @@
                                  CAP_POWERDOWNTIME
                                  ICAP_AUTODISCARDBLANKPAGES
                                * CAP_PAGEMULTIPLEACQUIRE - is CAP_REACQUIREALLOWED,
-							                   requires spec change.  JMH
+                                 requires spec change.  JMH
                                  Added Mac structure packing modifications JMH
-	  version 1.9  March 2000	     Added new types and definations required
-	                               for 1.9 Specification MLM
-	  version 1.9  March 2000	     Added ICAP_JPEGQUALITY, TWJQ_ values,
+    version 1.9  March 2000      Added new types and definations required
+                                 for 1.9 Specification MLM
+    version 1.9  March 2000      Added ICAP_JPEGQUALITY, TWJQ_ values,
                                  updated TWON_PROTOCOLMINOR for Release v1.9 MN
 
 March 23, 2005 - I have modified this file to work under Unix.  I have added
 automatic sensing of the compiler and structure packing pragmas. - FHH
+
+April 18, 2006 - Added  MSG_INVOKE_CALLBACK used by Mac.  But added it as 
+  deprecated for 2.1 release.  JMW
 
 \* ======================================================================== */
 
@@ -90,33 +93,33 @@ automatic sensing of the compiler and structure packing pragmas. - FHH
 /* Microsoft C/C++ Compiler */
 #if _MSC_VER
 #define TWH_CMP_MSC
-	#if _WIN32
-	#define TWH_32BIT
-  #define _MSWIN_
-	#elif _WIN64
-		#define TWH_64BIT
+  #if _WIN32
+    #define TWH_32BIT
     #define _MSWIN_
-	#endif
+  #elif _WIN64
+    #define TWH_64BIT
+    #define _MSWIN_
+  #endif
 
 /* GNU C/C++ Compiler  */
 #elif __GNUC__
   #define _UNIX_
-	#define TWH_CMP_GNU
-	#define TWH_32BIT
+  #define TWH_CMP_GNU
+  #define TWH_32BIT
 
 /* Borland C/C++ Compiler  */
 #elif __BORLAND__
 #define TWH_CMP_BORLAND
-	#define TWH_32BIT
+  #define TWH_32BIT
 
 /* CodeWarrior Compiler  */
 #elif __APPLE__
   #define _MAC_
-	#define TWH_CMP_CODEWARRIOR
-	#define TWH_32BIT
+  #define TWH_CMP_CODEWARRIOR
+  #define TWH_32BIT
 /* Unrecognized */
 #else
-	#error Unrecognized compiler…
+  #error Unrecognized compiler…
 #endif
 
 #ifdef  _MSWIN_
@@ -599,14 +602,14 @@ typedef struct {
 typedef struct {
    TW_STR255  FileName; /* full path target file */
    TW_UINT16  Format;   /* one of TWAF_xxxx */
-   TW_INT16 VRefNum;
+   TW_INT16   VRefNum;
 } TW_SETUPAUDIOFILEXFER, FAR * pTW_SETUPAUDIOFILEXFER;
 
 /* TW_CALLBACK, used to register callbacks */
 typedef struct TW_CALLBACK {
-    TW_MEMREF 	CallBackProc;		
-    TW_UINT32	RefCon;				
-    TW_INT16    Message;			
+    TW_MEMREF  CallBackProc;
+    TW_UINT32  RefCon;
+    TW_INT16    Message;
 } TW_CALLBACK, FAR * pTW_CALLBACK;
 
 #ifdef _MAC_
@@ -1509,7 +1512,7 @@ typedef struct TW_CALLBACK {
 /* Added 1.9 */
 #define DAT_ SETUPFILEXFER2 0x0301 /* New file xfer operation              */
 
-#define DAT_CALLBACK 		    0x0010
+#define DAT_CALLBACK        0x0010
 
 /****************************************************************************
  * Messages                                                                 *
@@ -1581,8 +1584,8 @@ typedef struct TW_CALLBACK {
 #define MSG_PASSTHRU          0x0901
 
 /* used with DAT_CALLBACK */
-#define MSG_REGISTER_CALLBACK	0x0902
-#define MSG_INVOKE_CALLBACK     0x0903
+#define MSG_REGISTER_CALLBACK   0x0902
+#define MSG_INVOKE_CALLBACK     0x0903 /* Mac Only, deprecated - use DAT_NULL and MSG_xxx instead */
 
 /****************************************************************************
  * Capabilities                                                             *
@@ -1791,9 +1794,9 @@ typedef struct TW_CALLBACK {
 #define TWEI_CHAPTERNUMBER          0x1239  /* added 1.9 */
 #define TWEI_DOCUMENTNUMBER         0x123A  /* added 1.9 */
 #define TWEI_PAGENUMBER             0x123B  /* added 1.9 */
-#define TWEI_CAMERA           	    0x123C  /* added 1.9 */
+#define TWEI_CAMERA                 0x123C  /* added 1.9 */
 #define TWEI_FRAMENUMBER            0x123D  /* added 1.9 */
-#define TWEI_FRAME	            0x123E  /* added 1.9 */
+#define TWEI_FRAME                  0x123E  /* added 1.9 */
 #define TWEI_PIXELFLAVOR            0x123F  /* added 1.9 */
 
 #define TWEJ_NONE                   0x0000

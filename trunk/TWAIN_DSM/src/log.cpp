@@ -47,28 +47,28 @@
 class CTwnDsmLogImpl
 {
   public:
-	/// Make sure we're squeaky clean...
+    /// Make sure we're squeaky clean...
     CTwnDsmLogImpl()
-	{
-	  memset(&pod,0,sizeof(pod));
-	}
+    {
+      memset(&pod,0,sizeof(pod));
+    }
 
   public:
     // If you add a class in future, (and I can't imagine why you
-	// would) declare it here and not in the pod, or the memset
-	// we do in the constructor will ruin your day...
+    // would) declare it here and not in the pod, or the memset
+    // we do in the constructor will ruin your day...
 
     /** 
-	* We use a pod system because it help prevents us from
+    * We use a pod system because it help prevents us from
     * making dumb initialization mistakes...
-	*/
+    */
     struct _pod
-	{
-      FILE *m_plog;					/**< where we'll dump information. */
-      char *m_message;				/**< buffer for our messages. */
-	  char m_logpath[FILENAME_MAX];	/**< where we put the file. */
-	  char m_logmode[16];			/**< how we fopen the file. */
-	} pod;
+    {
+      FILE *m_plog;                  /**< where we'll dump information. */
+      char *m_message;               /**< buffer for our messages. */
+      char  m_logpath[FILENAME_MAX]; /**< where we put the file. */
+      char  m_logmode[16];           /**< how we fopen the file. */
+    } pod;
 };
 
 
@@ -101,12 +101,12 @@ CTwnDsmLog::CTwnDsmLog(void)
       SSTRCPY(m_ptwndsmlogimpl->pod.m_logmode,sizeof(m_ptwndsmlogimpl->pod.m_logmode),"w");
     }
 
-	// Only bother to allocate a buffer if logging is on...
-	m_ptwndsmlogimpl->pod.m_message = (char*)calloc(TWNDSM_MAX_MSG,1);
-	if (!m_ptwndsmlogimpl->pod.m_message)
-	{
+    // Only bother to allocate a buffer if logging is on...
+    m_ptwndsmlogimpl->pod.m_message = (char*)calloc(TWNDSM_MAX_MSG,1);
+    if (!m_ptwndsmlogimpl->pod.m_message)
+    {
       kPANIC("Unable to allocate a buffer for logging...");
-	}
+    }
   }
 }
 
@@ -120,15 +120,15 @@ CTwnDsmLog::~CTwnDsmLog(void)
 {
   if (m_ptwndsmlogimpl)
   {
-	if (m_ptwndsmlogimpl->pod.m_plog)
-	{
-	  fclose(m_ptwndsmlogimpl->pod.m_plog);
-	}
-	if (m_ptwndsmlogimpl->pod.m_message)
-	{
-	  free(m_ptwndsmlogimpl->pod.m_message);
-	}
-	delete m_ptwndsmlogimpl;
+    if (m_ptwndsmlogimpl->pod.m_plog)
+    {
+      fclose(m_ptwndsmlogimpl->pod.m_plog);
+    }
+    if (m_ptwndsmlogimpl->pod.m_message)
+    {
+      free(m_ptwndsmlogimpl->pod.m_message);
+    }
+    delete m_ptwndsmlogimpl;
     m_ptwndsmlogimpl = 0;
   }
 }
@@ -150,11 +150,11 @@ CTwnDsmLog::~CTwnDsmLog(void)
 * one has to stay in the same thread as the HWND if the DAT_NULL
 * messages are going to work)...
 */
-void CTwnDsmLog::Log(int  _doassert,
-					 char *_file,
-					 int  _line,
-					 char *_format,
-					 ...)
+void CTwnDsmLog::Log(int   _doassert,
+                     char *_file,
+                     int   _line,
+                     char *_format,
+                     ...)
 {
   // We've nothing to do, so bail...
   if (0 == m_ptwndsmlogimpl->pod.m_logpath[0])
@@ -163,8 +163,8 @@ void CTwnDsmLog::Log(int  _doassert,
   }
 
   // Okay, now use the stack...
-  UINT nError;
-  UINT nChars;
+  UINT  nError;
+  UINT  nChars;
   char *message;
   char *file;
 
@@ -198,11 +198,11 @@ void CTwnDsmLog::Log(int  _doassert,
   if (!file)
   {
     // If we didn't find a backslash, try a forward slash...
-	file = strrchr(_file,'/');
+    file = strrchr(_file,'/');
   }
   if (file)
   {
-	// skip the slash...
+    // skip the slash...
     file = &file[1];
   }
   else
@@ -215,29 +215,29 @@ void CTwnDsmLog::Log(int  _doassert,
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     SYSTEMTIME st;
     GetLocalTime(&st);
-	nChars = SNPRINTF(m_ptwndsmlogimpl->pod.m_message,
-					  TWNDSM_MAX_MSG,
+    nChars = SNPRINTF(m_ptwndsmlogimpl->pod.m_message,
+                      TWNDSM_MAX_MSG,
                       #if (TWNDSM_CMP_VERSION >= 1400)
-					    TWNDSM_MAX_MSG,
+                        TWNDSM_MAX_MSG,
                       #endif
-					  "[%02d%02d%02d%03d %-8s %4d %5d %p] ",
-					  st.wHour,st.wMinute,st.wSecond,st.wMilliseconds,
-					  file,_line,
-					  nError,
-					  (void*)(UINT_PTR)GETTHREADID());
+                      "[%02d%02d%02d%03d %-8s %4d %5d %p] ",
+                      st.wHour,st.wMinute,st.wSecond,st.wMilliseconds,
+                      file,_line,
+                      nError,
+                      (void*)(UINT_PTR)GETTHREADID());
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     timeval tv;
-	tm tm;
+    tm tm;
     gettimeofday(&tv,NULL);
-	tzset();
-	localtime_r(&tv.tv_sec,&tm);
-	nChars = SNPRINTF(m_ptwndsmlogimpl->pod.m_message,
-					  TWNDSM_MAX_MSG,
-					  "[%02d%02d%02d%03ld %-8s %4d %5d %p] ",
-					  tm.tm_hour,tm.tm_min,tm.tm_sec,tv.tv_usec / 1000,
-					  file,_line,
-					  nError,
-					  (void*)GETTHREADID());
+    tzset();
+    localtime_r(&tv.tv_sec,&tm);
+    nChars = SNPRINTF(m_ptwndsmlogimpl->pod.m_message,
+                      TWNDSM_MAX_MSG,
+                      "[%02d%02d%02d%03ld %-8s %4d %5d %p] ",
+                      tm.tm_hour,tm.tm_min,tm.tm_sec,tv.tv_usec / 1000,
+                      file,_line,
+                      nError,
+                      (void*)GETTHREADID());
 
   #else
     #error Sorry, we don't recognize this system...
