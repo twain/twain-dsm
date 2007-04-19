@@ -1451,6 +1451,25 @@ typedef struct TW_CALLBACK {
 /* Added 1.8 */
 #define DG_AUDIO            0x0004L /* data pertaining to audio */
 
+/* Stuff added for 2.1 */
+#define DG_MASK             0xFFFFL /* all Data Groups limited to 16 bit */
+
+/****************************************************************************
+ * Supported Functionality                                                              *
+ ****************************************************************************/
+
+/* More Supported Functionality may be added in the future.
+ * These are for items that need to be determined before DS is opened.
+ * NOTE: Supported Functionality constants must be powers of 2 as they are
+ *       used as bitflags when Application asks DSM to present a list of DSs.
+ *       to support backward capability the App and DS will not use the fields
+ */
+#define SF_DSM2_DSM         0x00010000L /* added to the identity by the DSM  */
+#define SF_DSM2_DS          0x00020000L /* Set by the DS to indicate it would 
+                                           prefer to use DSM2 */
+#define SF_DSM2_APP         0x00040000L /* Set by the App to indicate it would 
+                                           prefer to use DSM2 */
+
 /****************************************************************************
  * Data Argument Types                                                      *
  ****************************************************************************/
