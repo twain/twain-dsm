@@ -241,6 +241,11 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
     AppSetConditionCode(0,TWCC_OPERATIONERROR);
     return TWRC_FAILURE;
   }
+  else
+  {
+    // Maybe one of many DS failed but we still found some.
+    AppSetConditionCode(_pAppId, TWCC_SUCCESS);
+  }
 
   // Move DSM to state 3 for this app...
   m_ptwndsmappsimpl->pod.m_AppInfo[ii].CurrentState = dsmState_Open;
@@ -1064,9 +1069,21 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 
   // Compare the supported groups.  Note that the & is correct
   // because we are comparing bits...
-  if (  !((_pAppId->SupportedGroups & 0x00fffffe)        // app supports
-      &   (pDSInfo->Identity.SupportedGroups & 0x00fffffe))) // source supports
+  // we do not want to compare DG_CONTROL because is it supported by all
+  if ( !(  (_pAppId->SupportedGroups & DG_MASK & ~DG_CONTROL)              // app supports
+         & (pDSInfo->Identity.SupportedGroups & DG_MASK & ~DG_CONTROL) ) ) // source supports
   {
+    UNLOADLIBRARY(pDSInfo->pHandle);
+    pDSInfo->pHandle = NULL;
+    pDSInfo->DS_Entry = NULL;
+    AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+    return TWRC_FAILURE;
+  }
+
+  // Check to see if the DS supports DSM2
+  else if( !(pDSInfo->Identity.SupportedGroups & SF_DSM2_DS) )
+  {
+    kLOG((kLOGERR,"The DS %s does not support DSM ver 2 ",pDSInfo->Identity.ProductName));
     UNLOADLIBRARY(pDSInfo->pHandle);
     pDSInfo->pHandle = NULL;
     pDSInfo->DS_Entry = NULL;

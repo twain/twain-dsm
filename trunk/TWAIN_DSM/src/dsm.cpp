@@ -544,7 +544,6 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
         ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pOrigin,_pDest->Id);
         memcpy(ptwcallback,_pData,sizeof(*ptwcallback));
         pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
-
       }
       break;
 
@@ -1010,6 +1009,9 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
+  /** @TODO scanDSDir needs to be done with each MSG_USERSELECT  
+    currently we are only scanDSDir when an App opens the DSM **/
+
   // Make sure the id is 0 before we go into this...
   _pDsId->Id = 0;
 
@@ -1186,6 +1188,9 @@ TW_INT16 CTwnDsm::DSM_GetFirst(TW_IDENTITY *_pAppId,
     kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
     return TWRC_FAILURE;
   }
+
+  /** @TODO scanDSDir needs to be done with each MSG_GETFIRST  
+      currently we are only scanDSDir when an App opens the DSM **/
 
   // There are no supported drivers...
   if (pod.m_ptwndsmapps->AppGetNumDs(_pAppId) < 1)
