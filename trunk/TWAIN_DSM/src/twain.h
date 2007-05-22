@@ -1467,8 +1467,6 @@ typedef struct TW_CALLBACK {
 #define SF_DSM2_DSM         0x00010000L /* added to the identity by the DSM  */
 #define SF_DSM2_DS          0x00020000L /* Set by the DS to indicate it would 
                                            prefer to use DSM2 */
-#define SF_DSM2_APP         0x00040000L /* Set by the App to indicate it would 
-                                           prefer to use DSM2 */
 
 /****************************************************************************
  * Data Argument Types                                                      *
