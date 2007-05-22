@@ -288,11 +288,12 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
             // Issue the command...
             else if (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))
             {
-              rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(pAppId,
-                                                                              _DG,
-                                                                              _DAT,
-                                                                              _MSG,
-                                                                              _pData);
+              rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(
+                                      pod.m_ptwndsmapps->AppGetIdentity(pAppId),
+                                      _DG,
+                                      _DAT,
+                                      _MSG,
+                                      _pData);
             }
 
             // For some reason we have no pointer to the dsentry function...
@@ -323,8 +324,8 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         break;
 
       case DAT_CALLBACK:
-          // DAT_CALLBACK can be either from an App registering, or from
-          // a DS Invoking a request
+          // DAT_CALLBACK can be either from an Application registering its Callback, 
+          // or from a DS Invoking a request to send a message to the Application
         rcDSM = DSM_Callback(_pOrigin,_pDest,_MSG,(TW_CALLBACK*)_pData);
         break;
 
@@ -332,7 +333,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         // Note how the origin and destination are switched for this
         // call (and only this call).  Because, of course, this
         // message is being send from the driver to the application...
-        rcDSM = DSM_Null(_pDest,_pOrigin,_MSG);
+        rcDSM = DSM_Null(pAppId,pDSId,_MSG);
         break;
     }
   }
@@ -673,11 +674,12 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   // open the ds
   if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))
   {
-    result = pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id)(_pAppId,
-                                                                   DG_CONTROL,
-                                                                   DAT_IDENTITY,
-                                                                   MSG_OPENDS,
-                                                                   (TW_MEMREF)_pDsId);
+    result = pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id)(
+                            pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+                            DG_CONTROL,
+                            DAT_IDENTITY,
+                            MSG_OPENDS,
+                            (TW_MEMREF)_pDsId);
 
     if (TWRC_SUCCESS != result)
     {
@@ -766,11 +768,12 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
   // close the ds
   if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))
   {
-    result = (pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))(_pAppId,
-                                                                     DG_CONTROL,
-                                                                     DAT_IDENTITY,
-                                                                     MSG_CLOSEDS,
-                                                                     (TW_MEMREF)_pDsId);
+    result = (pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))(
+                             pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+                             DG_CONTROL,
+                             DAT_IDENTITY,
+                             MSG_CLOSEDS,
+                             (TW_MEMREF)_pDsId);
 
     if (TWRC_SUCCESS != result)
     {

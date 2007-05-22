@@ -213,6 +213,7 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
       // The application ID is always +1 greater then the array index it resides in.
       // We just let the 0-index stay empty...
       _pAppId->Id = ii;
+      _pAppId->SupportedGroups |= SF_DSM2_DSM;
       m_ptwndsmappsimpl->pod.m_AppInfo[ii].identity = *_pAppId;
       m_ptwndsmappsimpl->pod.m_AppInfo[ii].hwnd     = (HWND)(_MemRef?*(HWND*)_MemRef:0);
       m_ptwndsmappsimpl->pod.m_AppInfo[ii].pDSList  = (DS_LIST*)calloc(sizeof(DS_LIST)+1,1);
