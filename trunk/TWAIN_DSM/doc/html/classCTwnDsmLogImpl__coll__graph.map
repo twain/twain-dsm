@@ -1,9 +1,0 @@
-<area shape="rect" href="$structCTwnDsmLogImpl_1_1__pod.html" title="We use a pod system because it help prevents us from making dumb initialization mistakes..." alt="" coords="47,112,215,139">
-<area shape="rect" title="pod" alt="" coords="127,135,135,143">
-<area shape="rect" title="pod" alt="" coords="127,199,135,207">
-<area shape="rect" title="m_logpath\nm_logmode" alt="" coords="27,28,35,36">
-<area shape="rect" title="m_logpath\nm_logmode" alt="" coords="85,108,93,116">
-<area shape="rect" title="m_plog" alt="" coords="127,28,135,36">
-<area shape="rect" title="m_plog" alt="" coords="127,108,135,116">
-<area shape="rect" title="m_message" alt="" coords="204,28,212,36">
-<area shape="rect" title="m_message" alt="" coords="149,108,157,116">
