@@ -1,9 +1,28 @@
 /***************************************************************************
- * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
- * AnyDoc Software Inc., Eastman Kodak Company, 
+ * TWAIN Data Source Manager version 2.0 
+ * Manages image acquisition data sources used by a machine. 
+ * Copyright © 2007 TWAIN Working Group:  
+ * Adobe Systems Incorporated,AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
  * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Contact the TWAIN Working Group by emailing the Technical Subcommittee at 
+ * twainwg@twain.org or mailing us at 13090 Hwy 9, Suite 3, Boulder Creek, CA 95006.
  *
  ***************************************************************************/
 
@@ -20,24 +39,31 @@
 
 
 /**
+* @defgroup Enviroment the computer enviroment
 * First off, figure out what compiler we're running and on which
 * platform we think we're running it.  We assume that you're building
 * on the same platform you intend to run, so if you are cross compiling
 * you will likely have a bit of work to do here...
+* @{
 */
 
 /**
-* Compilers we support...
+* @defgroup Compilers Compilers we support...
+* @{
 */
-#define TWNDSM_CMP_VISUALCPP    0x1001 // Preferably 2005+
-#define TWNDSM_CMP_GNUGPP       0x1002 // Preferably v4.x+
+#define TWNDSM_CMP_VISUALCPP    0x1001 ///< Preferably 2005+
+#define TWNDSM_CMP_GNUGPP       0x1002 ///< Preferably v4.x+
+//@}
 
 /**
-* Platforms we support...
+* @defgroup Platforms Platforms we support...
+* @{
 */
-#define TWNDSM_OS_WINDOWS       0x2001 // Preferably Win2K+
-#define TWNDSM_OS_MACOSX        0x2002 // Preferably 10.4+
-#define TWNDSM_OS_LINUX         0x2003 // Preferably 2.6+ kernel
+#define TWNDSM_OS_WINDOWS       0x2001 ///< Preferably Win2K+
+#define TWNDSM_OS_MACOSX        0x2002 ///< Preferably 10.4+
+#define TWNDSM_OS_LINUX         0x2003 ///< Preferably 2.6+ kernel
+//@}
+
 
 /**
 * If the user defines TWNDSM_CMP in their make file or project,
@@ -50,6 +76,23 @@
 */
 #ifndef TWNDSM_CMP
 
+/**
+* @def TWNDSM_CMP 
+* The compliler used
+* 
+* @def TWNDSM_CMP_VERSION 
+* The version of the compliler used
+* 
+* @def TWNDSM_OS 
+* The Operating system of the compliler used
+* 
+* @def TWNDSM_OS_64BIT 
+* defined to 1 if system is 64 bit
+* 
+* @def TWNDSM_OS_32BIT 
+* defined to 1 if system is 32 bit
+*/
+ 
   // GNU g++
   #if defined(__GNUC__)
     #define TWNDSM_CMP              TWNDSM_CMP_GNUGPP
@@ -59,12 +102,22 @@
     #else
       #define TWNDSM_OS             TWNDSM_OS_LINUX
     #endif
+  #if defined(__x86_64__) || defined(__LP64__)
+    #define TWNDSM_OS_64BIT   1
+  #else
+    #define TWNDSM_OS_32BIT   1
+  #endif
 
   // Visual Studio C++
   #elif defined(_MSC_VER)
     #define TWNDSM_CMP              TWNDSM_CMP_VISUALCPP
     #define TWNDSM_CMP_VERSION      _MSC_VER
     #define TWNDSM_OS               TWNDSM_OS_WINDOWS
+  #if defined(_M_X64) || defined(_M_IA64)
+    #define TWNDSM_OS_64BIT   1
+  #else
+    #define TWNDSM_OS_32BIT   1
+  #endif
 
   // ruh-roh...
   #else
@@ -84,7 +137,7 @@
   #include <windows.h>
   #include <direct.h>
 
-#elif  (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+#elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
   #include <dirent.h>
   #include <dlfcn.h>
   #include <unistd.h>
@@ -99,6 +152,8 @@
   #error Sorry, we don't recognize this system...
 #endif
 
+// End @defgroup Enviroment 
+//@}
 
 
 /**
@@ -126,23 +181,32 @@
 #include "twain.h"
 
 
-
 /**
+* @defgroup CrossPlatformFunc Cross platform functions, defines, and macroes
+* @{
+*
+*
 * @def DllExport
 * set system dll export configuration __declspec( dllexport )
 * 
+* @def NCHARS
+* The number of characters in a charter array
+* 
+* @def PATH_SEPERATOR
+* the operating system's symble used as a path seperator
+* 
 * @def LOADLIBRARY(lib)
 * Call system loadibrary function.  OS abstraction macro that tries to load a library.
-* @param lib path and name of library
+* @param[in] lib path and name of library
 * 
 * @def LOADFUNCTION(lib, func)
 * Call system GetProcAddress function.  OS abstraction macro that tries to locate the addess of a funtion name.
-* @param lib path and name of library
-* @param func name of the funtion
+* @param[in] lib path and name of library
+* @param[in] func name of the funtion
 *
 * @def UNLOADLIBRARY(lib)
 * Call system FreeLibrary function.  OS abstraction macro that tries to release the library.
-* @param lib library modual to unload
+* @param[in] lib library modual to unload
 * 
 * @def READ
 * OS abstraction macro that calls system _read function.
@@ -155,10 +219,28 @@
 * 
 * @def UNLINK
 * OS abstraction macro that calls system _unlink function.
+*
+* @def STRNICMP
+* OS abstraction macro that calls system _strnicmp function.
+*
+* @def DSMENTRY 
+* the DSM entry point type
+*
+* @def GETTHREADID
+* get the thread ID
+*
+* @def FOPEN
+* @param[out] pf pointer to the file to store the opened file
+* @param[in] name the path and name of the file to open
+* @param[in] mode the mode to open the file
+*
+* @def kTWAIN_DS_DIR
+* The path to where TWAIN Data Sources are stored on the system
 */
 #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
   #define DllExport __declspec( dllexport )
-  #define NCHARS(s) sizeof(s)
+  #define NCHARS(s) sizeof(s)/sizeof(s[0])
+  #define PATH_SEPERATOR '\\'
   #define LOADLIBRARY(lib) LoadLibrary(lib) 
   #define LOADFUNCTION(lib, func) GetProcAddress((HMODULE)lib, func)
   #define UNLOADLIBRARY(lib) FreeLibrary((HMODULE)lib)
@@ -174,17 +256,22 @@
   #define DSMENTRY TW_UINT16 FAR PASCAL
   #define GETTHREADID ::GetCurrentThreadId
   #if (TWNDSM_CMP_VERSION >= 1400)
-    #define FOPEN(pf,name,mode) (void)fopen_s(&pf,name,mode)
+    #define FOPEN(pf, name, mode) (void)fopen_s(&pf, name, mode)
   #else
-    #define FOPEN(pf,name,mode) pf = fopen(name,mode)
+    #define FOPEN(pf, name, mode) pf = fopen(name, mode)
   #endif
   #ifndef kTWAIN_DS_DIR
-    #define kTWAIN_DS_DIR "c:/windows/twain_32"
+    #if TWNDSM_OS_64BIT
+      #define kTWAIN_DS_DIR "twain_64"
+    #else
+      #define kTWAIN_DS_DIR "twain_32"
+    #endif
   #endif
 
 #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
   #define DllExport
-  #define NCHARS(s) sizeof(s)
+  #define NCHARS(s) sizeof(s)/sizeof(s[0])
+  #define PATH_SEPERATOR '/'
   #define LOADLIBRARY(lib) dlopen(lib, RTLD_LAZY)
   #define LOADFUNCTION(lib, func) dlsym(lib, func)
   #define UNLOADLIBRARY(lib) dlclose(lib)
@@ -203,6 +290,11 @@
   typedef void* HWND;
   #define DSMENTRY FAR PASCAL TW_UINT16
 
+  #if !defined(TRUE)
+    #define FALSE   0
+    #define TRUE    1
+  #endif
+
 #else
   #error Sorry, we don't recognize this system...
 #endif
@@ -210,10 +302,38 @@
 
 
 /**
+* @defgroup StringFunctions use secure string functions if we have them
 * We want to use secure string functions whenever possible, if g++
 * every includes a set I think it would be excellent to switch over
 * to it, but at least with Windows using them we stand a better
 * chance of finding boo-boos...
+* @{
+*
+* @def SSTRCPY
+* Secure String copy
+* @param[out] d destination string
+* @param[in] z size of destination in char
+* @param[in] s the source string
+* 
+* @def SSTRCAT
+* Secure String catinate
+* @param[out] d destination string
+* @param[in] z size of destination in char
+* @param[in] s the source string
+* 
+* @def SSTRNCPY
+* Secure String n copy
+* @param[out] d destination string
+* @param[in] z size of destination in char
+* @param[in] s the source string
+* @param[in] m the number of char to copy
+* 
+* @def SGETENV
+* Secure Get enviroment varable
+* @param[out] d destination string
+* @param[in] z size of destination in char
+* @param[in] n the source string
+* 
 */
 #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP) && (TWNDSM_CMP_VERSION >= 1400)
   #define SSTRCPY(d,z,s) strcpy_s(d,z,s)
@@ -255,15 +375,29 @@
       return result;
   }
 #endif
+// End @defgroup StringFunctions
+//@}
+
+// End @defgroup CrossPlatformFunc 
+//@}
 
 
 
 /**
+*@defgroup Logging logging defines and functions
 * These aren't logging levels, these are definitions to tell us whether
 * or not to assert.
 * @see kLOG
 */
+
+/** 
+* write info messages to LogFile. 
+*/
 #define kLOGINFO   0,__FILE__,__LINE__
+
+/** 
+* write error messages to LogFile. 
+*/
 #define kLOGERR    1,__FILE__,__LINE__
 
 /**
@@ -271,6 +405,10 @@
 * @see CTwnDsmLog
 */
 #define kLOG(a) if (g_ptwndsmlog) g_ptwndsmlog->Log a
+
+// End @defgroup Logging
+//@}
+
 
 /**
 * Display message to user.  Use this if logging is not an
@@ -319,7 +457,11 @@ typedef enum
   dsmState_Open       = 3  /**< Source Manager is open. */
 } DSM_State;
 
-
+/**
+* This function wraps the function loading calls. Linux has a 
+* special way to check dlsym failures.
+*/
+void* DSM_LoadFunction(void* _pHandle, const char* _pszSymbol);
 
 /**
 * @class CTwnDsmLog
@@ -465,7 +607,7 @@ class CTwnDsmApps
     /**
     * Set the condition code
     * @param[in] _pAppId id of app, or NULL if we have no apps
-    * @param[in] _conditioncode code to use
+    * @param[in] _conditioncode the code to use
     */
     void AppSetConditionCode(TW_IDENTITY *_pAppId,
                              TW_UINT16 _conditioncode);
@@ -476,6 +618,13 @@ class CTwnDsmApps
     * @return DSM_State of the application
     */
     DSM_State AppGetState(TW_IDENTITY *_pAppId);
+
+    /**
+    * Get the hwnd sent in with the call to MSG_OPENDSM
+    * @param[in] _pAppId id of app
+    * @return hwnd for the application that is calling us
+    */
+    void *AppHwnd(TW_IDENTITY *_pAppId);
 
     /**
     * Get the number of drivers we found as the result of a
@@ -610,6 +759,7 @@ class CTwnDsm
                             TW_UINT16    _MSG,
                             TW_MEMREF    _pData);
 
+        #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
         /**
         * Selection dialog, for apps that don't want to do GetFirst
         * GetNext.  This is only public because of the way that
@@ -620,7 +770,6 @@ class CTwnDsm
         * @param[in] _lParam lparam
         * @return FALSE if we processed the message
         */
-        #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
             BOOL CALLBACK SelectDlgProc(HWND _hWnd,
                                         UINT _Message,
                                         WPARAM _wParam,
@@ -682,6 +831,32 @@ class CTwnDsm
         TW_INT16 DSM_Identity(TW_IDENTITY *_pAppId,
                               TW_UINT16 _MSG,
                               TW_IDENTITY *_pDsId);
+
+        /**
+        * This routine will return the path to a DS.  
+        * This is here for backwards compatibility. DAT_TWUNKIDENTITY is 
+        * undocumented.  It was used by the Twunking layer.  Some old 
+        * applications use it to get the path to the DS.  We need to 
+        * continue to support it.
+        * @param[in] _pAppId Origin of message
+        * @param[in] _MSG message id: MSG_GET
+        * @param[in,out] _pTwunkId TW_TWUNKIDENTITY structure with a valid TW_IDENTITY, returns path
+        * @return a valid TWRC_xxxx return code
+        */
+        TW_INT16 DSM_TwunkIdentity(TW_IDENTITY *_pAppId,
+                                   TW_UINT16 _MSG,
+                                   TW_TWUNKIDENTITY *_pTwunkId);
+
+        /**
+        * Gets entry points
+        * @param[in] _pAppId Origin of message
+        * @param[in] _MSG message id: MSG_xxxx
+        * @param[out] _pEntrypoint TW_IDENTITY structure
+        * @return a valid TWRC_xxxx return code
+        */
+        TW_INT16 DSM_Entrypoint(TW_IDENTITY *_pAppId,
+                                TW_UINT16 _MSG,
+                                TW_ENTRYPOINT *_pEntrypoint);
 
         /**
         * Register application's callback.
@@ -768,6 +943,17 @@ class CTwnDsm
                                     TW_IDENTITY *_pDsId);
 
         /**
+        * Return back the tw_identity of the current source.  In state 3
+        * this will be the default source.  In state 4 this will be the
+        * currently opened source.
+        * @param[in] _pAppId The application identity
+        * @param[in,out] _pDsId A pointer reference that will be set to point to the current identity.
+        * @return a valid TWRC_xxxx return code
+        */
+        TW_INT16 GetIdentity(TW_IDENTITY *_pAppId,
+                             TW_IDENTITY *_pDsId);
+
+        /**
         * prints to stdout information about the triplets.
         * @param[in] _DG the Data Group
         * @param[in] _DAT the Data Argument Type
@@ -851,7 +1037,7 @@ class CTwnDsm
         struct _pod
         {
             /**
-            * The class taking care of our list of applications and drivers.
+            * The class takes care of our list of applications and drivers.
             */
             CTwnDsmApps *m_ptwndsmapps;
 
@@ -878,7 +1064,7 @@ class CTwnDsm
             * is only used on the Windows platform.
             */
             TW_IDENTITY *m_pSelectDlgAppId;
-        } pod;
+        } pod; /**< Pieces of Data for the DSM class*/
 };
 
 

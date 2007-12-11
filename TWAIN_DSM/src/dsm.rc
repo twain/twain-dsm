@@ -73,14 +73,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", TWNDSM_ORGANIZATION
-            VALUE "FileDescription", TWNDSM_DESCRIPTION
-            VALUE "FileVersion", TWNDSM_VERSIONMAJOR "." TWNDSM_VERSIONMINOR ".0.0"
+            VALUE "CompanyName", "TWAIN Working Group"
+            VALUE "FileDescription", "TWAIN 32 Source Manager (Image Acquisition Interface)"
+            VALUE "FileVersion", "2.0.0.0"
             VALUE "InternalName", "DSM"
             VALUE "LegalCopyright", "(C) 1993-2007 TWAIN Working Group.  All rights reserved."
             VALUE "OriginalFilename", "TWAIN_32.dll"
             VALUE "ProductName", "TWAIN DSM Dynamic Link Library"
-            VALUE "ProductVersion",TWNDSM_VERSIONMAJOR ", " TWNDSM_VERSIONMINOR ", 0, 0"
+            VALUE "ProductVersion", "2, 0, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
@@ -95,17 +95,32 @@ END
 // Dialog
 //
 
-IDD_DLG_SOURCE DIALOGEX 64, 60, 204, 86
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
+IDD_DLG_SOURCE DIALOGEX 64, 60, 245, 89
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
 CAPTION "Select Source"
-FONT 8, "MS Shell Dlg", 0, 0, 0x0
+FONT 8, "Arial Unicode MS", 400, 0, 0x0
 BEGIN
-    PUSHBUTTON      "Select",IDOK,159,45,37,15,WS_GROUP
-    PUSHBUTTON      "Cancel",IDCANCEL,159,65,37,15
+    PUSHBUTTON      "Select",IDOK,177,43,62,15,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,177,63,62,15
     LTEXT           "Sources:",IDC_STATIC,9,6,85,8,NOT WS_GROUP
-    LISTBOX         ID_LST_SOURCES,8,15,140,65,LBS_SORT | WS_VSCROLL | 
-                    WS_GROUP | WS_TABSTOP
+    LISTBOX         ID_LST_SOURCES,8,16,164,71,LBS_SORT | WS_VSCROLL | WS_GROUP | WS_TABSTOP
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DLG_SOURCE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 244
+    END
+END
+#endif    // APSTUDIO_INVOKED
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

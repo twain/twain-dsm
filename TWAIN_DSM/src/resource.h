@@ -10,10 +10,10 @@
 #define TWNDSM_ORGANIZATION     "TWAIN Working Group"
 #define TWNDSM_DESCRIPTION      "TWAIN 32 Source Manager (Image Acquisition Interface)"
 #define TWNDSM_VERSIONMAJOR     "2"
-#define TWNDSM_VERSIONMINOR		"0"
+#define TWNDSM_VERSIONMINOR     "0"
 
 #define ID_LST_SOURCES          10
-#define IDC_STATIC				11
+#define IDC_STATIC              11
 #define IDD_DLG_SOURCE          101
 
 // Next default values for new objects
