@@ -1,9 +1,28 @@
 /***************************************************************************
- * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
- * AnyDoc Software Inc., Eastman Kodak Company, 
+ * TWAIN Data Source Manager version 2.0 
+ * Manages image acquisition data sources used by a machine. 
+ * Copyright © 2007 TWAIN Working Group:  
+ * Adobe Systems Incorporated,AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
  * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Contact the TWAIN Working Group by emailing the Technical Subcommittee at 
+ * twainwg@twain.org or mailing us at 13090 Hwy 9, Suite 3, Boulder Creek, CA 95006.
  *
  ***************************************************************************/
 
@@ -68,7 +87,7 @@ class CTwnDsmLogImpl
       char *m_message;               /**< buffer for our messages. */
       char  m_logpath[FILENAME_MAX]; /**< where we put the file. */
       char  m_logmode[16];           /**< how we fopen the file. */
-    } pod;
+    } pod;    /**< Pieces of data for CTwnDsmAppsImpl*/
 };
 
 
@@ -171,6 +190,11 @@ void CTwnDsmLog::Log(int   _doassert,
   // Grab the system error, this can be really useful...
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     nError = GetLastError();
+  if (nError == 0)
+  {
+    // Yeah, yeah...this is dumb, but I like a clean prefast log...  :)
+    nError = 0;
+  }
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     nError = errno;
   #else

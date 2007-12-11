@@ -1,9 +1,28 @@
 /***************************************************************************
- * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
- * AnyDoc Software Inc., Eastman Kodak Company, 
+ * TWAIN Data Source Manager version 2.0 
+ * Manages image acquisition data sources used by a machine. 
+ * Copyright © 2007 TWAIN Working Group:  
+ * Adobe Systems Incorporated,AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
  * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Contact the TWAIN Working Group by emailing the Technical Subcommittee at 
+ * twainwg@twain.org or mailing us at 13090 Hwy 9, Suite 3, Boulder Creek, CA 95006.
  *
  ***************************************************************************/
 
@@ -118,10 +137,10 @@ class CTwnDsmAppsImpl
     /**
     * Set the condition code.
     * @param[in] _pAppId Origin of message
-    * @param[in] conditioncode new code to remember
+    * @param[in] _ConditionCode new code to remember
     */
     void AppSetConditionCode(TW_IDENTITY *_pAppId,
-                             TW_UINT16    conditioncode);
+                             TW_UINT16    _ConditionCode);
 
   public:
     // If you add a class in future, declare it here and not in
@@ -136,7 +155,7 @@ class CTwnDsmAppsImpl
     {
       APP_INFO    m_AppInfo[MAX_NUM_APPS];  /**< list of applications. */
       TW_UINT16   m_conditioncode;          /**< we use this if we have no apps. */
-    } pod;
+    } pod; /**< Pieces of data for CTwnDsmAppsImpl*/
 };
 
 
@@ -183,6 +202,7 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
                               TW_MEMREF    _MemRef)
 {
   int ii;
+  char szDsm[FILENAME_MAX];
 
   // Validate...
   if (_pAppId->ProductName[0] == 0)
@@ -213,7 +233,7 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
       // The application ID is always +1 greater then the array index it resides in.
       // We just let the 0-index stay empty...
       _pAppId->Id = ii;
-      _pAppId->SupportedGroups |= SF_DSM2_DSM;
+      _pAppId->SupportedGroups |= DF_DSM2;
       m_ptwndsmappsimpl->pod.m_AppInfo[ii].identity = *_pAppId;
       m_ptwndsmappsimpl->pod.m_AppInfo[ii].hwnd     = (HWND)(_MemRef?*(HWND*)_MemRef:0);
       m_ptwndsmappsimpl->pod.m_AppInfo[ii].pDSList  = (DS_LIST*)calloc(sizeof(DS_LIST)+1,1);
@@ -235,8 +255,19 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
+  // Work out the full path to our drivers (if needed)...
+  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    (void)::GetWindowsDirectory(szDsm,sizeof(szDsm));
+    SSTRCAT(szDsm,sizeof(szDsm),"\\");
+    SSTRCAT(szDsm,sizeof(szDsm),kTWAIN_DS_DIR);
+  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    SSTRCPY(szDsm,sizeof(szDsm),kTWAIN_DS_DIR);
+  #else
+    #error Sorry, we don't recognize this system...
+  #endif
+
   // Recursively navigate the TWAIN datasource dir looking for data sources.
-  if (m_ptwndsmappsimpl->scanDSDir(kTWAIN_DS_DIR,_pAppId) == EXIT_FAILURE)
+  if (m_ptwndsmappsimpl->scanDSDir(szDsm,_pAppId) == EXIT_FAILURE)
   {
     kLOG((kLOGERR,"Something bad happened while we were looking for drivers..."));
     AppSetConditionCode(0,TWCC_OPERATIONERROR);
@@ -250,6 +281,14 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
 
   // Move DSM to state 3 for this app...
   m_ptwndsmappsimpl->pod.m_AppInfo[ii].CurrentState = dsmState_Open;
+
+  // at this point we can safely add our flag to the caller's
+  // application id, but don't bother to do it unless they put
+  // their flag in there first...
+  if (_pAppId->SupportedGroups & DF_APP2)
+  {
+    _pAppId->SupportedGroups |= DF_DSM2;
+  }
 
   // All done...
   return TWRC_SUCCESS;
@@ -269,6 +308,11 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
 */
 TW_UINT16 CTwnDsmApps::RemoveApp(TW_IDENTITY *_pAppId)
 {
+  int nIndex;
+  DS_INFO *pDSInfo;
+  TW_PENDINGXFERS twpendingxfers;
+  TW_USERINTERFACE twuserinterface;
+
   // Validate...
   if (   (_pAppId->Id < 1)
       || (_pAppId->Id >= MAX_NUM_APPS))
@@ -293,6 +337,33 @@ TW_UINT16 CTwnDsmApps::RemoveApp(TW_IDENTITY *_pAppId)
   // Get rid of our list of drivers...
   if (m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList)
   {
+    // Check all the driver slots, if we find an open slot, shotgun it
+    // with the sequence of close out commands and shut it down.  This
+    // really isn't something we should have to do, but it makes us
+    // more robust...
+    for (nIndex = 1;
+         nIndex < m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->NumFiles;
+         nIndex++)
+    {
+      pDSInfo = &m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[nIndex];
+      if (pDSInfo->DS_Entry)
+      {
+        kLOG((kLOGERR,"MSG_CLOSEDSM called with drivers still open."));
+        kLOG((kLOGERR,"The application should not be doing this."));
+        kLOG((kLOGERR,"The DSM is going to try to gracefully shutdown the drivers..."));
+
+        memset(&twpendingxfers,0,sizeof(twpendingxfers));
+        memset(&twuserinterface,0,sizeof(twuserinterface));
+
+        pDSInfo->DS_Entry(_pAppId,DG_IMAGE,DAT_PENDINGXFERS,MSG_ENDXFER,(TW_MEMREF)&twpendingxfers);
+        pDSInfo->DS_Entry(_pAppId,DG_IMAGE,DAT_PENDINGXFERS,MSG_RESET,(TW_MEMREF)&twpendingxfers);
+        pDSInfo->DS_Entry(_pAppId,DG_CONTROL,DAT_USERINTERFACE,MSG_DISABLEDS,(TW_MEMREF)&twuserinterface);
+        pDSInfo->DS_Entry(_pAppId,DG_CONTROL,DAT_IDENTITY,MSG_DISABLEDS,(TW_MEMREF)&pDSInfo->Identity);
+        UnloadDS(_pAppId,nIndex);
+      }
+    }
+
+    // Okay, we can blow away the memory now...
     free(m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList);
     m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList = NULL;
   }
@@ -412,7 +483,7 @@ TW_UINT16 CTwnDsmApps::AppGetConditionCode(TW_IDENTITY *_pAppId)
 
 
 
-/**
+/*
 * Set the condition code.
 * The same rules apply here as they do for AppGetConditionCode.
 * This is the interface function...
@@ -478,6 +549,26 @@ DSM_State CTwnDsmApps::AppGetState(TW_IDENTITY *_pAppId)
   else
   {
     return dsmState_Loaded;
+  }
+}
+
+
+
+/**
+* Get our hwnd.
+* Windows needs this to help center the user select window...
+*/
+void *CTwnDsmApps::AppHwnd(TW_IDENTITY *_pAppId)
+{
+  // Return the hwnd...
+  if (AppValidateId(_pAppId))
+  {
+    return m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].hwnd;
+  }
+  // Otherwise return a null...
+  else
+  {
+    return 0;
   }
 }
 
@@ -620,8 +711,7 @@ TW_BOOL CTwnDsmApps::DsCallbackIsWaiting(TW_IDENTITY *_pAppId,
       &&  m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return    m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bCallbackPending
-           && m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].twcallback.CallBackProc;
+    return m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bCallbackPending;
   }
   // Something is toasted, so return FALSE...
   else
@@ -957,10 +1047,41 @@ TW_INT16 CTwnDsmApps::LoadDS(TW_IDENTITY  *_pAppId,
       &&  m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return m_ptwndsmappsimpl->LoadDS(_pAppId,
+    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+      // Make the DS directory the current directoy while we load the DS so that any DLLs that
+      // are loaded with the DS can be found.
+      char      szPrevWorkDir[FILENAME_MAX];
+      char      szWorkDir[FILENAME_MAX];
+
+      SSTRCPY(szWorkDir, NCHARS(szWorkDir), m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].szPath);
+      // strip filename from path
+      size_t x = strlen(szWorkDir);
+      while(x > 0)
+      {
+        if(PATH_SEPERATOR == szWorkDir[x-1])
+        {
+          szWorkDir[x-1] = 0;
+          break;
+        }
+        --x;
+      }
+      /* Save the current working directory: */
+      memset( szPrevWorkDir, 0, NCHARS(szPrevWorkDir) );
+      _getcwd( szPrevWorkDir, NCHARS(szPrevWorkDir) );
+      (void)_chdir( szWorkDir );
+    #endif
+
+    TW_INT16 result = m_ptwndsmappsimpl->LoadDS(_pAppId,
                                      m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].szPath,
                                      _DsId,
                                      true);
+    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+      if(0!=strlen(szPrevWorkDir))
+      {
+        (void)_chdir( szPrevWorkDir );
+      }
+    #endif
+    return result;
   }
   // Something is toasted, so return LoadDS...
   else
@@ -1030,22 +1151,28 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   #endif
 
   // Try to get the entry point...
-  pDSInfo->DS_Entry = (DSENTRYPROC)LOADFUNCTION(pDSInfo->pHandle,"DS_Entry");
+  pDSInfo->DS_Entry = (DSENTRYPROC)DSM_LoadFunction(pDSInfo->pHandle,"DS_Entry");
+
   if (pDSInfo->DS_Entry == 0)
   {
-    kLOG((kLOGERR,"Could not find DSM_Entry function in DS: %s",_pPath));
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
-      UNLOADLIBRARY(pDSInfo->pHandle);
-      pDSInfo->pHandle = NULL;
-      AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-      return TWRC_FAILURE; 
-    #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
-      kLOG((kLOGERR,"dlsym: %s",dlerror()));
-      AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-      return TWRC_FAILURE;
+      // The WIATwain.ds does not have an entry point 
+      if(0 == strstr(_pPath, "wiatwain.ds"))
+      {
+        kLOG((kLOGERR,"Could not find DS_Entry function in DS: %s",_pPath));
+      }
+      else
+      {
+        kLOG((kLOGINFO,"Could not find DS_Entry function in DS: %s",_pPath));
+      }
     #else
-      #error Sorry, we don't recognize this system...
+      kLOG((kLOGERR,"Could not find DS_Entry function in DS: %s",_pPath));
     #endif
+
+    UNLOADLIBRARY(pDSInfo->pHandle);
+    pDSInfo->pHandle = NULL;
+    AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+    return TWRC_FAILURE;
   }
 
   // Report success and squirrel away the index...
@@ -1081,35 +1208,83 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
-  // Check to see if the DS supports DSM2
-  else if( !(pDSInfo->Identity.SupportedGroups & SF_DSM2_DS) )
-  {
-    kLOG((kLOGERR,"The DS %s does not support DSM ver 2 ",pDSInfo->Identity.ProductName));
-    UNLOADLIBRARY(pDSInfo->pHandle);
-    pDSInfo->pHandle = NULL;
-    pDSInfo->DS_Entry = NULL;
-    AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-    return TWRC_FAILURE;
-  }
-
   // The DS should not modify the Id even though the spec states
   // that the id will not be assigned until DSM sends MSG_OPENDS to DS
   pDSInfo->Identity.Id = _DsId;
   SSTRNCPY(pDSInfo->szPath, NCHARS(pDSInfo->szPath),_pPath,FILENAME_MAX);
 
-  // We have to clear the DLL because of a limitation that prevents
-  // loading identically named modules.
-  if (_boolKeepOpen == false)
+  // We clear the library to avoid cluttering up the virtual address space, and
+  // to prevent scary weirdness that can result from multiple drivers being
+  // loaded (if the application wants to load multiple drivers, that's its risk).
+  UNLOADLIBRARY(pDSInfo->pHandle);
+  pDSInfo->pHandle = NULL;
+  pDSInfo->DS_Entry = NULL;
+
+  // At this point you're probably scratching your head.  Here's the deal.
+  // When the DSM issues DG_CONTROL/DAT_IDENTITY/MSG_GET without an
+  // AppIdentity structure it alerts the driver that it's being called by
+  // the DSM and not by the application, most likely to bring up the user
+  // selection dialog.  A driver should use this information to create --
+  // and more importantly -- to destroy its internal data structures,
+  // because it will get no other chance to clean itself up.
+  //
+  // It's worth interjecting at this point that Microsoft warns against
+  // any but the most minimal activity in DllMain, so relying on doing
+  // the create/destroy in there is very risky.  The same goes for the
+  // __attribute(constructor)/__attribute(destructor) with GNU.
+  //
+  // The problem is that the DSM issues DG_CONTROL/DAT_IDENTITY/MSG_GET
+  // just prior to DG_CONTROL/DAT_IDENTITY/MSG_OPEN.  If a driver is keyed
+  // to the AppIdentity being NULL, it'll incorrectly clean itself up.
+  //
+  // This means we need to unload and reload the library, to give the
+  // driver a consistent look.
+  if (_boolKeepOpen == true)
   {
-    UNLOADLIBRARY(pDSInfo->pHandle);
-    pDSInfo->pHandle = NULL;
-    pDSInfo->DS_Entry = NULL;
+    pDSInfo->pHandle = LOADLIBRARY(_pPath);
+    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    if (0 == pDSInfo->pHandle)
+    {
+      kLOG((kLOGERR,"Could not load library: %s",_pPath));
+      AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+      return TWRC_FAILURE;
+    }
+    #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    if (0 == pDSInfo->pHandle)
+    {
+      // This is a bit skanky, and not the sort of thing I really want
+      // a user to have to see, but more info is better than less, so
+      // hopefully someone will be able to sort out what the cryptic
+      // message means and we can FAQ it...
+      fprintf(stderr,">>> error loading <%s>\r\n",_pPath);
+      fprintf(stderr,">>> %s\r\n",dlerror());
+      fprintf(stderr,">>> please contact your scanner or driver vendor for more\r\n");
+      fprintf(stderr,">>> help, if that doesn't help then check out the FAQ at\r\n");
+      fprintf(stderr,">>> http://www.twain.org\r\n");
+      kLOG((kLOGERR,"Could not load library: %s",_pPath));
+      kLOG((kLOGERR,dlerror()));
+      AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+      return TWRC_FAILURE;
+    }
+    #else
+    #error Sorry, we don't recognize this system...
+    #endif
+
+    // Try to get the entry point...
+    pDSInfo->DS_Entry = (DSENTRYPROC)DSM_LoadFunction(pDSInfo->pHandle,"DS_Entry");
+    if (pDSInfo->DS_Entry == 0)
+    {
+      kLOG((kLOGERR,"Could not find DSM_Entry function in DS: %s",_pPath));
+      UNLOADLIBRARY(pDSInfo->pHandle);
+      pDSInfo->pHandle = NULL;
+      AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+      return TWRC_FAILURE; 
+    }
   }
 
+  // All done...
   return result;
 }
-
-
 
 /**
 * Unload a specific driver.
@@ -1129,11 +1304,27 @@ void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
       &&  m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].pHandle)
   {
     // Unload the library...
+#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    BOOL retval = 
+#else
+    int retval = 
+#endif
     UNLOADLIBRARY(m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].pHandle);
-    // Scrub the structure...
-    memset(&m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId],
-           0,
-           sizeof(m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId]));
+
+    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+      if(0 == retval)
+      {
+        kLOG((kLOGERR,"failed to unload datasource"));
+      }
+    #else
+      if(0 != retval)
+      {
+        kLOG((kLOGERR,"dlclose: %s",dlerror()));
+      }
+    #endif
+
+    m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].DS_Entry = 0;
+    m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].pHandle = 0;
   }
 }
 
@@ -1148,12 +1339,17 @@ void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
 void CTwnDsmApps::AppWakeup(TW_IDENTITY *_pAppId)
 {
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  BOOL boolResult;
     if (   AppValidateId(_pAppId)
         && m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].hwnd)
     {
       // Force the parent to process a message.  WM_NULL is
       // safe, because it's a no-op...
-      ::PostMessage(m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].hwnd,WM_NULL,(WPARAM)0,(LPARAM)0);
+      boolResult = ::PostMessage(m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].hwnd,WM_NULL,(WPARAM)0,(LPARAM)0);
+      if (!boolResult)
+      {
+        kLOG((kLOGERR,"PostMessage failed..."));
+      }
     }
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     kLOG((kLOGERR,"We shouldn't be here in AppWakeup..."));

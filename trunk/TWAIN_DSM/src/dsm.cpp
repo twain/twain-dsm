@@ -1,9 +1,28 @@
 /***************************************************************************
- * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
- * AnyDoc Software Inc., Eastman Kodak Company, 
+ * TWAIN Data Source Manager version 2.0 
+ * Manages image acquisition data sources used by a machine. 
+ * Copyright Â© 2007 TWAIN Working Group:  
+ * Adobe Systems Incorporated,AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
  * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Contact the TWAIN Working Group by emailing the Technical Subcommittee at 
+ * twainwg@twain.org or mailing us at 13090 Hwy 9, Suite 3, Boulder Creek, CA 95006.
  *
  ***************************************************************************/
 
@@ -19,7 +38,7 @@
 /*! \mainpage Data Source Manager
  *
  * The Source Manager provides the communication path between the 
- * Application and the Source, supports the user’s selection of a  
+ * Application and the Source, supports the userâ€™s selection of a  
  * Source, and loads the Source for access by the Application.   
  * Communications from Application to Source Manager or the Source
  * to Source Manager (via DAT_NULL) arrive in exclusively through
@@ -32,7 +51,7 @@
  *
  *
  *
- * Copyright © 2007 TWAIN Working Group:  Adobe Systems Incorporated,
+ * Copyright Â© 2007 TWAIN Working Group:  Adobe Systems Incorporated,
  * AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
@@ -44,12 +63,197 @@
 
 
 /*
-** These are all the globals we should ever have in this project...
+* These are all the globals we should ever have in this project...
 */
 HINSTANCE   g_hinstance     = 0; /**< Windows Instance handle for the DSM DLL... */
 CTwnDsm    *g_ptwndsm       = 0; /**< The main DSM object */
 CTwnDsmLog *g_ptwndsmlog    = 0; /**< The logging object, only access through macros */
 
+
+
+/**
+* Localization:  we have the selection box on Windows that we have
+* to deal with, so this table gives us all our strings in UTF-8 format.
+* TWAIN defines a lot of languages, and it makes sense to reference
+* all of them.  Refer to the DSM_translations.txt file if you want to
+* see the mapping between the hex UTF-8 and the viewable characters.
+* The UTF-8 values are in hex so that the encoding of this file doesn't
+* change the resulting output.
+*
+* Many languages still need translations...
+*/
+#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+typedef struct
+{
+  TW_INT16  Language;     /**< Language */
+  BYTE      CharSet;      /**< Character Set*/
+  LANGID    LangId;       /**< Language Id*/
+  char      *Title;       /**< the Title string*/
+  char      *Sources;     /**< the Sources string */
+  char      *Select;      /**< the Select string */
+  char      *Cancel;      /**< the Cancel string */
+} TwLocalize;
+
+/**
+* Localized strings for the select dialog
+*/
+static TwLocalize s_twlocalize[] =
+{
+      {TWLG_AFRIKAANS,          ANSI_CHARSET,       MAKELANGID(LANG_AFRIKAANS,SUBLANG_NEUTRAL),                 "Select Source","Sources:","Select","\x4b\x61\x6e\x73\x65\x6c\x6c\x65\x65\x72"},
+      {TWLG_ALBANIA,            EASTEUROPE_CHARSET, MAKELANGID(LANG_ALBANIAN,SUBLANG_NEUTRAL),                  "","","",""},
+      {TWLG_ARABIC,             ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_NEUTRAL),                    "","","",""},
+      {TWLG_ARABIC_ALGERIA,     ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_ALGERIA),             "","","",""},
+      {TWLG_ARABIC_BAHRAIN,     ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_BAHRAIN),             "","","",""},
+      {TWLG_ARABIC_EGYPT,       ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_EGYPT),               "","","",""},
+      {TWLG_ARABIC_IRAQ,        ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_IRAQ),                "","","",""},
+      {TWLG_ARABIC_JORDAN,      ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_JORDAN),              "","","",""},
+      {TWLG_ARABIC_KUWAIT,      ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_KUWAIT),              "","","",""},
+      {TWLG_ARABIC_LEBANON,     ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_LEBANON),             "","","",""},
+      {TWLG_ARABIC_LIBYA,       ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_LIBYA),               "","","",""},
+      {TWLG_ARABIC_MOROCCO,     ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_MOROCCO),             "","","",""},
+      {TWLG_ARABIC_OMAN,        ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_OMAN),                "","","",""},
+      {TWLG_ARABIC_QATAR,       ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_QATAR),               "","","",""},
+      {TWLG_ARABIC_SAUDIARABIA, ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_SAUDI_ARABIA),        "","","",""},
+      {TWLG_ARABIC_SYRIA,       ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_SYRIA),               "","","",""},
+      {TWLG_ARABIC_TUNISIA,     ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_TUNISIA),             "","","",""},
+      {TWLG_ARABIC_UAE,         ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_UAE),                 "","","",""},
+      {TWLG_ARABIC_YEMEN,       ARABIC_CHARSET,     MAKELANGID(LANG_ARABIC,SUBLANG_ARABIC_YEMEN),               "","","",""},
+      {TWLG_ASSAMESE,           ANSI_CHARSET,       MAKELANGID(LANG_ASSAMESE,SUBLANG_NEUTRAL),                  "","","",""},
+      {TWLG_BASQUE,             ANSI_CHARSET,       MAKELANGID(LANG_BASQUE,SUBLANG_NEUTRAL),                    "Select Source","Sources:","Select","\x55\x74\x7a\x69"},
+      {TWLG_BENGALI,            ANSI_CHARSET,       MAKELANGID(LANG_BENGALI,SUBLANG_NEUTRAL),                   "","","",""},
+      {TWLG_BIHARI,             0,                  0,                                                          "","","",""},
+      {TWLG_BODO,               0,                  0,                                                          "","","",""},
+      {TWLG_BULGARIAN,          RUSSIAN_CHARSET,    MAKELANGID(LANG_BULGARIAN,SUBLANG_NEUTRAL),                 "","","",""},
+      {TWLG_BYELORUSSIAN,       RUSSIAN_CHARSET,    MAKELANGID(LANG_BELARUSIAN,SUBLANG_NEUTRAL),                "","","",""},
+      {TWLG_CATALAN,            ANSI_CHARSET,       MAKELANGID(LANG_CATALAN,SUBLANG_NEUTRAL),                   "Select Source","Sources:","Select","\x43\x61\x6e\x63\x65\x6c\xc2\xb7\x6c\x61"},
+      {TWLG_CHINESE,            GB2312_CHARSET,     MAKELANGID(LANG_CHINESE,SUBLANG_NEUTRAL),                   "\xe9\x80\x89\xe6\x8b\xa9\xe6\x95\xb0\xe6\x8d\xae\xe6\xba\x90","\xe6\x95\xb0\xe6\x8d\xae\xe6\xba\x90\x3a","\xe9\x80\x89\xe6\x8b\xa9","\xe5\x8f\x96\xe6\xb6\x88"},
+      {TWLG_CHINESE_HONGKONG,   CHINESEBIG5_CHARSET,MAKELANGID(LANG_CHINESE,SUBLANG_CHINESE_HONGKONG),          "\xe9\x81\xb8\xe6\x93\x87\xe5\xbd\xb1\xe5\x83\x8f\xe4\xbe\x86\xe6\xba\x90","\xe5\xbd\xb1\xe5\x83\x8f\xe4\xbe\x86\xe6\xba\x90\x3a","\xe7\xa2\xba\xe5\xae\x9a","\xe5\x8f\x96\xe6\xb6\x88"},
+      {TWLG_CHINESE_PRC,        GB2312_CHARSET,     MAKELANGID(LANG_CHINESE,SUBLANG_CHINESE_SIMPLIFIED),        "\xe9\x80\x89\xe6\x8b\xa9\xe6\x95\xb0\xe6\x8d\xae\xe6\xba\x90","\xe6\x95\xb0\xe6\x8d\xae\xe6\xba\x90\x3a","\xe9\x80\x89\xe6\x8b\xa9","\xe5\x8f\x96\xe6\xb6\x88"},
+      {TWLG_CHINESE_SIMPLIFIED, GB2312_CHARSET,     MAKELANGID(LANG_CHINESE,SUBLANG_CHINESE_SIMPLIFIED),        "\xe9\x80\x89\xe6\x8b\xa9\xe6\x95\xb0\xe6\x8d\xae\xe6\xba\x90","\xe6\x95\xb0\xe6\x8d\xae\xe6\xba\x90\x3a","\xe9\x80\x89\xe6\x8b\xa9","\xe5\x8f\x96\xe6\xb6\x88"},
+      {TWLG_CHINESE_SINGAPORE,  GB2312_CHARSET,     MAKELANGID(LANG_CHINESE,SUBLANG_CHINESE_SIMPLIFIED),        "\xe9\x80\x89\xe6\x8b\xa9\xe6\x95\xb0\xe6\x8d\xae\xe6\xba\x90","\xe6\x95\xb0\xe6\x8d\xae\xe6\xba\x90\x3a","\xe9\x80\x89\xe6\x8b\xa9","\xe5\x8f\x96\xe6\xb6\x88"},
+      {TWLG_CHINESE_TAIWAN,     CHINESEBIG5_CHARSET,MAKELANGID(LANG_CHINESE,SUBLANG_CHINESE_TRADITIONAL),       "\xe9\x81\xb8\xe6\x93\x87\xe5\xbd\xb1\xe5\x83\x8f\xe4\xbe\x86\xe6\xba\x90","\xe5\xbd\xb1\xe5\x83\x8f\xe4\xbe\x86\xe6\xba\x90\x3a","\xe7\xa2\xba\xe5\xae\x9a","\xe5\x8f\x96\xe6\xb6\x88"},
+      {TWLG_CHINESE_TRADITIONAL,CHINESEBIG5_CHARSET,MAKELANGID(LANG_CHINESE,SUBLANG_CHINESE_TRADITIONAL),       "\xe9\x81\xb8\xe6\x93\x87\xe5\xbd\xb1\xe5\x83\x8f\xe4\xbe\x86\xe6\xba\x90","\xe5\xbd\xb1\xe5\x83\x8f\xe4\xbe\x86\xe6\xba\x90\x3a","\xe7\xa2\xba\xe5\xae\x9a","\xe5\x8f\x96\xe6\xb6\x88"},
+      {TWLG_CROATIA,            EASTEUROPE_CHARSET, MAKELANGID(LANG_CROATIAN,SUBLANG_NEUTRAL),                  "Select Source","Sources:","Select","\x4f\x64\x75\x73\x74\x61\x6e\x69"},
+      {TWLG_CZECH,              EASTEUROPE_CHARSET, MAKELANGID(LANG_CZECH,SUBLANG_DEFAULT),                     "Select Source","Sources:","Select","\x53\x74\x6f\x72\x6e\x6f"},
+      {TWLG_DANISH,             ANSI_CHARSET,       MAKELANGID(LANG_DANISH,SUBLANG_NEUTRAL),                    "\x56\xC3\xA6\x6C\x67\x20\x45\x6E\x68\x65\x64","\x45\x6E\x68\x65\x64","\x56\xE6\x6C\x67","\x41\x6E\x6E\x75\x6C\x6C\x65\x72"},
+      {TWLG_DOGRI,              0,                  0,                                                          "","","",""},
+      {TWLG_DUTCH,              ANSI_CHARSET,       MAKELANGID(LANG_DUTCH,SUBLANG_DUTCH),                       "\x53\x65\x6c\x65\x63\x74\x65\x65\x72\x20\x62\x72\x6f\x6e","\x42\x72\x6f\x6e\x6e\x65\x6e\x3a","\x53\x65\x6c\x65\x63\x74\x65\x72\x65\x6e","\x41\x6e\x6e\x75\x6c\x65\x72\x65\x6e"},
+      {TWLG_DUTCH_BELGIAN,      ANSI_CHARSET,       MAKELANGID(LANG_DUTCH,SUBLANG_DUTCH_BELGIAN),               "\x53\x65\x6c\x65\x63\x74\x65\x65\x72\x20\x62\x72\x6f\x6e","\x42\x72\x6f\x6e\x6e\x65\x6e\x3a","\x53\x65\x6c\x65\x63\x74\x65\x72\x65\x6e","\x41\x6e\x6e\x75\x6c\x65\x72\x65\x6e"},
+      {TWLG_ENGLISH,            ANSI_CHARSET,       MAKELANGID(LANG_ENGLISH,SUBLANG_NEUTRAL),                   "Select Source","Sources:","Select","Cancel"},
+      {TWLG_ENGLISH_AUSTRALIAN, ANSI_CHARSET,       MAKELANGID(LANG_ENGLISH,SUBLANG_ENGLISH_AUS),               "Select Source","Sources:","Select","Cancel"},
+      {TWLG_ENGLISH_CANADIAN,   ANSI_CHARSET,       MAKELANGID(LANG_ENGLISH,SUBLANG_ENGLISH_CAN),               "Select Source","Sources:","Select","Cancel"},
+      {TWLG_ENGLISH_IRELAND,    ANSI_CHARSET,       MAKELANGID(LANG_ENGLISH,SUBLANG_ENGLISH_EIRE),              "Select Source","Sources:","Select","Cancel"},
+      {TWLG_ENGLISH_NEWZEALAND, ANSI_CHARSET,       MAKELANGID(LANG_ENGLISH,SUBLANG_ENGLISH_NZ),                "Select Source","Sources:","Select","Cancel"},
+      {TWLG_ENGLISH_SOUTHAFRICA,ANSI_CHARSET,       MAKELANGID(LANG_ENGLISH,SUBLANG_ENGLISH_SOUTH_AFRICA),      "Select Source","Sources:","Select","Cancel"},
+      {TWLG_ENGLISH_UK,         ANSI_CHARSET,       MAKELANGID(LANG_ENGLISH,SUBLANG_ENGLISH_UK),                "Select Source","Sources:","Select","Cancel"},
+      {TWLG_ENGLISH_USA,        ANSI_CHARSET,       MAKELANGID(LANG_ENGLISH,SUBLANG_ENGLISH_US),                "Select Source","Sources:","Select","Cancel"},
+      {TWLG_ESTONIAN,           BALTIC_CHARSET,     MAKELANGID(LANG_ESTONIAN,SUBLANG_NEUTRAL),                  "Select Source","Sources:","Select","\x4b\x75\x73\x74\x75\x74\x61"},
+      {TWLG_FAEROESE,           EASTEUROPE_CHARSET, MAKELANGID(LANG_FAEROESE,SUBLANG_NEUTRAL),                  "","","",""},
+      {TWLG_FARSI,              ARABIC_CHARSET,     MAKELANGID(LANG_FARSI,SUBLANG_NEUTRAL),                     "","","",""},
+      {TWLG_FINNISH,            ANSI_CHARSET,       MAKELANGID(LANG_FINNISH,SUBLANG_NEUTRAL),                   "Select Source","Sources:","Select","\x50\x65\x72\x75\x75\x74\x61"},
+      {TWLG_FRENCH,             ANSI_CHARSET,       MAKELANGID(LANG_FRENCH,SUBLANG_FRENCH),                     "\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72\x20\x73\x6f\x75\x72\x63\x65","\x53\x6f\x75\x72\x63\x65\x73\x3a","\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72","\x41\x6e\x6e\x75\x6c\x65\x72"},
+      {TWLG_FRENCH_BELGIAN,     ANSI_CHARSET,       MAKELANGID(LANG_FRENCH,SUBLANG_FRENCH_BELGIAN),             "\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72\x20\x73\x6f\x75\x72\x63\x65","\x53\x6f\x75\x72\x63\x65\x73\x3a","\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72","\x41\x6e\x6e\x75\x6c\x65\x72"},
+      {TWLG_FRENCH_CANADIAN,    ANSI_CHARSET,       MAKELANGID(LANG_FRENCH,SUBLANG_FRENCH_CANADIAN),            "\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72\x20\x73\x6f\x75\x72\x63\x65","\x53\x6f\x75\x72\x63\x65\x73\x3a","\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72","\x41\x6e\x6e\x75\x6c\x65\x72"},
+      {TWLG_FRENCH_LUXEMBOURG,  ANSI_CHARSET,       MAKELANGID(LANG_FRENCH,SUBLANG_FRENCH_LUXEMBOURG),          "\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72\x20\x73\x6f\x75\x72\x63\x65","\x53\x6f\x75\x72\x63\x65\x73\x3a","\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72","\x41\x6e\x6e\x75\x6c\x65\x72"},
+      {TWLG_FRENCH_SWISS,       ANSI_CHARSET,       MAKELANGID(LANG_FRENCH,SUBLANG_FRENCH_SWISS),               "\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72\x20\x73\x6f\x75\x72\x63\x65","\x53\x6f\x75\x72\x63\x65\x73\x3a","\x53\xc3\xa9\x6c\x65\x63\x74\x69\x6f\x6e\x6e\x65\x72","\x41\x6e\x6e\x75\x6c\x65\x72"},
+      {TWLG_GERMAN,             ANSI_CHARSET,       MAKELANGID(LANG_GERMAN,SUBLANG_GERMAN),                     "\x51\x75\x65\x6c\x6c\x65\x20\x77\xc3\xa4\x68\x6c\x65\x6e","\x51\x75\x65\x6c\x6c\x65\x6e\x3a","\x41\x75\x73\x77\xc3\xa4\x68\x6c\x65\x6e","\x41\x62\x62\x72\x65\x63\x68\x65\x6e"},
+      {TWLG_GERMAN_AUSTRIAN,    ANSI_CHARSET,       MAKELANGID(LANG_GERMAN,SUBLANG_GERMAN_AUSTRIAN),            "\x51\x75\x65\x6c\x6c\x65\x20\x77\xc3\xa4\x68\x6c\x65\x6e","\x51\x75\x65\x6c\x6c\x65\x6e\x3a","\x41\x75\x73\x77\xc3\xa4\x68\x6c\x65\x6e","\x41\x62\x62\x72\x65\x63\x68\x65\x6e"},
+      {TWLG_GERMAN_LIECHTENSTEIN,ANSI_CHARSET,      MAKELANGID(LANG_GERMAN,SUBLANG_GERMAN_LIECHTENSTEIN),       "\x51\x75\x65\x6c\x6c\x65\x20\x77\xc3\xa4\x68\x6c\x65\x6e","\x51\x75\x65\x6c\x6c\x65\x6e\x3a","\x41\x75\x73\x77\xc3\xa4\x68\x6c\x65\x6e","\x41\x62\x62\x72\x65\x63\x68\x65\x6e"},
+      {TWLG_GERMAN_LUXEMBOURG,  ANSI_CHARSET,       MAKELANGID(LANG_GERMAN,SUBLANG_GERMAN_LUXEMBOURG),          "\x51\x75\x65\x6c\x6c\x65\x20\x77\xc3\xa4\x68\x6c\x65\x6e","\x51\x75\x65\x6c\x6c\x65\x6e\x3a","\x41\x75\x73\x77\xc3\xa4\x68\x6c\x65\x6e","\x41\x62\x62\x72\x65\x63\x68\x65\x6e"},
+      {TWLG_GERMAN_SWISS,       ANSI_CHARSET,       MAKELANGID(LANG_GERMAN,SUBLANG_GERMAN_SWISS),               "\x51\x75\x65\x6c\x6c\x65\x20\x77\xc3\xa4\x68\x6c\x65\x6e","\x51\x75\x65\x6c\x6c\x65\x6e\x3a","\x41\x75\x73\x77\xc3\xa4\x68\x6c\x65\x6e","\x41\x62\x62\x72\x65\x63\x68\x65\x6e"},
+      {TWLG_GREEK,              GREEK_CHARSET,      MAKELANGID(LANG_GREEK,SUBLANG_DEFAULT),                     "","","",""},
+      {TWLG_GUJARATI,           GREEK_CHARSET,      MAKELANGID(LANG_GUJARATI,SUBLANG_DEFAULT),                  "","","",""},
+      {TWLG_HARYANVI,           0,                  0,                                                          "","","",""},
+      {TWLG_HEBREW,             HEBREW_CHARSET,     MAKELANGID(LANG_HEBREW,SUBLANG_NEUTRAL),                    "","","",""},
+      {TWLG_HINDI,              HEBREW_CHARSET,     MAKELANGID(LANG_HINDI,SUBLANG_NEUTRAL),                     "","","",""},
+      {TWLG_HUNGARIAN,          EASTEUROPE_CHARSET, MAKELANGID(LANG_HUNGARIAN,SUBLANG_NEUTRAL),                 "Select Source","Sources:","Select","\x4d\xc3\xa9\x67\x73\x65"},
+      {TWLG_ICELANDIC,          ANSI_CHARSET,       MAKELANGID(LANG_ICELANDIC,SUBLANG_NEUTRAL),                 "","","",""},
+      {TWLG_INDONESIAN,         ANSI_CHARSET,       MAKELANGID(LANG_INDONESIAN,SUBLANG_NEUTRAL),                "\x50\x69\x6c\x69\x74\x68\x20\x53\x75\x6d\x62\x65\x72","\x53\x75\x6d\x62\x65\x72\x3a","\x50\x69\x6c\x69\x74\x68","\x42\x61\x74\x61\x6c"},
+      {TWLG_ITALIAN,            ANSI_CHARSET,       MAKELANGID(LANG_ITALIAN,SUBLANG_ITALIAN),                   "\x53\x65\x6c\x65\x7a\x69\x6f\x6e\x61\x20\x6f\x72\x69\x67\x69\x6e\x65","\x4f\x72\x69\x67\x69\x6e\x69\x3a","\x53\x65\x6c\x65\x7a\x69\x6f\x6e\x61","\x41\x6e\x6e\x75\x6c\x6c\x61"},
+      {TWLG_ITALIAN_SWISS,      ANSI_CHARSET,       MAKELANGID(LANG_ITALIAN,SUBLANG_ITALIAN_SWISS),             "\x53\x65\x6c\x65\x7a\x69\x6f\x6e\x61\x20\x6f\x72\x69\x67\x69\x6e\x65","\x4f\x72\x69\x67\x69\x6e\x69\x3a","\x53\x65\x6c\x65\x7a\x69\x6f\x6e\x61","\x41\x6e\x6e\x75\x6c\x6c\x61"},
+      {TWLG_JAPANESE,           SHIFTJIS_CHARSET,   MAKELANGID(LANG_JAPANESE,SUBLANG_DEFAULT),                  "\xe5\x8e\x9f\xe7\xa8\xbf\xe3\x81\xae\xe9\x81\xb8\xe6\x8a\x9e","\xe5\x8e\x9f\xe7\xa8\xbf\x3a","\xe9\x81\xb8\xe6\x8a\x9e","\xe3\x82\xad\xe3\x83\xa3\xe3\x83\xb3\xe3\x82\xbb\xe3\x83\xab"},
+      {TWLG_KANNADA,            ANSI_CHARSET,       MAKELANGID(LANG_KANNADA,SUBLANG_NEUTRAL),                   "","","",""},
+      {TWLG_KASHMIRI,           ANSI_CHARSET,       MAKELANGID(LANG_KASHMIRI,SUBLANG_NEUTRAL),                  "","","",""},
+      {TWLG_KOREAN,             HANGUL_CHARSET,     MAKELANGID(LANG_KOREAN,SUBLANG_KOREAN),                     "\xec\x9e\xa5\xec\xb9\x98\x20\xec\x84\xa0\xed\x83\x9d","\xec\x9e\xa5\xec\xb9\x98","\xec\x84\xa0\xed\x83\x9d","\xec\xb7\xa8\xec\x86\x8c"},
+      {TWLG_KOREAN_JOHAB,       JOHAB_CHARSET,      MAKELANGID(LANG_KOREAN,SUBLANG_KOREAN),                     "\xec\x9e\xa5\xec\xb9\x98\x20\xec\x84\xa0\xed\x83\x9d","\xec\x9e\xa5\xec\xb9\x98","\xec\x84\xa0\xed\x83\x9d","\xec\xb7\xa8\xec\x86\x8c"},
+      {TWLG_LATVIAN,            BALTIC_CHARSET,     MAKELANGID(LANG_LATVIAN,SUBLANG_NEUTRAL),                   "","","",""},
+      {TWLG_LITHUANIAN,         BALTIC_CHARSET,     MAKELANGID(LANG_LITHUANIAN,SUBLANG_NEUTRAL),                "","","",""},
+      {TWLG_MALAYALAM,          BALTIC_CHARSET,     MAKELANGID(LANG_MALAYALAM,SUBLANG_NEUTRAL),                 "","","",""},
+      {TWLG_MARATHI,            ANSI_CHARSET,       MAKELANGID(LANG_MARATHI,SUBLANG_NEUTRAL),                   "","","",""},
+      {TWLG_MARWARI,            0,                  0,                                                          "","","",""},
+      {TWLG_MEGHALAYAN,         0,                  0,                                                          "","","",""},
+      {TWLG_MIZO,               0,                  0,                                                          "","","",""},
+      {TWLG_NAGA,               0,                  0,                                                          "","","",""},
+      {TWLG_NORWEGIAN,          ANSI_CHARSET,       MAKELANGID(LANG_NORWEGIAN,SUBLANG_NEUTRAL),                 "","","",""},
+      {TWLG_NORWEGIAN_BOKMAL,   ANSI_CHARSET,       MAKELANGID(LANG_NORWEGIAN,SUBLANG_NORWEGIAN_BOKMAL),        "","","",""},
+      {TWLG_NORWEGIAN_NYNORSK,  ANSI_CHARSET,       MAKELANGID(LANG_NORWEGIAN,SUBLANG_NORWEGIAN_NYNORSK),       "","","",""},
+      {TWLG_ORISSI,             0,                  0,                                                          "","","",""},
+      {TWLG_POLISH,             EASTEUROPE_CHARSET, MAKELANGID(LANG_POLISH,SUBLANG_NEUTRAL),                    "Select Source","Sources:","Select","\x41\x6e\x75\x6c\x75\x6a"},
+      {TWLG_PORTUGUESE,         EASTEUROPE_CHARSET, MAKELANGID(LANG_PORTUGUESE,SUBLANG_PORTUGUESE),             "\x53\x65\x6c\x65\x63\x69\x6f\x6e\x61\x72\x20\x4f\x72\x69\x67\x65\x6d","\x4f\x72\x69\x67\x65\x6e\x73\x3a","\x53\x65\x6c\x65\x63\x69\x6f\x6e\x61\x72","\x43\x61\x6e\x63\x65\x6c\x61\x72"},
+      {TWLG_PORTUGUESE_BRAZIL,  ANSI_CHARSET,       MAKELANGID(LANG_PORTUGUESE,SUBLANG_PORTUGUESE_BRAZILIAN),   "\x53\x65\x6c\x65\x63\x69\x6f\x6e\x61\x72\x20\x4f\x72\x69\x67\x65\x6d","\x4f\x72\x69\x67\x65\x6e\x73\x3a","\x53\x65\x6c\x65\x63\x69\x6f\x6e\x61\x72","\x43\x61\x6e\x63\x65\x6c\x61\x72"},
+      {TWLG_PUNJABI,            ANSI_CHARSET,       MAKELANGID(LANG_PUNJABI,SUBLANG_NEUTRAL),                   "","","",""},
+      {TWLG_PUSHTU,             0,                  0,                                                          "","","",""},
+      {TWLG_ROMANIAN,           EASTEUROPE_CHARSET, MAKELANGID(LANG_ROMANIAN,SUBLANG_NEUTRAL),                  "","","",""},
+      {TWLG_RUSSIAN,            RUSSIAN_CHARSET,    MAKELANGID(LANG_RUSSIAN,SUBLANG_DEFAULT),                   "\xd0\x92\xd1\x8b\xd0\xb1\xd1\x80\xd0\xb0\xd1\x82\xd1\x8c\x20\xd0\xb8\xd1\x81\xd1\x82\xd0\xbe\xd1\x87\xd0\xbd\xd0\xb8\xd0\xba","\xd0\x98\xd1\x81\xd1\x82\xd0\xbe\xd1\x87\xd0\xbd\xd0\xb8\xd0\xba\xd0\xb8\x3a","\xd0\x92\xd1\x8b\xd0\xb1\xd1\x80\xd0\xb0\xd1\x82\xd1\x8c","\xd0\x9e\xd1\x82\xd0\xbc\xd0\xb5\xd0\xbd\xd0\xb8\xd1\x82\xd1\x8c"},
+      {TWLG_SERBIAN_CYRILLIC,   ANSI_CHARSET,       MAKELANGID(LANG_SERBIAN,SUBLANG_SERBIAN_CYRILLIC),          "","","",""},
+      {TWLG_SERBIAN_LATIN,      EASTEUROPE_CHARSET, MAKELANGID(LANG_SERBIAN,SUBLANG_SERBIAN_LATIN),             "","","",""},
+      {TWLG_SIKKIMI,            0,                  0,                                                          "","","",""},
+      {TWLG_SLOVAK,             EASTEUROPE_CHARSET, MAKELANGID(LANG_SLOVAK,SUBLANG_NEUTRAL),                    "","","",""},
+      {TWLG_SLOVENIAN,          EASTEUROPE_CHARSET, MAKELANGID(LANG_SLOVENIAN,SUBLANG_NEUTRAL),                 "Select Source","Sources:","Select","\x50\x72\x65\x6b\x69\x6e\x69"},
+      {TWLG_SPANISH,            ANSI_CHARSET,       MAKELANGID(LANG_SPANISH,SUBLANG_SPANISH),                   "\x53\x65\x6c\x65\x63\x63\x69\xc3\xb3\x6e\x20\x64\x65\x20\x66\x75\x65\x6e\x74\x65","\x46\x75\x65\x6e\x74\x65\x73\x3a","\x53\x65\x6c\x65\x63\x63\x69\x6f\x6e\x61\x72","\x43\x61\x6e\x63\x65\x6c\x61\x72"},
+      {TWLG_SPANISH_MEXICAN,    ANSI_CHARSET,       MAKELANGID(LANG_SPANISH,SUBLANG_SPANISH_MEXICAN),           "\x53\x65\x6c\x65\x63\x63\x69\xc3\xb3\x6e\x20\x64\x65\x20\x66\x75\x65\x6e\x74\x65","\x46\x75\x65\x6e\x74\x65\x73\x3a","\x53\x65\x6c\x65\x63\x63\x69\x6f\x6e\x61\x72","\x43\x61\x6e\x63\x65\x6c\x61\x72"},
+      {TWLG_SPANISH_MODERN,     ANSI_CHARSET,       MAKELANGID(LANG_SPANISH,SUBLANG_SPANISH_MODERN),            "\x53\x65\x6c\x65\x63\x63\x69\xc3\xb3\x6e\x20\x64\x65\x20\x66\x75\x65\x6e\x74\x65","\x46\x75\x65\x6e\x74\x65\x73\x3a","\x53\x65\x6c\x65\x63\x63\x69\x6f\x6e\x61\x72","\x43\x61\x6e\x63\x65\x6c\x61\x72"},
+      {TWLG_SWEDISH,            ANSI_CHARSET,       MAKELANGID(LANG_SWEDISH,SUBLANG_SWEDISH),                   "Select Source","Sources:","Select","\x41\x76\x62\x72\x79\x74"},
+      {TWLG_SWEDISH_FINLAND,    ANSI_CHARSET,       MAKELANGID(LANG_SWEDISH,SUBLANG_SWEDISH_FINLAND),           "Select Source","Sources:","Select","\x41\x76\x62\x72\x79\x74"},
+      {TWLG_TAMIL,              ANSI_CHARSET,       MAKELANGID(LANG_TAMIL,SUBLANG_NEUTRAL),                     "","","",""},
+      {TWLG_TELUGU,             ANSI_CHARSET,       MAKELANGID(LANG_TELUGU,SUBLANG_NEUTRAL),                    "","","",""},
+      {TWLG_THAI,               THAI_CHARSET,       MAKELANGID(LANG_THAI,SUBLANG_NEUTRAL),                      "","","",""},
+      {TWLG_TRIPURI,            0,                  0,                                                          "","","",""},
+      {TWLG_TURKISH,            TURKISH_CHARSET,    MAKELANGID(LANG_TURKISH,SUBLANG_DEFAULT),                   "\x4b\x61\x79\x6e\x61\x6b\x20\x73\x65\xc3\xa7\x69\x6e\x69\x7a","\x4b\x61\x79\x6e\x61\x6b","\x53\x65\xc3\xa7\x69\x6e\x69\x7a","\xc4\xb0\x70\x74\x61\x6c"},
+      {TWLG_UKRANIAN,           RUSSIAN_CHARSET,    MAKELANGID(LANG_UKRAINIAN,SUBLANG_NEUTRAL),                 "","","",""},
+      {TWLG_URDU,               ANSI_CHARSET,       MAKELANGID(LANG_URDU,SUBLANG_NEUTRAL),                      "","","",""},
+      {TWLG_VIETNAMESE,         VIETNAMESE_CHARSET, MAKELANGID(LANG_VIETNAMESE,SUBLANG_NEUTRAL),                "","","",""},
+      {-1, 0, 0, 0, 0, 0, 0} // must be last...
+};
+#elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    // We don't have anything for here...
+#else
+    #error Sorry, we don't recognize this system...
+#endif
+
+
+
+/**
+* @defgroup MemFunctions declarations for our memory management functions...
+* @{
+*/
+
+/**
+* Memory Allocate
+* @param[in] _size the size of the memory to allocate
+* @return the handle to the memory allocated
+*/
+static TW_HANDLE PASCAL DSM_MemAllocate(TW_UINT32 _size);
+
+/**
+* Memory Free
+* @param[in] _handle the handle to the memory to free
+*/
+static void PASCAL DSM_MemFree(TW_HANDLE _handle);
+
+/**
+* Memory Lock
+* @param[in] _handle the handle to the memory to lock
+* @return locked pointer to the memory in the handle
+*/
+static TW_MEMREF PASCAL DSM_MemLock(TW_HANDLE _handle);
+
+/**
+* Memory Unlock
+* @param[in] _handle the handle to the memory to unlock
+*/
+static void PASCAL DSM_MemUnlock(TW_HANDLE _handle);
+// @}
 
 
 /**
@@ -163,7 +367,7 @@ DSMENTRY DSM_Entry(TW_IDENTITY  *_pOrigin,
 
 
 
-/**
+/*
 * Our constructor...
 * Clean out the pod and set stuff.  Get logging set up so we
 * can have a clue what's going on...
@@ -197,7 +401,7 @@ CTwnDsm::CTwnDsm()
 
 
 
-/**
+/*
 * Our destructor...
 * Free any resources we might have...
 */
@@ -216,7 +420,7 @@ CTwnDsm::~CTwnDsm()
 
 
 
-/**
+/*
 * This is where we finish up the DSM_Entry duties inside of the
 * context of the class...
 */
@@ -319,6 +523,14 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         rcDSM = DSM_Identity(pAppId,_MSG,(TW_IDENTITY*)_pData);
         break;
 
+      case DAT_TWUNKIDENTITY:
+        rcDSM = DSM_TwunkIdentity(pAppId,_MSG,(TW_TWUNKIDENTITY*)_pData);
+        break;
+
+      case DAT_ENTRYPOINT:
+        rcDSM = DSM_Entrypoint(pAppId,_MSG,(TW_ENTRYPOINT*)_pData);
+        break;
+
       case DAT_STATUS:
         rcDSM = DSM_Status(pAppId,_MSG,(TW_STATUS*)_pData);
         break;
@@ -351,7 +563,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
 
 
 
-/**
+/*
 * Handle DAT_STATUS.  Just a few things of note, we handle some
 * DAT_STATUS stuff in DSM_Entry.  And per the spec we have to
 * clear the condition code when we are done.  I've also put in
@@ -383,7 +595,7 @@ TW_INT16 CTwnDsm::DSM_Status(TW_IDENTITY  *_pAppId,
 
 
 
-/**
+/*
 * Handle DAT_PARENT.  This is where the DSM is expected to
 * do most of its contribution, which is finding drivers for
 * the application...
@@ -429,7 +641,7 @@ TW_INT16 CTwnDsm::DSM_Parent(TW_IDENTITY  *_pAppId,
 
 
 
-/**
+/*
 * Handle DAT_IDENTITY.  This is where the DSM is expected to
 * do most of its contribution, which is finding drivers for
 * the application...
@@ -486,6 +698,10 @@ TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
         result = GetMatchingDefault(_pAppId,_pDsId);
         break;
 
+      case MSG_GET:
+        result = GetIdentity(_pAppId,_pDsId);
+        break;
+
       default:
         result = TWRC_FAILURE;
         pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
@@ -501,9 +717,140 @@ TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
   return result;
 }
 
+/*
+* Handle DAT_TWUNKIDENTITY.  This is here for backwards compatibility. 
+* DAT_TWUNKIDENTITY is undocumented.  It was used by the Twunking
+* layer.  Some old applications use it to get the path to the DS.
+* We need to continue to support it.
+*/
+TW_INT16 CTwnDsm::DSM_TwunkIdentity(TW_IDENTITY  *_pAppId,
+                                    TW_UINT16     _MSG,
+                                TW_TWUNKIDENTITY *_pTwunkId)
+{
+  TW_INT16  result = TWRC_SUCCESS;
+
+  // Validate...
+  if (0 == _pAppId)
+  {
+    kLOG((kLOGERR,"_pAppId is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+  else if (_pAppId->Id >= MAX_NUM_APPS)
+  {
+    kLOG((kLOGERR,"too many apps"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_MAXCONNECTIONS);
+    return TWRC_FAILURE;
+  }
+  else if (dsmState_Open != pod.m_ptwndsmapps->AppGetState(_pAppId))
+  {
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_SEQERROR);
+    return TWRC_FAILURE;
+  }
+  else if (MSG_GET != _MSG)
+  {
+    kLOG((kLOGERR,"protocol error"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
+    return TWRC_FAILURE;
+  }
+  else if (0 == _pTwunkId)
+  {
+    kLOG((kLOGERR,"_pTwunkId is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+  // Check that the DSID is valid...
+  else if (!pod.m_ptwndsmapps->AppValidateIds(_pAppId,&_pTwunkId->identity))
+  {
+    pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+
+  SSTRCPY(_pTwunkId->dsPath, sizeof(_pTwunkId->dsPath),pod.m_ptwndsmapps->DsGetPath(_pAppId,_pTwunkId->identity.Id));
+
+  return result;
+}
 
 
-/**
+
+/*
+* Handle DAT_ENTRYPOINT.  This handles an application asking
+* for entry point information.  Drivers have this information
+* pushed to them in a different part of the code (just before
+* DG_CONTORL/DAT_IDENTITY/MSG_OPENDS is received)
+*/
+TW_INT16 CTwnDsm::DSM_Entrypoint(TW_IDENTITY    *_pAppId,
+                                 TW_UINT16      _MSG,
+                                 TW_ENTRYPOINT  *_pEntrypoint)
+{
+  // Validate...
+  if (0 == _pAppId)
+  {
+    kLOG((kLOGERR,"_pAppId is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+  else if (MSG_GET != _MSG)
+  {
+    kLOG((kLOGERR,"protocol error"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
+    return TWRC_FAILURE;
+  }
+  else if (0 == _pEntrypoint)
+  {
+    kLOG((kLOGERR,"_pEntrypoint is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+  else if (0 == _pEntrypoint->Size)
+  {
+    kLOG((kLOGERR,"_pEntrypoint is zero, it needs to be set to the size of TW_ENTRYPOINT..."));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+  else if (!(_pAppId->SupportedGroups & DF_APP2))
+  {
+    kLOG((kLOGERR,"_pAppId->SupportedGroups must include the DF_APP2 flag to make this call..."));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
+    return TWRC_FAILURE;
+  }
+
+  // This is the TWAIN 2.0 minimum size.  If we add more values
+  // in future we should create a new structure (ex: TW_ENTRYPOINT2)
+  // and then add an if-statement for it...
+  if (_pEntrypoint->Size < sizeof(TW_ENTRYPOINT))
+  {
+    kLOG((kLOGERR,"_pEntrypoint->Size minimum is %ld, we got %ld...",sizeof(TW_ENTRYPOINT),_pEntrypoint->Size));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+
+  // TWAIN 2.0
+  // Stock the structure with interesting stuff...
+  else if (_pEntrypoint->Size == sizeof(TW_ENTRYPOINT))
+  {
+    _pEntrypoint->DSM_Entry        = ::DSM_Entry;
+    _pEntrypoint->DSM_MemAllocate  = DSM_MemAllocate;
+    _pEntrypoint->DSM_MemFree      = DSM_MemFree;
+    _pEntrypoint->DSM_MemLock      = DSM_MemLock;
+    _pEntrypoint->DSM_MemUnlock    = DSM_MemUnlock;
+  }
+
+  // Uh-oh...
+  else
+  {
+    kLOG((kLOGERR,"_pEntrypoint->Size cannot be larger than %ld, we got %ld...",sizeof(TW_ENTRYPOINT),_pEntrypoint->Size));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+
+  // All done...
+  return TWRC_SUCCESS;
+}
+
+
+
+/*
 * We've received a callback.  MSG_REGISTER_CALLBACK are from
 * the Application and MSG_INVOKE_CALLBACK (Mac OSx only) 
 * are from the DS.
@@ -582,7 +929,7 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
 
 
 
-/**
+/*
 * Open the specified driver.  We're using the application identity
 * and the driver identity we picked up during MSG_OPENDSM.  The
 * application is just telling us which driver to load.  As part of
@@ -594,7 +941,8 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
 TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
                          TW_IDENTITY *_pDsId)
 {
-  TW_INT16  result;
+  TW_INT16      result;
+  TW_ENTRYPOINT twentrypoint;
  
   // Validate...
   if (0 == _pAppId)
@@ -643,7 +991,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       if (TWRC_SUCCESS != result)
       {
         pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_NODS);
-        return(result);
+        return result;
       }
     }
 
@@ -658,7 +1006,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       // was the id found or specified by the app?
       if (TWRC_SUCCESS != result)
       {
-        return(result);
+        return result;
       }
     }
   }
@@ -668,22 +1016,56 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   if (result != TWRC_SUCCESS)
   {
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_NODS);
-    return(TWRC_FAILURE);
+    return TWRC_FAILURE;
   }
 
   // open the ds
   if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))
   {
-    result = pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id)(
-                            pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
-                            DG_CONTROL,
-                            DAT_IDENTITY,
-                            MSG_OPENDS,
-                            (TW_MEMREF)_pDsId);
+    // If the DS reports support for DF_DS2, then send it our DAT_ENTRYPOINT
+    // information.  Failure to handle this is treated like a failure to open...
+    result = TWRC_SUCCESS;
+    if (_pDsId->SupportedGroups & DF_DS2)
+    {
+      memset(&twentrypoint,0,sizeof(twentrypoint));
+      twentrypoint.Size = sizeof(TW_ENTRYPOINT);
+      twentrypoint.DSM_Entry        = ::DSM_Entry;
+      twentrypoint.DSM_MemAllocate  = DSM_MemAllocate;
+      twentrypoint.DSM_MemFree      = DSM_MemFree;
+      twentrypoint.DSM_MemLock      = DSM_MemLock;
+      twentrypoint.DSM_MemUnlock    = DSM_MemUnlock;
+      result = pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id)(
+                                pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+                                DG_CONTROL,
+                                DAT_ENTRYPOINT,
+                                MSG_SET,
+                                (TW_MEMREF)&twentrypoint);
+    }
 
+    // We have a problem...
     if (TWRC_SUCCESS != result)
     {
+      kLOG((kLOGERR,"DAT_ENTRYPOINT failed..."));
       pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+    }
+
+    // Okay, we're good.  Either we're a 1.x driver, or we were able to
+    // push down our entrypoint info, so open the ds...
+    else
+    {
+      result = pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id)(
+                                pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+                                DG_CONTROL,
+                                DAT_IDENTITY,
+                                MSG_OPENDS,
+                                (TW_MEMREF)_pDsId);
+
+      // Oh well...
+      if (TWRC_SUCCESS != result)
+      {
+        kLOG((kLOGERR,"MSG_OPENDS failed..."));
+        pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+      }
     }
   }
 
@@ -718,13 +1100,13 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
     #endif
   }
 
-
+  // All done...
   return result;
 }
 
 
 
-/**
+/*
 * Close the specified driver...
 */
 TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
@@ -797,6 +1179,9 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
 * our instance handle, which is also our module handle.  Don't ever
 * put anything else in here, not even logging messages.  It just isn't
 * safe...
+* @param[in] _hmodule handle to the application that loaded the DSM
+* @param[in] _dwReasonCalled why this function is being called
+* @return TRUE
 */
 BOOL WINAPI DllMain(HINSTANCE _hmodule,
                     DWORD     _dwReasonCalled,
@@ -823,12 +1208,17 @@ BOOL WINAPI DllMain(HINSTANCE _hmodule,
 
 
 
+#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
 /**
 * We support a selection dialog on Windows.  I wish we didn't, it's
 * more trouble than it's worth, but it's part of that legacy thing.
 * This function is properly constructed for use with DialogBox...
+* @param[in] _hWnd Window handle of the dialog
+* @param[in] _Message message
+* @param[in] _wParam wparam
+* @param[in] _lParam lparam
+* @return FALSE if we processed the message
 */
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
 BOOL CALLBACK SelectDlgProc(HWND   _hWnd,
                             UINT   _Message,
                             WPARAM _wParam,
@@ -851,15 +1241,31 @@ BOOL CALLBACK SelectDlgProc(HWND   _hWnd,
 
 
 
+#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
 /**
 * We support a selection dialog on Windows.  This function is
 * part of our CTwnDsm class, so we don't have to have a lot
 * of pointers, and we can keep things private, unlike what we
 * would have to do if we put this code into the function we
 * actually pass to DialogBox...
+* @param[in] hwnd Window handle of the dialog
+* @param[in] lParam lparam
+* @return TRUE
 */
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
-BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
+BOOL CALLBACK EnumChildProc
+(
+  HWND hwnd,
+  LPARAM lParam
+)
+{
+  ::SendMessage(hwnd,WM_SETFONT,(WPARAM)lParam,(LPARAM)TRUE);
+  return TRUE;
+}
+
+
+
+BOOL CTwnDsm::SelectDlgProc(HWND hWnd,
+                            UINT Message,
                             WPARAM wParam,
                             LPARAM /*lParam - unused*/)
 {
@@ -869,6 +1275,16 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
   TW_UINT32     x;
   char         *szProductName;
   HWND          hListBox;
+  RECT          rectParent;
+  RECT          rectSelect;
+  HWND          hParent;
+  LANGID        LangId;
+  wchar_t       uzUnicode[128];
+  HFONT         hfont;
+  LOGFONT       lf;
+  POINT         point;
+  int           nWidth;
+  int           nHeight;
 
   // Init stuff...
   nSelect = 0;
@@ -878,6 +1294,125 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
   switch (Message)
   {
     case WM_INITDIALOG:
+      
+      // If the caller wants us to figure out the language, do this...
+      if (pAppId->Version.Language == (TW_UINT16)TWLG_USERLOCALE)
+      {
+      // Try to find the user's default language...
+      LangId = ::GetUserDefaultLangID();
+      for (nIndex = 0;
+           s_twlocalize[nIndex].Language >= 0;
+           nIndex++)
+      {
+        if (    (s_twlocalize[nIndex].LangId == LangId)
+            &&  s_twlocalize[nIndex].LangId
+            &&  s_twlocalize[nIndex].Title
+            &&  s_twlocalize[nIndex].Title[0]
+            &&  s_twlocalize[nIndex].Sources
+            &&  s_twlocalize[nIndex].Sources[0]
+            &&  s_twlocalize[nIndex].Select
+            &&  s_twlocalize[nIndex].Select[0]
+            &&  s_twlocalize[nIndex].Cancel
+            &&  s_twlocalize[nIndex].Cancel[0])
+        {
+            break;
+        }
+      }
+
+      // If that doesn't work, try for the primary language...
+      if (s_twlocalize[nIndex].Language < 0)
+      {
+        LangId &= 0xFF;
+        for (nIndex = 0;
+             s_twlocalize[nIndex].Language >= 0;
+             nIndex++)
+        {
+          if (  ((s_twlocalize[nIndex].LangId & 0xFF) == LangId)
+            &&  s_twlocalize[nIndex].LangId
+            &&  s_twlocalize[nIndex].Title
+            &&  s_twlocalize[nIndex].Title[0]
+            &&  s_twlocalize[nIndex].Sources
+            &&  s_twlocalize[nIndex].Sources[0]
+            &&  s_twlocalize[nIndex].Select
+            &&  s_twlocalize[nIndex].Select[0]
+            &&  s_twlocalize[nIndex].Cancel
+            &&  s_twlocalize[nIndex].Cancel[0])
+          {
+            break;
+          }
+        }
+      }
+    }
+
+    // Otherwise, use whatever the caller gave us...
+    else
+    {
+      for (nIndex = 0;
+           s_twlocalize[nIndex].Language >= 0;
+           nIndex++)
+      {
+        if (    (s_twlocalize[nIndex].Language == pAppId->Version.Language)
+            &&  s_twlocalize[nIndex].LangId
+            &&  s_twlocalize[nIndex].Title
+            &&  s_twlocalize[nIndex].Title[0]
+            &&  s_twlocalize[nIndex].Sources
+            &&  s_twlocalize[nIndex].Sources[0]
+            &&  s_twlocalize[nIndex].Select
+            &&  s_twlocalize[nIndex].Select[0]
+            &&  s_twlocalize[nIndex].Cancel
+            &&  s_twlocalize[nIndex].Cancel[0])
+        {
+          break;
+        }
+      }
+    }
+
+    // If we didn't find our language, go for English...
+    if (s_twlocalize[nIndex].Language < 0)
+    {
+      for (nIndex = 0;
+           s_twlocalize[nIndex].Language >= 0;
+           nIndex++)
+      {
+        if (    (s_twlocalize[nIndex].Language == TWLG_ENGLISH)
+            &&  s_twlocalize[nIndex].LangId
+            &&  s_twlocalize[nIndex].Title
+            &&  s_twlocalize[nIndex].Title[0]
+            &&  s_twlocalize[nIndex].Sources
+            &&  s_twlocalize[nIndex].Sources[0]
+            &&  s_twlocalize[nIndex].Select
+            &&  s_twlocalize[nIndex].Select[0]
+            &&  s_twlocalize[nIndex].Cancel
+            &&  s_twlocalize[nIndex].Cancel[0])
+        {
+          break;
+        }
+      }
+    }
+
+    // If we found something, then use it...
+    if (s_twlocalize[nIndex].Language >= 0)
+    {
+      // Set our font...
+      memset(&lf,0,sizeof(lf));
+      lf.lfHeight = 16;
+      lf.lfCharSet = s_twlocalize[nIndex].CharSet;
+      hfont = CreateFontIndirect(&lf);
+      EnumChildWindows(hWnd,EnumChildProc,(LPARAM)hfont);
+
+      MultiByteToWideChar(CP_UTF8,0,s_twlocalize[nIndex].Title,-1,uzUnicode,sizeof(uzUnicode)/sizeof(*uzUnicode));
+      SetWindowTextW(hWnd,uzUnicode);
+
+      MultiByteToWideChar(CP_UTF8,0,s_twlocalize[nIndex].Sources,-1,uzUnicode,sizeof(uzUnicode)/sizeof(*uzUnicode));
+      SetWindowTextW(::GetDlgItem(hWnd,IDC_STATIC),uzUnicode);
+
+      MultiByteToWideChar(CP_UTF8,0,s_twlocalize[nIndex].Select,-1,uzUnicode,sizeof(uzUnicode)/sizeof(*uzUnicode));
+      SetWindowTextW(::GetDlgItem(hWnd,IDOK),uzUnicode);
+
+      MultiByteToWideChar(CP_UTF8,0,s_twlocalize[nIndex].Cancel,-1,uzUnicode,sizeof(uzUnicode)/sizeof(*uzUnicode));
+      SetWindowTextW(::GetDlgItem(hWnd,IDCANCEL),uzUnicode);
+    }
+
       hListBox = ::GetDlgItem(hWnd,ID_LST_SOURCES);
       if (hListBox) 
       {
@@ -932,6 +1467,23 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
           SendMessage(hListBox,LB_SETCURSEL,(WPARAM)nIndex,(LPARAM)NULL);
         }
       }
+
+    // Center our dialog on the window reported to us in MSG_OPENDS...
+    hParent = (HWND)pod.m_ptwndsmapps->AppHwnd(pAppId);
+    if (hParent)
+    {
+      GetClientRect(hParent,&rectParent);
+      GetWindowRect(hWnd,&rectSelect);
+          nWidth  = (rectSelect.right - rectSelect.left);
+          nHeight = (rectSelect.bottom - rectSelect.top);
+      point.x = (rectParent.right - rectParent.left) / 2;
+      point.y = (rectParent.bottom - rectParent.top) / 2;
+      ClientToScreen(hParent,&point);
+      point.x -= nWidth / 2;
+      point.y -= nHeight / 2;
+      MoveWindow(hWnd,point.x,point.y,nWidth,nHeight,FALSE);
+    }
+
       return TRUE;
 
     case WM_COMMAND:
@@ -944,8 +1496,8 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
 
         case IDOK:
           {
-            HWND hListBox = ::GetDlgItem(hWnd, ID_LST_SOURCES); 
-            int  nIndex   = 0;
+            hListBox = ::GetDlgItem(hWnd, ID_LST_SOURCES); 
+            nIndex   = 0;
             if ( hListBox ) 
             {
               nIndex = (int)SendMessage(hListBox,LB_GETCURSEL,(WPARAM)0,(LPARAM)0);
@@ -980,7 +1532,7 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd, UINT Message,
 
 
 
-/**
+/*
 * Invoke the user selection dialog box.  We only support this for
 * Windows, for Linux it's a bad protocol, since there is no way
 * to query the user (nicely) across all consoles and graphical
@@ -1012,7 +1564,7 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
-  /** @TODO scanDSDir needs to be done with each MSG_USERSELECT  
+  /** @todo scanDSDir needs to be done with each MSG_USERSELECT  
     currently we are only scanDSDir when an App opens the DSM **/
 
   // Make sure the id is 0 before we go into this...
@@ -1044,8 +1596,8 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
       pod.m_pSelectDlgDsId = _pDsId;
 
       // create the dialog window
-      int ret = (int)::DialogBox(g_hinstance,
-                                 (LPCTSTR)IDD_DLG_SOURCE,
+      int ret = (int)::DialogBoxW(g_hinstance,
+                                 (LPCWSTR)IDD_DLG_SOURCE,
                                  (HWND)NULL,
                                  (DLGPROC)::SelectDlgProc);
 
@@ -1134,7 +1686,7 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
 
 
 
-/**
+/*
 * Invoke the user selection dialog box.  We only support this for
 * Windows, for Linux it's a bad protocol, since there is no way
 * to query the user (nicely) across all consoles and graphical
@@ -1177,7 +1729,7 @@ TW_INT16 CTwnDsm::GetDSFromProductName(TW_IDENTITY *_pAppId,
 
 
 
-/**
+/*
 * Get the identity for the first driver we found, or TWRC_ENDOFLIST
 * if we don't have any...
 */
@@ -1192,7 +1744,7 @@ TW_INT16 CTwnDsm::DSM_GetFirst(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
-  /** @TODO scanDSDir needs to be done with each MSG_GETFIRST  
+  /** @todo scanDSDir needs to be done with each MSG_GETFIRST  
       currently we are only scanDSDir when an App opens the DSM **/
 
   // There are no supported drivers...
@@ -1216,16 +1768,13 @@ TW_INT16 CTwnDsm::DSM_GetFirst(TW_IDENTITY *_pAppId,
   pod.m_nextDsId = 1;
   *_pDsId = *pod.m_ptwndsmapps->DsGetIdentity(_pAppId,pod.m_nextDsId);
 
-  // Prep for a call to GetNext...
-  pod.m_nextDsId += 1;
-
   // All done...
   return TWRC_SUCCESS;
 }
 
 
 
-/**
+/*
 * Get the identity for the next driver we found, or TWRC_ENDOFLIST
 * if we've run out...
 */
@@ -1247,8 +1796,12 @@ TW_INT16 CTwnDsm::DSM_GetNext(TW_IDENTITY *_pAppId,
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_SEQERROR);
     return TWRC_FAILURE;
   }
+
+  // Prep for a call to GetNext...
+  pod.m_nextDsId += 1;
+
   // We're out of items...
-  else if (pod.m_nextDsId > pod.m_ptwndsmapps->AppGetNumDs(_pAppId))
+  if (pod.m_nextDsId > pod.m_ptwndsmapps->AppGetNumDs(_pAppId))
   {
     pod.m_nextDsId = 0;
     return TWRC_ENDOFLIST;
@@ -1257,23 +1810,20 @@ TW_INT16 CTwnDsm::DSM_GetNext(TW_IDENTITY *_pAppId,
   // Return info on the this driver...
   *_pDsId = *pod.m_ptwndsmapps->DsGetIdentity(_pAppId,pod.m_nextDsId);
 
-  // Prep for a call to GetNext...
-  pod.m_nextDsId += 1;
-
   // All done...
   return TWRC_SUCCESS;
 }
 
 
 
-/**
-* Get the identity for the next driver we found, or TWRC_ENDOFLIST
-* if we've run out...
+/*
+* Get the identity of the default source...
 */
 TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
                                      TW_IDENTITY *_pDsId)
 {
   bool      bMatchFnd = false;
+  bool      bDefaultFound = false;
   TW_UINT32 ii;
 
   // Validate...
@@ -1296,9 +1846,9 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
   // application get away with this...
   if (0 != _pDsId->Id)
   {
-    kLOG((kLOGERR,"Please make sure your TW_IDENTITY.Id for your driver (the destination) is zeroed out before making this call..."));
-    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-    return TWRC_FAILURE;
+    kLOG((kLOGINFO,"Please make sure your TW_IDENTITY.Id for your driver (the destination) is zeroed out before making this call..."));
+    //pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+    //return TWRC_FAILURE;
   }
 
   // In Windows the default Data Source is stored in the registry
@@ -1318,16 +1868,7 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
       // Look for the subkey "Default Source".
       DWORD DWtype = REG_SZ;
       DWORD DWsize = sizeof(pod.m_DefaultDSPath);
-      BOOL bRunAtStartup = ( RegQueryValueEx(hKey,"Default Source",NULL,&DWtype,(LPBYTE)pod.m_DefaultDSPath,&DWsize) == ERROR_SUCCESS);
-
-      /// @TODO Check the result...
-      // There wasn't any use of bRunAtStartup before I added this, and
-      // this is obviously pretty lame, but until I find out how the value
-      // was to be used I don't want to get rid of it...
-      if (bRunAtStartup)
-      {
-        bRunAtStartup = bRunAtStartup;
-      }
+      bDefaultFound = ( RegQueryValueEx(hKey,"Default Source",NULL,&DWtype,(LPBYTE)pod.m_DefaultDSPath,&DWsize) == ERROR_SUCCESS);
 
       // Close the registry key handle.
       RegCloseKey(hKey);
@@ -1348,6 +1889,7 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
       if (pfile)
       {
         fread(pod.m_DefaultDSPath,1,sizeof(pod.m_DefaultDSPath)-1,pfile);
+        bDefaultFound = true;
         fclose(pfile);
       }
     }
@@ -1368,6 +1910,12 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
     {
       *_pDsId = *pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii);
       bMatchFnd = true;
+
+      //If no default was saved no need to go checking for a match
+      if(!bDefaultFound)
+      {
+        break;
+      }
     }
 
     // If the system default is a match we will use it and stop looking.
@@ -1392,7 +1940,90 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
 
 
 
-/**
+/*
+* In state 3 get the default source, in states 4 and higher
+* get the currently opened source...
+*/
+TW_INT16 CTwnDsm::GetIdentity(TW_IDENTITY *_pAppId,
+                              TW_IDENTITY *_pDsId)
+{
+  TW_INT32    ii;
+  TW_IDENTITY *twidentity;
+
+  // Validate...
+  if (   !pod.m_ptwndsmapps->AppValidateId(_pAppId)
+      || (0 == _pDsId))
+  {
+    kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
+    return TWRC_FAILURE;
+  }
+
+  // What we do depends on our state...
+  switch (pod.m_ptwndsmapps->AppGetState(_pAppId))
+  {
+    // In state 3, we return the default source because we have
+    // nothing currently open...
+    case dsmState_Loaded:
+    return (GetMatchingDefault(_pAppId,_pDsId));
+
+  // In state 4 and up we have something open, so it's a case
+  // of getting that data...
+  case dsmState_Open:
+    // If the caller already has the right Id, then it ought
+    // to have the rest of the data.  But what are you going
+    // to do?  We get the data anyways...
+    if (_pDsId->Id != 0)
+    {
+      twidentity = pod.m_ptwndsmapps->DsGetIdentity(_pAppId,_pDsId->Id);
+    }
+        // If the id is zero, then look for the first valid id,
+    // we find this by asking for the first DS that reports
+    // to us a valid entry point (meaning that it is open).
+    // We wouldn't do any of this, but the old 1.x DSM did
+    // this...
+    else
+    {
+      twidentity = 0;
+      for (ii = 1;
+         ii < MAX_NUM_DS;
+         ii++)
+      {
+        if (pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,ii))
+        {
+          twidentity = pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii);
+          if (  !twidentity
+            ||  twidentity->Id)
+          {
+            break;
+          }
+        }
+      }
+    }
+    // No joy, complain and get out...
+    // In theory this should be impossible, because we can't
+    // be in this state unless something is opened...
+    if (  !twidentity
+      ||  !twidentity->Id)
+    {
+          kLOG((kLOGERR,"DsGetIdentity failed..."));
+          pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+      return TWRC_FAILURE;
+    }
+    // Copy out the thing we found...
+    *_pDsId = *twidentity;
+    return TWRC_SUCCESS;
+
+  default:
+        kLOG((kLOGERR,"sequence error...",pod.m_ptwndsmapps->AppGetState(_pAppId)));
+        pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_SEQERROR);
+        return TWRC_FAILURE;
+  }
+}
+
+
+
+/*
 * Log the triplets that the application sends to us...
 */
 bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
@@ -1439,7 +2070,7 @@ bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
 
 
 
-/**
+/*
 * DAT_NULL is used by a driver to send certain messages back to the
 * application, like MSG_XFERREADY...
 */
@@ -1470,7 +2101,8 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
   ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pAppId,_pDsId->Id);
 
   // We have something to call...
-  if (0 != ptwcallback)
+  if (   (0 != ptwcallback)
+    && (ptwcallback->CallBackProc))
   {
     // We should have a try/catch around this...
     ((DSMENTRYPROC)(ptwcallback->CallBackProc))(
@@ -1498,7 +2130,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
 
 
 
-/**
+/*
 * Convert a DG_ data group numerical value to a string...
 */
 void CTwnDsm::StringFromDg(char      *_szDg,
@@ -1527,7 +2159,7 @@ void CTwnDsm::StringFromDg(char      *_szDg,
 
 
 
-/**
+/*
 * Convert a DAT_ data argument type numerical value to a string...
 */
 void CTwnDsm::StringFromDat(char     *_szDat,
@@ -1671,7 +2303,7 @@ void CTwnDsm::StringFromDat(char     *_szDat,
 
 
 
-/**
+/*
 * Convert a MSG_ message numerical value to a string...
 */
 void CTwnDsm::StringFromMsg(char     *_szMsg,
@@ -1832,7 +2464,7 @@ void CTwnDsm::StringFromMsg(char     *_szMsg,
 
 
 
-/**
+/*
 * Convert a CAP_ or ICAP_ capability numerical value to a string...
 */
 void CTwnDsm::StringFromCap(char     *_szCap,
@@ -2349,7 +2981,7 @@ void CTwnDsm::StringFromCap(char     *_szCap,
 
 
 
-/**
+/*
 * Convert a TWRC_ return code numerical value to a string...
 */
 void CTwnDsm::StringFromRC(char     *_szRc,
@@ -2403,3 +3035,164 @@ void CTwnDsm::StringFromRC(char     *_szRc,
       break;
   }
 }
+
+
+
+/*
+* Allocate memory on behalf of the caller (could be the application
+* or the driver)...
+*/
+TW_HANDLE PASCAL DSM_MemAllocate (TW_UINT32 _bytes)
+{
+  TW_HANDLE handle;
+
+  // Validate...
+  if (0 == _bytes)
+  {
+    kLOG((kLOGERR,"_bytes is zero..."));
+    return (TW_HANDLE)NULL;
+  }
+
+  // Windows...
+  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    handle = (TW_HANDLE)::GlobalAlloc(GPTR,_bytes);
+  if (0 == handle)
+  {
+      kLOG((kLOGERR,"DSM_MemAllocate failed to allocate %ld bytes...",_bytes));
+      return (TW_HANDLE)NULL;
+  }
+  return handle;
+
+  // Linux/Mac
+  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    handle = (TW_HANDLE)calloc(_bytes,1);
+  if (0 == handle)
+  {
+      kLOG((kLOGERR,"DSM_MemAllocate failed to allocate %ld bytes...",_bytes));
+      return (TW_HANDLE)NULL;
+  }
+  return handle;
+
+  // Oops...
+  #else
+    #error Sorry, we don't recognize this system...
+  #endif
+}
+
+
+
+/*
+* Free memory on behalf of the caller (could be the application
+* or the driver)...
+*/
+void PASCAL DSM_MemFree (TW_HANDLE _handle)
+{
+  // Validate...
+  if (0 == _handle)
+  {
+    kLOG((kLOGERR,"ignoring attempt to free null handle..."));
+    return;
+  }
+
+  // Windows...
+  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    ::GlobalFree(_handle);
+
+  // Linux...
+  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    free(_handle);
+
+  // Oops...
+  #else
+    #error Sorry, we don't recognize this system...
+  #endif
+}
+
+
+
+/*
+* Lock memory on behalf of the caller...
+*/
+TW_MEMREF PASCAL DSM_MemLock (TW_HANDLE _handle)
+{
+  // Validate...
+  if (0 == _handle)
+  {
+    kLOG((kLOGERR,"attempting to lock null handle..."));
+    return (TW_MEMREF)NULL;
+  }
+
+  // Windows...technically we shouldn't have to do the
+  // lock, since we allocated with GPTR, but I'm nervous
+  // that we might get a GHND sent to us.  And since
+  // this is a no-op for a GPTR, what they hey...
+  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    return (TW_MEMREF)::GlobalLock(_handle);
+
+  // Linux...
+  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    return (TW_MEMREF)_handle;
+
+  // Oops...
+  #else
+    #error Sorry, we don't recognize this system...
+  #endif
+}
+
+
+
+/*
+* Unlock memory on behalf of the caller, if needed.  This function
+* is a placeholder at the moment.  It'll get more interesting if it
+* has to do locking on Mac OS/X...
+*/
+void PASCAL DSM_MemUnlock (TW_HANDLE _handle)
+{
+  // Validate...
+  if (0 == _handle)
+  {
+    kLOG((kLOGERR,"attempting to unlock null handle..."));
+    return;
+  }
+
+  // Windows...
+  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    ::GlobalUnlock(_handle);
+
+  // Linux...
+  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+
+  // Oops...
+  #else
+    #error Sorry, we don't recognize this system...
+  #endif
+}
+
+/*
+* This function wraps the function loading calls. Linux has a 
+* special way to check dlsym failures.
+*/
+void* DSM_LoadFunction(void* _pHandle, const char* _pszSymbol)
+{
+  void* pRet = 0;
+
+  #if (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    dlerror();    /* Clear any existing error */
+  #endif
+
+  // Try to get the entry point...
+  pRet = LOADFUNCTION(_pHandle, _pszSymbol);
+
+#if (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  char* psz_error = 0;
+
+  if((psz_error = dlerror()) != NULL)
+  {
+    kLOG((kLOGERR,"dlsym error: %s",psz_error));
+    pRet = 0;
+  }
+#endif
+
+  return pRet;
+}
+

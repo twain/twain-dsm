@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="TWAIN_DSM"
+	Name="TWAINDSM"
 	ProjectGUID="{5F73EBC7-6A0E-4CBF-A37C-CB167E4CC379}"
-	RootNamespace="TWAIN_DSM"
+	RootNamespace="TWAINDSM"
 	SccProjectName=""
 	SccAuxPath=""
 	SccLocalPath=""
@@ -43,7 +43,7 @@
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
 				ModuleDefinitionFile="..\src\dsm.def"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/TWAIN_DSM.pdb"
+				ProgramDatabaseFile="$(OutDir)/TWAINDSM.pdb"
 				SubSystem="2"
 				TargetMachine="1"/>
 			<Tool
@@ -51,11 +51,11 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"/>
+				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain32 &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"/>
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="create pub folders if do not exist"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"/>
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain32 mkdir $(ProjectDir)\..\..\pub\bin\twain32 &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"/>
 			<Tool
 				Name="VCPreLinkEventTool"/>
 			<Tool
@@ -89,7 +89,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(ProjectDir)\$(OutDir)\TWAINDSM32.dll"
+				OutputFile="$(ProjectDir)\$(OutDir)\TWAINDSM.dll"
 				LinkIncremental="0"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
@@ -104,11 +104,11 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"/>
+				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain32 &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"/>
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="create pub folders if do not exist"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"/>
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain32 mkdir $(ProjectDir)\..\..\pub\bin\twain32 &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"/>
 			<Tool
 				Name="VCPreLinkEventTool"/>
 			<Tool

@@ -1,0 +1,5 @@
+December 10, 2007, JFL Peripheral Solutions (support@jflinc.com)
+ - make install for Linux is broken/non-existant
+
+
+ - need DEB's & RPM's built for Linux

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="TWAIN_DSM"
+	Name="TWAINDSM"
 	ProjectGUID="{5F73EBC7-6A0E-4CBF-A37C-CB167E4CC379}"
-	RootNamespace="TWAIN_DSM"
+	RootNamespace="TWAINDSM"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -20,8 +20,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="x32$(ConfigurationName)"
-			IntermediateDirectory="x32$(ConfigurationName)"
+			OutputDirectory="$(ConfigurationName)32"
+			IntermediateDirectory="$(ConfigurationName)32"
 			ConfigurationType="2"
 			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
@@ -29,7 +29,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="create pub folders if do not exist"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain32 mkdir $(ProjectDir)\..\..\pub\bin\twain32 &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -68,13 +68,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)\TWAINDSM32.dll"
+				OutputFile="$(OutDir)\TWAINDSM.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
 				ModuleDefinitionFile="..\src\dsm.def"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/TWAIN_DSM.pdb"
+				ProgramDatabaseFile="$(OutDir)/TWAINDSM.pdb"
 				SubSystem="2"
 				ImportLibrary="$(OutDir)/TWAIN_DSM.lib"
 				TargetMachine="1"
@@ -102,14 +102,14 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
+				Description="Copy $(TargetFileName) to system32 and twain.h to pub directory"
+				CommandLine="copy $(TargetPath) $(SystemRoot)\system32 &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="x64$(ConfigurationName)"
-			IntermediateDirectory="x64$(ConfigurationName)"
+			OutputDirectory="$(ConfigurationName)64"
+			IntermediateDirectory="$(ConfigurationName)64"
 			ConfigurationType="2"
 			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
@@ -117,7 +117,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="create pub folders if do not exist"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain64 mkdir $(ProjectDir)\..\..\pub\bin\twain64 &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -156,13 +156,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(ProjectDir)\$(OutDir)\TWAINDSM64.dll"
+				OutputFile="$(ProjectDir)\$(OutDir)\TWAINDSM.dll"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
 				ModuleDefinitionFile="..\src\dsm.def"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/TWAIN_DSM.pdb"
+				ProgramDatabaseFile="$(OutDir)/TWAINDSM.pdb"
 				SubSystem="2"
 				ImportLibrary="$(OutDir)/TWAIN_DSMx64.lib"
 				TargetMachine="17"
@@ -190,14 +190,14 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
+				Description="Copy $(TargetFileName) to system64 and twain.h to pub directory"
+				CommandLine="copy $(TargetPath) c:\windows\system64 &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="x32$(ConfigurationName)"
-			IntermediateDirectory="x32$(ConfigurationName)"
+			OutputDirectory="$(ConfigurationName)32"
+			IntermediateDirectory="$(ConfigurationName)32"
 			ConfigurationType="2"
 			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
@@ -205,7 +205,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="create pub folders if do not exist"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain32 mkdir $(ProjectDir)\..\..\pub\bin\twain32 &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -240,7 +240,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)\TWAINDSM32.dll"
+				OutputFile="$(OutDir)\TWAINDSM.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
 				ModuleDefinitionFile="..\src\dsm.def"
@@ -248,7 +248,7 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/TWAIN_DSM.lib"
+				ImportLibrary="$(OutDir)/TWAINDSM.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -275,13 +275,13 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
+				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain32 &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="x64$(ConfigurationName)"
-			IntermediateDirectory="x64$(ConfigurationName)"
+			OutputDirectory="$(ConfigurationName)64"
+			IntermediateDirectory="$(ConfigurationName)64"
 			ConfigurationType="2"
 			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
@@ -289,7 +289,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="create pub folders if do not exist"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain mkdir $(ProjectDir)\..\..\pub\bin\twain &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
+				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain64 mkdir $(ProjectDir)\..\..\pub\bin\twain64 &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -325,7 +325,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(ProjectDir)\$(OutDir)\TWAINDSM64.dll"
+				OutputFile="$(ProjectDir)\$(OutDir)\TWAINDSM.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\pub\external\lib;..\..\pub\lib"
 				ModuleDefinitionFile="..\src\dsm.def"
@@ -360,7 +360,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
+				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain64 &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"
 			/>
 		</Configuration>
 	</Configurations>
