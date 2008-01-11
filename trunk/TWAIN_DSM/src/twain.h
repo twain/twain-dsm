@@ -353,7 +353,7 @@ typedef struct {
    /* DG_CONTROL / DAT_FILESYSTEM / MSG_DELETE field    */
    int        Recursive; /* recursively delete all sub-directories */
    /* DG_CONTROL / DAT_FILESYSTEM / MSG_GETINFO fields  */
-   TW_INT32   FileType; /* One of the TWFT_xxxx values */
+   TW_INT32   FileType; /* One of the TWFY_xxxx values */
    TW_UINT32  Size; /* Size of current FileType */
    TW_STR32   CreateTimeDate; /* creation date of the file */
    TW_STR32   ModifiedTimeDate; /* last date the file was modified */
@@ -900,17 +900,6 @@ typedef struct  {
 #define TWDE_POWERSAVE              15
 #define TWDE_POWERSAVENOTIFY        16
 
-/* File Types for TW_FILESYSTEM */
-#define TWFT_CAMERA                 0
-#define TWFT_CAMERATOP              1
-#define TWFT_CAMERABOTTOM           2
-#define TWFT_CAMERAPREVIEW          3
-#define TWFT_DOMAIN                 4
-#define TWFT_HOST                   5
-#define TWFT_DIRECTORY              6
-#define TWFT_IMAGE                  7
-#define TWFT_UNKNOWN                8
-
 
 /* CAP_FEEDERALIGNMENT values (FA_ means feeder alignment) */
 #define TWFA_NONE   0
@@ -1019,7 +1008,7 @@ typedef struct  {
 #define TWOV_LEFTRIGHT  3
 #define TWOV_ALL        4
 
-/* TW_FILESYSTEM.FileType values (FT_ means file type) */
+/* TW_FILESYSTEM.FileType values (FY_ means file type) */
 #define TWFY_CAMERA         0
 #define TWFY_CAMERATOP      1
 #define TWFY_CAMERABOTTOM   2
