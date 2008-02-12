@@ -349,8 +349,8 @@ TW_UINT16 CTwnDsmApps::RemoveApp(TW_IDENTITY *_pAppId)
       if (pDSInfo->DS_Entry)
       {
         kLOG((kLOGERR,"MSG_CLOSEDSM called with drivers still open."));
-        kLOG((kLOGERR,"The application should not be doing this."));
-        kLOG((kLOGERR,"The DSM is going to try to gracefully shutdown the drivers..."));
+        kLOG((kLOGINFO,"The application should not be doing this."));
+        kLOG((kLOGINFO,"The DSM is going to try to gracefully shutdown the drivers..."));
 
         memset(&twpendingxfers,0,sizeof(twpendingxfers));
         memset(&twuserinterface,0,sizeof(twuserinterface));
