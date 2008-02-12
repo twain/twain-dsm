@@ -2105,9 +2105,11 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
     && (ptwcallback->CallBackProc))
   {
     // We should have a try/catch around this...
+    // Send a message from DS to the Application.
+    // Rare case where the origin is the DS and dest is the App
     ((DSMENTRYPROC)(ptwcallback->CallBackProc))(
-        pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
         pod.m_ptwndsmapps->DsGetIdentity(_pAppId,_pDsId->Id),
+        pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
         DG_CONTROL,
         DAT_NULL,
         _MSG,
@@ -3195,4 +3197,3 @@ void* DSM_LoadFunction(void* _pHandle, const char* _pszSymbol)
 
   return pRet;
 }
-
