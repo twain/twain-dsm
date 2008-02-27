@@ -1,0 +1,15 @@
+Source: twaindsm
+Section: libdevel
+Priority: optional
+Maintainer: TWAIN Working Group <twaindsm@twain.org>
+Standards-Version: 3.6.2
+Build-Depends: cmake, debhelper (>= 4.0.0)
+
+
+Package: twaindsm
+Architecture: any
+Depends: ${shlibs:Depends}
+Conflicts: twaindsm
+Description: TWAIN Data Source Manager
+ The TWAIN Working Group's Data Source Manager (DSM) for managing communication
+ between applications and TWAIN drivers (data sources)
