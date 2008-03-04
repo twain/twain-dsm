@@ -76,6 +76,8 @@
                                  for 1.91 Specification MLM
     version 2.0  Sept 2007       Added new types and definitions required
                                  for 2.0 Specification FHH
+    version 2.0  Mar 2008        Depreciated ICAP_PIXELTYPEs TWPT_SRGB64, TWPT_BGR, 
+                                 TWPT_CIELAB, TWPT_CIELUV, and TWPT_YCBCR.
 \* ======================================================================== */
 
 #ifndef TWAIN
@@ -131,7 +133,7 @@
 #if defined(TWH_CMP_MSC) | defined(TWH_CMP_BORLAND)
     typedef HANDLE  TW_HANDLE;
     typedef LPVOID  TW_MEMREF;
-    typedef INT_PTR TW_INTPTR;
+    typedef UINT_PTR TW_UINTPTR;
 
 /* MacOS/X... */ 
 #elif defined(TWH_CMP_XCODE)
@@ -142,10 +144,10 @@
 
     #ifdef TWH_32BIT
       //32 bit GNU
-      typedef unsigned long      TW_INTPTR;
+      typedef unsigned long      TW_UINTPTR;
     #else
       //64 bit GNU
-      typedef unsigned long long TW_INTPTR;
+      typedef unsigned long long TW_UINTPTR;
     #endif
 
 /* Everything else... */ 
@@ -158,10 +160,10 @@
 
     #ifdef TWH_32BIT
       //32 bit GNU
-      typedef unsigned long      TW_INTPTR;
+      typedef unsigned long      TW_UINTPTR;
     #else
       //64 bit GNU
-      typedef unsigned long long TW_INTPTR;
+      typedef unsigned long long TW_UINTPTR;
     #endif
 #endif
 
@@ -690,11 +692,7 @@ typedef struct  {
 #define TWPT_CIEXYZ      8
 #define TWPT_LAB         9
 #define TWPT_SRGB       10 /* 1.91 */
-#define TWPT_SRGB64     11 /* 1.91 */
-#define TWPT_BGR        12 /* 1.91 */
-#define TWPT_CIELAB     13 /* 1.91 */
-#define TWPT_CIELUV     14 /* 1.91 */
-#define TWPT_YCBCR      15 /* 1.91 */
+#define TWPT_SCRGB      11 /* 1.91 */
 #define TWPT_INFRARED   16 /* 2.0 */
 
 /* ICAP_SUPPORTEDSIZES values (SS_ means Supported Sizes) */
@@ -1908,6 +1906,12 @@ typedef wchar_t           TW_UNI512[512],     FAR *pTW_UNI512;
 /* CAP_FILESYSTEM values (FS_ means file system) */
 #define TWFS_FILESYSTEM       0
 #define TWFS_RECURSIVEDELETE  1
+
+#define TWPT_SRGB64     11 /* 1.91 */
+#define TWPT_BGR        12 /* 1.91 */
+#define TWPT_CIELAB     13 /* 1.91 */
+#define TWPT_CIELUV     14 /* 1.91 */
+#define TWPT_YCBCR      15 /* 1.91 */
 
 /* DAT_SETUPFILEXFER2. Sets up DS to application data transfer via a file. */
 /* Added 1.9                                                               */
