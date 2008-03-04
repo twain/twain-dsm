@@ -1,6 +1,5 @@
 2004-09-13 JFL Peripheral Solutions fredh@jflinc.com
     * Initial Release.
-
     
 2006-10-25 JFL Peripheral Solutions jimw@jflinc.com 
     * Added to SourceForge.
@@ -8,3 +7,6 @@
 2007-12-10 JFL Peripheral Solutions jimw@jflinc.com
     * TWAIN 2.0 Specification compliancy.
     * Windows Merge Module added.
+
+2008-03-04 JFL Peripheral Solutions jimw@jflinc.com
+    * twain.h Fixed TW_UINTPTR, Depreciated some ICAP_PIXELTYPEs
