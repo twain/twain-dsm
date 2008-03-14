@@ -1,3 +1,9 @@
+2008-03-14 JFL Peripheral Solutions jimw@jflinc.com
+
+    * Update version numbers for Windows releases to 2.0.1
+    * Update project file to enable spaces in path names.
+
+
 2008-03-13 Kodak mlmcl
 
     * dsm.cpp Fixed OpenDS to unload the .ds on fail

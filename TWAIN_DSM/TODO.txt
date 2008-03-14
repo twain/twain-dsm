@@ -1,5 +1,4 @@
-December 10, 2007, JFL Peripheral Solutions (support@jflinc.com)
- - make install for Linux is broken/non-existant
+March 14, 2008,  JFL Peripheral Solutions (support@jflinc.com)
+ - Add DLL insertion to enable backwards compatibility with TWAIN version 2 
+   applications working with TWAIN version 1 data sources
 
-
- - need DEB's & RPM's built for Linux
