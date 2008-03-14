@@ -1100,6 +1100,12 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
     #endif
   }
 
+  // If we had an error, make sure we unload the ds...
+  else
+  {
+    pod.m_ptwndsmapps->UnloadDS(_pAppId,_pDsId->Id);
+  }
+
   // All done...
   return result;
 }
