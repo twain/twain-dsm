@@ -137,7 +137,7 @@
         "Module"
         {
         "ModuleSignature" = "8:MergeModule.78DC713767684E52BEE10A14F2FF7A16"
-        "Version" = "8:2.0.0.0"
+        "Version" = "8:2.0.1.0"
         "Title" = "8:TWAINDSM64"
         "Subject" = "8:The DSM provides the communication path between TWAIN Applications and Sources."
         "Author" = "8:TWAIN Working Group http://twain.org/"
@@ -147,7 +147,7 @@
         "UseSystemSearchPath" = "11:TRUE"
         "TargetPlatform" = "3:1"
         "PreBuildEvent" = "8:"
-        "PostBuildEvent" = "8:copy $(BuiltOuputPath) $(ProjectDir)..\\..\\pub\\bin\\twain64\\"
+        "PostBuildEvent" = "8:copy \"$(BuiltOuputPath)\" \"$(ProjectDir)..\\..\\pub\\bin\\twain64\\\""
         "RunPostBuildEvent" = "3:0"
         }
         "ProjectOutput"

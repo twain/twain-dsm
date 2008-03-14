@@ -3,12 +3,21 @@
 // Used by dsm.rc
 //
 
+// Determine what bit verison of OS we are using
+#if defined(WIN64) || defined(__x86_64__) || defined(__LP64__) || defined(_M_X64) || defined(_M_IA64)
+  #define TWNDSM_OS_BIT_STR   "64"
+#else 
+  #define TWNDSM_OS_BIT_STR   "32"
+#endif
+
 //
 // Identity information that we'll toss into the log and into the version
 // resource on Windows...
 //
+
+
 #define TWNDSM_ORGANIZATION     "TWAIN Working Group"
-#define TWNDSM_DESCRIPTION      "TWAIN 32 Source Manager (Image Acquisition Interface)"
+#define TWNDSM_DESCRIPTION      "TWAIN " TWNDSM_OS_BIT_STR " Source Manager (Image Acquisition Interface)"
 #define TWNDSM_VERSIONMAJOR     "2"
 #define TWNDSM_VERSIONMINOR     "0"
 
