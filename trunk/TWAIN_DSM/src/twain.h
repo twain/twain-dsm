@@ -77,7 +77,8 @@
     version 2.0  Sept 2007       Added new types and definitions required
                                  for 2.0 Specification FHH
     version 2.0  Mar 2008        Depreciated ICAP_PIXELTYPEs TWPT_SRGB64, TWPT_BGR, 
-                                 TWPT_CIELAB, TWPT_CIELUV, and TWPT_YCBCR.
+                                 TWPT_CIELAB, TWPT_CIELUV, and TWPT_YCBCR  JMW
+    version 2.0  Mar 2008        Added missing new 2.0 CAP_ definitions JMW
 \* ======================================================================== */
 
 #ifndef TWAIN
@@ -909,7 +910,7 @@ typedef struct  {
 #define TWFO_FIRSTPAGEFIRST 0
 #define TWFO_LASTPAGEFIRST  1
 
-/* CAP_FEEDERPOCKETS */
+/* CAP_FEEDERPOCKET */
 #define TWFP_POCKETERROR    0
 #define TWFP_POCKET1        1
 #define TWFP_POCKET2        2
@@ -928,12 +929,8 @@ typedef struct  {
 #define TWFP_POCKET15       15
 #define TWFP_POCKET16       16
 
-/* CAP_FEEDERTYPE */ 
-#define TWFP_GENERAL        0
-#define TWFP_PICTURE        1
-
-/* CAP_ICCPROFILE */ 
-#define TWIC_NOINFILE       0
+/* ICAP_ICCPROFILE */ 
+#define TWIC_NONE           0
 #define TWIC_LINK           1
 #define TWIC_EMBED          2
 
@@ -1641,6 +1638,12 @@ typedef struct  {
 #define CAP_BATTERYPERCENTAGE       0x1033   /* Added 1.8 */
 #define CAP_CAMERASIDE              0x1034   /* Added 1.91 */
 #define CAP_SEGMENTED               0x1035   /* Added 1.91 */
+#define CAP_CAMERAENABLED           0x1036   /* Added 2.0 */
+#define CAP_CAMERAORDER             0x1037   /* Added 2.0 */
+#define CAP_MICRENABLED             0x1038   /* Added 2.0 */
+#define CAP_FEEDERPREP              0x1039   /* Added 2.0 */
+#define CAP_FEEDERPOCKET            0x103a   /* Added 2.0 */
+
  
 /* image data sources MAY support these caps */
 #define ICAP_AUTOBRIGHT                   0x1100
@@ -1712,6 +1715,10 @@ typedef struct  {
 #define ICAP_AUTOMATICDESKEW              0x1151  /* Added 1.8 */
 #define ICAP_AUTOMATICROTATE              0x1152  /* Added 1.8 */
 #define ICAP_JPEGQUALITY                  0x1153  /* Added 1.9 */
+#define ICAP_FEEDERTYPE                   0x1154  /* Added 1.91 */
+#define ICAP_ICCPROFILE                   0x1155  /* Added 1.91 */
+#define ICAP_AUTOSIZE                     0x1156  /* Added 2.0 */
+
 
 /* image data sources MAY support these audio caps */
 #define ACAP_AUDIOFILEFORMAT    0x1201  /* Added 1.8 */
