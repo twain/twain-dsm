@@ -2153,9 +2153,9 @@ typedef struct {
 /* Restore the previous packing alignment: this occurs after all structures are defined */
 #ifdef TWH_CMP_MSC
     #pragma pack (pop, before_twain)
-#elif defined(TWH_CMP_GNUC)
+#elif defined(TWH_CMP_GNU)
     #pragma pack (pop, before_twain)
-#elif defined(TWH_CMP_BORLANDC)
+#elif defined(TWH_CMP_BORLAND)
     #pragma option –a.
 #elif defined(TWH_CMP_XCODE)
     #if PRAGMA_STRUCT_ALIGN
