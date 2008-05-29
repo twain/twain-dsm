@@ -532,12 +532,29 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         break;
 
       case DAT_STATUS:
-        rcDSM = DSM_Status(pAppId,_MSG,(TW_STATUS*)_pData);
+	    // If we're talking to a driver (state 4 or higher), then we
+	    // must pass the DAT_STATUS request down to it...
+		if (	(dsmState_Open == pod.m_ptwndsmapps->AppGetState(pAppId))
+			&&  pod.m_ptwndsmapps->AppValidateIds(pAppId,pDSId)
+			&&	(0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id)))
+		{
+          rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(
+                                  pod.m_ptwndsmapps->AppGetIdentity(pAppId),
+                                  _DG,
+                                  _DAT,
+                                  _MSG,
+                                  _pData);
+		}
+		// Otherwise, handle it ourself...
+		else
+		{
+	      rcDSM = DSM_Status(pAppId,_MSG,(TW_STATUS*)_pData);
+		}
         break;
 
       case DAT_CALLBACK:
-          // DAT_CALLBACK can be either from an Application registering its Callback, 
-          // or from a DS Invoking a request to send a message to the Application
+        // DAT_CALLBACK can be either from an Application registering its Callback, 
+        // or from a DS Invoking a request to send a message to the Application
         rcDSM = DSM_Callback(_pOrigin,_pDest,_MSG,(TW_CALLBACK*)_pData);
         break;
 
