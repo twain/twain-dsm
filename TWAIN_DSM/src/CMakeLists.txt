@@ -11,7 +11,7 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
 #add definitions, compiler switches, etc.
-ADD_DEFINITIONS(-Wall -Werror)
+ADD_DEFINITIONS(-Wall -Wextra -Werror)
 
 #project name
 PROJECT(twaindsm)
