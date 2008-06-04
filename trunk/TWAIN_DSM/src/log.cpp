@@ -170,9 +170,9 @@ CTwnDsmLog::~CTwnDsmLog(void)
 * messages are going to work)...
 */
 void CTwnDsmLog::Log(int   _doassert,
-                     char *_file,
+                     const char *_file,
                      int   _line,
-                     char *_format,
+                     const char *_format,
                      ...)
 {
   // We've nothing to do, so bail...
@@ -198,7 +198,7 @@ void CTwnDsmLog::Log(int   _doassert,
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     nError = errno;
   #else
-    #error Sorry, we don't recognize this system...
+    #error Sorry, we do not recognize this system...
   #endif
 
   // If we have no log yet, try to get one...
@@ -232,7 +232,7 @@ void CTwnDsmLog::Log(int   _doassert,
   else
   {
     // Couldn't find any slashes...
-    file = _file;
+    file = (char*)_file;
   }
   
   // Build the message header...
@@ -264,7 +264,7 @@ void CTwnDsmLog::Log(int   _doassert,
                       (void*)GETTHREADID());
 
   #else
-    #error Sorry, we don't recognize this system...
+    #error Sorry, we do not recognize this system...
   #endif
 
   // This is the room remaining in the buffer, with room for a null...
@@ -281,7 +281,7 @@ void CTwnDsmLog::Log(int   _doassert,
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     vsnprintf(message,nChars,_format,valist);
   #else
-    #error Sorry, we don't recognize this system...
+    #error Sorry, we do not recognize this system...
   #endif
   va_end(valist);
 
