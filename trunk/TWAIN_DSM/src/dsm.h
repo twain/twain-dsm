@@ -102,26 +102,26 @@
     #else
       #define TWNDSM_OS             TWNDSM_OS_LINUX
     #endif
-  #if defined(__x86_64__) || defined(__LP64__)
-    #define TWNDSM_OS_64BIT   1
-  #else
-    #define TWNDSM_OS_32BIT   1
-  #endif
+    #if defined(__x86_64__) || defined(__LP64__)
+      #define TWNDSM_OS_64BIT   1
+    #else
+      #define TWNDSM_OS_32BIT   1
+    #endif
 
   // Visual Studio C++
   #elif defined(_MSC_VER)
     #define TWNDSM_CMP              TWNDSM_CMP_VISUALCPP
     #define TWNDSM_CMP_VERSION      _MSC_VER
     #define TWNDSM_OS               TWNDSM_OS_WINDOWS
-  #if defined(_M_X64) || defined(_M_IA64)
-    #define TWNDSM_OS_64BIT   1
-  #else
-    #define TWNDSM_OS_32BIT   1
-  #endif
+    #if defined(_M_X64) || defined(_M_IA64)
+      #define TWNDSM_OS_64BIT   1
+    #else
+      #define TWNDSM_OS_32BIT   1
+    #endif
 
   // ruh-roh...
   #else
-    #error Sorry, we don't recognize this system...
+    Sorry, we do not recognize this system...
   #endif
 #endif
 
@@ -149,7 +149,7 @@
   #define gettid() syscall(SYS_gettid)
 
 #else
-  #error Sorry, we don't recognize this system...
+  #error Sorry, we do not recognize this system...
 #endif
 
 // End @defgroup Enviroment 
@@ -296,7 +296,7 @@
   #endif
 
 #else
-  #error Sorry, we don't recognize this system...
+  #error Sorry, we do not recognize this system...
 #endif
 
 
@@ -369,7 +369,7 @@
       #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
         result = vsnprintf(d,c,f,valist);
       #else
-        #error Sorry, we don't recognize this system...
+        #error Sorry, we do not recognize this system...
       #endif
       va_end(valist);
       return result;
@@ -420,7 +420,7 @@
 #elif  (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
   #define kPANIC(msg) fprintf(stderr,"TWAIN Data Source Manager: %s\r\n",msg);
 #else
-  #error Sorry, we don't recognize this system...
+  #error Sorry, we do not recognize this system...
 #endif
 
 
@@ -496,9 +496,9 @@ class CTwnDsmLog
     * @param[in] ... arguments to the format of the message 
     */
     void Log(int  _doassert,
-             char *_file,
+             const char *_file,
              int  _line,
-             char *_format,
+             const char *_format,
              ...);
 
   private:
@@ -589,7 +589,7 @@ class CTwnDsmApps
 
     /**
     * Return a pointer to the application's identity.
-    * Yeah, I know, this sorta violates encapsulation, but we don't
+    * Yeah, I know, this sorta violates encapsulation, but we do not
     * want to get silly about this...
     * @param[in] _pAppId id of identity to get
     * @return pointer to identity or NULL
@@ -777,7 +777,7 @@ class CTwnDsm
         #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
             // We don't have one of these...
         #else
-            #error Sorry, we don't recognize this system...
+            #error Sorry, we do not recognize this system...
         #endif
 
 
