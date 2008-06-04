@@ -119,7 +119,7 @@ class CTwnDsmAppsImpl
     * @param[in] cc the TWAIN Condition Code to translate
     * @return a string that represents the cc
     */
-    char *StringFromCC(const TW_UINT16 cc);
+    const char *StringFromCC(const TW_UINT16 cc);
 
     /**
     * Loads a DS from disk and adds it to a global list of DS's.
@@ -263,7 +263,7 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     SSTRCPY(szDsm,sizeof(szDsm),kTWAIN_DS_DIR);
   #else
-    #error Sorry, we don't recognize this system...
+    #error Sorry, we do no recognize this system...
   #endif
 
   // Recursively navigate the TWAIN datasource dir looking for data sources.
@@ -750,7 +750,7 @@ void CTwnDsmApps::DsCallbackSetWaiting(TW_IDENTITY *_pAppId,
 /**
 * Turn a TWCC_ condition code into a string...
 */
-char *CTwnDsmAppsImpl::StringFromCC(const TW_UINT16 cc)
+const char *CTwnDsmAppsImpl::StringFromCC(const TW_UINT16 cc)
 {
   switch(cc)
   {
@@ -1029,7 +1029,7 @@ int CTwnDsmAppsImpl::scanDSDir(char        *_szAbsPath,
   // meh!
   //
   #else
-    #error Sorry, we don't recognize this system...
+    #error Sorry, we do no recognize this system...
   #endif
 }
 
@@ -1147,7 +1147,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
       return TWRC_FAILURE;
     }
   #else
-    #error Sorry, we don't recognize this system...
+    #error Sorry, we do no recognize this system...
   #endif
 
   // Try to get the entry point...
@@ -1267,7 +1267,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
       return TWRC_FAILURE;
     }
     #else
-    #error Sorry, we don't recognize this system...
+    #error Sorry, we do no recognize this system...
     #endif
 
     // Try to get the entry point...
@@ -1355,7 +1355,9 @@ void CTwnDsmApps::AppWakeup(TW_IDENTITY *_pAppId)
     kLOG((kLOGERR,"We shouldn't be here in AppWakeup..."));
     // We don't support this path on this platform, use
     // callbacks instead...
+    // Make the compiler happy...
+    _pAppId = _pAppId;
   #else
-    #error Sorry, we don't recognize this system...
+    #error Sorry, we do no recognize this system...
   #endif
 }
