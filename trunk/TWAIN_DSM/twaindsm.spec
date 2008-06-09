@@ -1,6 +1,6 @@
 Summary: TWAIN Data Source Manager
 Name: twaindsm
-Version: 2.0.0
+Version: 2.0.2
 Release: 1
 Vendor: TWAIN Working Group
 License: LGPL
@@ -44,5 +44,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/*
 
 %changelog
-* Mon Feb 18 2008 TWAIN Working Group <twaindsm@twain.og>
+* Thu Jun 05 2008 TWAIN Working Group <twaindsm@twain.org>
+- Bug fix for DAT_STATUS
+* Fri Mar 14 2008 TWAIN Working Group <twaindsm@twain.org>
+- The DSM now guarantees a datasource is fully closed when MSG_OPENDS fails
+* Mon Feb 18 2008 TWAIN Working Group <twaindsm@twain.org>
 - Initial Build
