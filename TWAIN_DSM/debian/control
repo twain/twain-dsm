@@ -3,7 +3,7 @@ Section: libdevel
 Priority: optional
 Maintainer: TWAIN Working Group <twaindsm@twain.org>
 Standards-Version: 3.6.2
-Build-Depends: cmake, debhelper (>= 4.0.0)
+Build-Depends: cmake (>= 2.4), debhelper (>= 4.0.0)
 
 
 Package: twaindsm
