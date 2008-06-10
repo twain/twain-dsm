@@ -532,24 +532,27 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         break;
 
       case DAT_STATUS:
-	    // If we're talking to a driver (state 4 or higher), then we
-	    // must pass the DAT_STATUS request down to it...
-		if (	(dsmState_Open == pod.m_ptwndsmapps->AppGetState(pAppId))
-			&&  pod.m_ptwndsmapps->AppValidateIds(pAppId,pDSId)
-			&&	(0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id)))
-		{
+        // If we get a DSId then it is intended to be passed along to the driver.
+        // If the DSId is null then the request is handled by the DSM
+        // If we're talking to a driver (state 4 or higher), then we
+        // will pass the DAT_STATUS request down to it...
+        if (  0 != pDSId
+          &&  (dsmState_Open == pod.m_ptwndsmapps->AppGetState(pAppId))
+          &&  pod.m_ptwndsmapps->AppValidateIds(pAppId,pDSId)
+          &&  (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id)))
+        {
           rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(
                                   pod.m_ptwndsmapps->AppGetIdentity(pAppId),
                                   _DG,
                                   _DAT,
                                   _MSG,
                                   _pData);
-		}
-		// Otherwise, handle it ourself...
-		else
-		{
-	      rcDSM = DSM_Status(pAppId,_MSG,(TW_STATUS*)_pData);
-		}
+        }
+        // Otherwise, handle it ourself...
+        else
+        {
+          rcDSM = DSM_Status(pAppId,_MSG,(TW_STATUS*)_pData);
+        }
         break;
 
       case DAT_CALLBACK:
