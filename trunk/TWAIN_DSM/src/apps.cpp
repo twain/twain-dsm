@@ -408,7 +408,11 @@ TW_BOOL CTwnDsmApps::AppValidateId(TW_IDENTITY *_pAppId)
 */
 TW_BOOL CTwnDsmApps::AppValidateIds(TW_IDENTITY *_pAppId, TW_IDENTITY *_pDSId)
 {
-  if(AppValidateId(_pAppId))
+  if(!AppValidateId(_pAppId))
+  {
+    return false;
+  }
+  else
   {
     if (!_pDSId)
     {

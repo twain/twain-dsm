@@ -185,7 +185,7 @@ void CTwnDsmLog::Log(int   _doassert,
   UINT  nError;
   UINT  nChars;
   char *message;
-  char *file;
+  const char *file;
 
   // Grab the system error, this can be really useful...
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
