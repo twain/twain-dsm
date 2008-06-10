@@ -1,3 +1,22 @@
+2008-06-10 JFL Peripheral Solutions jimw@jflinc.com
+
+    * dsm.cpp Handle DAT_STATUS if Destination is NULL
+    * AppValidateIds now returns false if App ID is invalid.
+
+    
+2008-06-13 Kodak mlmcl
+
+    * Removed the word "don't" from the #else clauses, because 4.2.3 goes in 
+      there and yells about the lack of a matching single-quote.
+    * log.cpp  Fixed a couple of valid compiler warnings from 4.2.3..
+
+
+2008-05-29 Kodak mlmcl
+
+    * dsm.cpp Turns out that we weren't sending DAT_STATUS to the driver in
+      state 4 and higher.
+
+
 2008-03-14 JFL Peripheral Solutions jimw@jflinc.com
 
     * Update version numbers for Windows releases to 2.0.1
