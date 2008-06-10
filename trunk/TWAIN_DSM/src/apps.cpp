@@ -263,7 +263,7 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     SSTRCPY(szDsm,sizeof(szDsm),kTWAIN_DS_DIR);
   #else
-    #error Sorry, we do no recognize this system...
+    #error Sorry, we do not recognize this system...
   #endif
 
   // Recursively navigate the TWAIN datasource dir looking for data sources.
@@ -1033,7 +1033,7 @@ int CTwnDsmAppsImpl::scanDSDir(char        *_szAbsPath,
   // meh!
   //
   #else
-    #error Sorry, we do no recognize this system...
+    #error Sorry, we do not recognize this system...
   #endif
 }
 
@@ -1151,7 +1151,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
       return TWRC_FAILURE;
     }
   #else
-    #error Sorry, we do no recognize this system...
+    #error Sorry, we do not recognize this system...
   #endif
 
   // Try to get the entry point...
@@ -1271,7 +1271,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
       return TWRC_FAILURE;
     }
     #else
-    #error Sorry, we do no recognize this system...
+    #error Sorry, we do not recognize this system...
     #endif
 
     // Try to get the entry point...
@@ -1362,6 +1362,6 @@ void CTwnDsmApps::AppWakeup(TW_IDENTITY *_pAppId)
     // Make the compiler happy...
     _pAppId = _pAppId;
   #else
-    #error Sorry, we do no recognize this system...
+    #error Sorry, we do not recognize this system...
   #endif
 }
