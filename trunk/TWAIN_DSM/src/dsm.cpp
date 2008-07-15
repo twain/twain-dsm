@@ -2335,7 +2335,7 @@ void CTwnDsm::StringFromDat(char     *_szDat,
 * Convert a MSG_ message numerical value to a string...
 */
 void CTwnDsm::StringFromMsg(char     *_szMsg,
-                            int       _nChars,
+                            const int       _nChars,
                       const TW_UINT16 _MSG)
 {
   switch (_MSG)
@@ -2496,7 +2496,7 @@ void CTwnDsm::StringFromMsg(char     *_szMsg,
 * Convert a CAP_ or ICAP_ capability numerical value to a string...
 */
 void CTwnDsm::StringFromCap(char     *_szCap,
-                            int       _nChars,
+                            const int       _nChars,
                       const TW_UINT16 _Cap)
 {
   switch (_Cap)
@@ -3013,7 +3013,7 @@ void CTwnDsm::StringFromCap(char     *_szCap,
 * Convert a TWRC_ return code numerical value to a string...
 */
 void CTwnDsm::StringFromRC(char     *_szRc,
-                           int       _nChars,
+                           const int       _nChars,
                      const TW_UINT16 _rc)
 {
   switch (_rc)
