@@ -1111,6 +1111,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 {
   TW_INT16  result = TWRC_SUCCESS;
   DS_INFO  *pDSInfo;
+  bool hook;
 
   // Validate...
   if (   (0 == _pPath)
@@ -1124,8 +1125,12 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // Initialize stuff...
   pDSInfo = &pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId];
 
+  // Only hook this driver if we've been asked to keep the driver
+  // open (meaning we're processing a MSG_OPENDS) and if we see
+  // that the driver is 1.x...
+  hook = _boolKeepOpen && (pDSInfo->Identity.ProtocolMajor == 1);
   // Try to load the driver...
-  pDSInfo->pHandle = LOADLIBRARY(_pPath);
+  pDSInfo->pHandle = LOADLIBRARY(_pPath,hook);
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     if (0 == pDSInfo->pHandle)
     {
@@ -1245,7 +1250,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // driver a consistent look.
   if (_boolKeepOpen == true)
   {
-    pDSInfo->pHandle = LOADLIBRARY(_pPath);
+    pDSInfo->pHandle = LOADLIBRARY(_pPath,hook);
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     if (0 == pDSInfo->pHandle)
     {
