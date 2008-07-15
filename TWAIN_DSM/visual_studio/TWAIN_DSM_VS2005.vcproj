@@ -23,7 +23,7 @@
 			OutputDirectory="$(ConfigurationName)32"
 			IntermediateDirectory="$(ConfigurationName)32"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
+			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -111,7 +111,7 @@
 			OutputDirectory="$(ConfigurationName)64"
 			IntermediateDirectory="$(ConfigurationName)64"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
+			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -141,7 +141,8 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="4"
+				WarnAsError="true"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
@@ -200,7 +201,7 @@
 			OutputDirectory="$(ConfigurationName)32"
 			IntermediateDirectory="$(ConfigurationName)32"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
+			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -284,7 +285,7 @@
 			OutputDirectory="$(ConfigurationName)64"
 			IntermediateDirectory="$(ConfigurationName)64"
 			ConfigurationType="2"
-			InheritedPropertySheets="..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
+			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -380,6 +381,10 @@
 			</File>
 			<File
 				RelativePath="..\src\dsm.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\hook.cpp"
 				>
 			</File>
 			<File
