@@ -102,7 +102,7 @@ class CTwnDsmLogImpl
 * appended to an existing file (a new one will still be created if
 * needed...
 */
-CTwnDsmLog::CTwnDsmLog(void)
+CTwnDsmLog::CTwnDsmLog()
 {
   // Init stuff...
   m_ptwndsmlogimpl = new CTwnDsmLogImpl;
@@ -135,7 +135,7 @@ CTwnDsmLog::CTwnDsmLog(void)
 * The destructor for our class.  Make sure the log is closed,
 * free the buffer and destroy our implementation class...
 */
-CTwnDsmLog::~CTwnDsmLog(void)
+CTwnDsmLog::~CTwnDsmLog()
 {
   if (m_ptwndsmlogimpl)
   {
@@ -169,10 +169,10 @@ CTwnDsmLog::~CTwnDsmLog(void)
 * one has to stay in the same thread as the HWND if the DAT_NULL
 * messages are going to work)...
 */
-void CTwnDsmLog::Log(int   _doassert,
-                     const char *_file,
-                     int   _line,
-                     const char *_format,
+void CTwnDsmLog::Log(const int         _doassert,
+                     const char* const _file,
+                     const int         _line,
+                     const char* const _format,
                      ...)
 {
   // We've nothing to do, so bail...
