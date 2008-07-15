@@ -238,12 +238,33 @@
 * The path to where TWAIN Data Sources are stored on the system
 */
 #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+
+  // For 64-bit systems we work the same as on Linux/MacOSX...
+  #if TWNDSM_OS_64BIT
+    #define LOADLIBRARY(lib,hook) LoadLibrary(lib)
+    #define UNLOADLIBRARY(hmodule) FreeLibrary((HMODULE)hmodule)
+
+    // For 32-bit systems we use a hooking mechanism to help 1.x
+    // drivers find the new TWAINDSM.DLL...
+  #else
+    HMODULE InstallTwain32DllHooks
+    (
+      const char* const _lib,
+      const bool _hook
+    );
+    BOOL UninstallTwain32DllHooks
+    (
+      const HMODULE _hmodule
+    );
+    #define LOADLIBRARY(lib,hook) InstallTwain32DllHooks(lib,hook)
+    #define UNLOADLIBRARY(hmodule) UninstallTwain32DllHooks((HMODULE)hmodule)
+  #endif
+
   #define DllExport __declspec( dllexport )
   #define NCHARS(s) sizeof(s)/sizeof(s[0])
   #define PATH_SEPERATOR '\\'
-  #define LOADLIBRARY(lib) LoadLibrary(lib) 
+ 
   #define LOADFUNCTION(lib, func) GetProcAddress((HMODULE)lib, func)
-  #define UNLOADLIBRARY(lib) FreeLibrary((HMODULE)lib)
   #define READ _read
   #define CLOSE _close
   #if (TWNDSM_CMP_VERSION >= 1400)
@@ -272,7 +293,7 @@
   #define DllExport
   #define NCHARS(s) sizeof(s)/sizeof(s[0])
   #define PATH_SEPERATOR '/'
-  #define LOADLIBRARY(lib) dlopen(lib, RTLD_LAZY)
+  #define LOADLIBRARY(lib,hook) dlopen(lib, RTLD_LAZY)
   #define LOADFUNCTION(lib, func) dlsym(lib, func)
   #define UNLOADLIBRARY(lib) dlclose(lib)
   #define READ read
@@ -340,7 +361,7 @@
   #define SSTRCAT(d,z,s) strcat_s(d,z,s)
   #define SSTRNCPY(d,z,s,m) strncpy_s(d,z,s,m)
   #define SGETENV(d,z,n) ::GetEnvironmentVariable(n,d,z)
-  inline int SSNPRINTF(char *d, size_t z, size_t c, const char *f,...)
+  inline int SSNPRINTF(char *d, const size_t z, const size_t c, const char* const f,...)
   {
       int result;
       va_list valist;
@@ -359,7 +380,7 @@
   #define SSTRCAT(d,z,s) strcat(d,s)
   #define SSTRNCPY(d,z,s,m) strncpy(d,s,m)
   #define SGETENV(d,z,n) strcpy(d,getenv(n)?getenv(n):"")
-  inline int SSNPRINTF(char *d, size_t, size_t c, const char *f,...)
+  inline int SSNPRINTF(char *d, const size_t, const size_t c, const char* const f,...)
   {
       int result;
       va_list valist;
@@ -495,10 +516,10 @@ class CTwnDsmLog
     * @param[in] _format the format of the message (same as sprintf) 
     * @param[in] ... arguments to the format of the message 
     */
-    void Log(int  _doassert,
-             const char *_file,
-             int  _line,
-             const char *_format,
+    void Log(const int         _doassert,
+             const char* const _file,
+             const int         _line,
+             const char* const _format,
              ...);
 
   private:
@@ -973,7 +994,7 @@ class CTwnDsm
         * @param[in] _MSG the TWAIN message to translate
         */
         void StringFromMsg(char *_szMsg,
-                           int _nChars,
+                           const int _nChars,
                            const TW_UINT16 _MSG);
 
         /**
@@ -983,7 +1004,7 @@ class CTwnDsm
         * @param[in] _DAT the TWAIN data argument type to translate
         */
         void StringFromDat(char *_szDat,
-                           int _nChars,
+                           const int _nChars,
                            const TW_UINT16 _DAT);
 
         /**
@@ -993,7 +1014,7 @@ class CTwnDsm
         * @param[in] _DG the TWAIN data group to translate
         */
         void StringFromDg(char *_szDg,
-                          int _nChars,
+                          const int _nChars,
                           const TW_UINT32 _DG);
 
         /**
@@ -1003,7 +1024,7 @@ class CTwnDsm
         * @param[in] _Cap the TWAIN Capability to translate
         */
         void StringFromCap(char *_szCap,
-                           int _nChars,
+                           const int _nChars,
                            const TW_UINT16 _Cap);
 
         /**
@@ -1013,7 +1034,7 @@ class CTwnDsm
         * @param[in] _rc the TWAIN Return Code to translate
         */
         void StringFromRC(char *_szRc,
-                          int _nChars,
+                          const int _nChars,
                           const TW_UINT16 _rc);
 
 
