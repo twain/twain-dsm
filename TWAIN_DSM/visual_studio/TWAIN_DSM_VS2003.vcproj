@@ -51,11 +51,11 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain32 &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"/>
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)\..\..\pub\bin\twain32&quot; &amp; copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\..\pub\include\twain&quot;"/>
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="create pub folders if do not exist"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain32 mkdir $(ProjectDir)\..\..\pub\bin\twain32 &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"/>
+				CommandLine="if NOT EXIST &quot;$(ProjectDir)\..\..\pub\bin\twain32&quot; mkdir &quot;$(ProjectDir)\..\..\pub\bin\twain32&quot; &amp; if NOT EXIST &quot;$(ProjectDir)\..\..\pub\include\twain&quot; mkdir &quot;$(ProjectDir)\..\..\pub\include\twain&quot;"/>
 			<Tool
 				Name="VCPreLinkEventTool"/>
 			<Tool
@@ -104,11 +104,11 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy $(TargetPath) $(ProjectDir)\..\..\pub\bin\twain32 &amp; copy $(ProjectDir)\..\src\twain.h $(ProjectDir)\..\..\pub\include\twain"/>
+				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)\..\..\pub\bin\twain32&quot; &amp; copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\..\pub\include\twain&quot;"/>
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="create pub folders if do not exist"
-				CommandLine="if NOT EXIST $(ProjectDir)\..\..\pub\bin\twain32 mkdir $(ProjectDir)\..\..\pub\bin\twain32 &amp; if NOT EXIST $(ProjectDir)\..\..\pub\include\twain mkdir $(ProjectDir)\..\..\pub\include\twain"/>
+				CommandLine="if NOT EXIST &quot;$(ProjectDir)\..\..\pub\bin\twain32&quot; mkdir &quot;$(ProjectDir)\..\..\pub\bin\twain32&quot; &amp; if NOT EXIST &quot;$(ProjectDir)\..\..\pub\include\twain&quot; mkdir &quot;$(ProjectDir)\..\..\pub\include\twain&quot;"/>
 			<Tool
 				Name="VCPreLinkEventTool"/>
 			<Tool
@@ -137,6 +137,9 @@
 			</File>
 			<File
 				RelativePath="..\src\dsm.cpp">
+			</File>
+			<File
+				RelativePath="..\src\hook.cpp">
 			</File>
 			<File
 				RelativePath="..\src\log.cpp">

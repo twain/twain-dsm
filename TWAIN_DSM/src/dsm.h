@@ -173,6 +173,15 @@
 #include <sys/types.h>
 #include <stdlib.h>
 
+/**
+* This is for IDEs like Visual Studio .Net 2003, that does not understand the SAL Annotations
+*/
+#ifndef __in
+  #define __in
+  #define __out
+  #define __in_opt
+#endif
+
 
 
 /**
