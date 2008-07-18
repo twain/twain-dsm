@@ -1,3 +1,9 @@
+2008-07-16 Kodak mlmcl
+
+    * hook.cpp Added the hook code for 32-bit windows systems...
+      it allows us to capture requests for DSM_Entry meant for TWAIN_32.DLL, 
+      and turn them into DSM_Entry for TWAINDSM.DLL...
+
 2008-06-10 JFL Peripheral Solutions jimw@jflinc.com
 
     * dsm.cpp Handle DAT_STATUS if Destination is NULL
