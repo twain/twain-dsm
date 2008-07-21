@@ -1127,8 +1127,9 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 
   // Only hook this driver if we've been asked to keep the driver
   // open (meaning we're processing a MSG_OPENDS) and if we see
-  // that the driver is 1.x...
-  hook = _boolKeepOpen && (pDSInfo->Identity.ProtocolMajor == 1);
+  // that the driver is 1.x...(by checking the absence of DF_DS2)
+  
+  hook = _boolKeepOpen && !(pDSInfo->Identity.SupportedGroups & DF_DS2);
   // Try to load the driver...
   pDSInfo->pHandle = LOADLIBRARY(_pPath,hook);
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
