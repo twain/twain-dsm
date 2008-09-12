@@ -350,12 +350,14 @@ DSMENTRY DSM_Entry(TW_IDENTITY  *_pOrigin,
   rcDSM = g_ptwndsm->DSM_Entry(_pOrigin,_pDest,_DG,_DAT,_MSG,_pData);
 
   // If we successfully processed DG_CONTROL/DAT_PARENT/MSG_CLOSEDSM,
+  // and don't have any other applications with it open,
   // then destroy our object.  We don't want to have any resources
   // lingering around after we destroy our CTwnDsm object!!!
   if (   (TWRC_SUCCESS == rcDSM)
       && (_MSG == MSG_CLOSEDSM)
       && (_DAT == DAT_PARENT)
-      && (_DG  == DG_CONTROL))
+      && (_DG  == DG_CONTROL)
+      && g_ptwndsm->DSMGetState() != dsmState_Open )
   {
       delete g_ptwndsm;
       g_ptwndsm = 0;
@@ -581,7 +583,14 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
   return rcDSM;
 }
 
-
+/*
+* Return the state of the DSM by checking the state of all applications
+*/
+DSM_State CTwnDsm::DSMGetState()
+{
+  DSM_State CurrentState = pod.m_ptwndsmapps->AppGetState();
+  return CurrentState;
+}
 
 /*
 * Handle DAT_STATUS.  Just a few things of note, we handle some
@@ -985,6 +994,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   // check that we are in the proper state
   if (dsmState_Open != pod.m_ptwndsmapps->AppGetState(_pAppId))
   {
+    kLOG((kLOGERR,"DSM must be open before opening DS"));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_SEQERROR);
     return(TWRC_FAILURE);
   }
@@ -1570,12 +1580,14 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
   // Validate...
   if (0 == _pAppId)
   {
+    kLOG((kLOGERR,"_pAppId is null"));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
   if (   (_pAppId->Id < 1)
       || (_pAppId->Id >= MAX_NUM_APPS))
   {
+    kLOG((kLOGERR,"_pAppId.Id is out of range"));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }

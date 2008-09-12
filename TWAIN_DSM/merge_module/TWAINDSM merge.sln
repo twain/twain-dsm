@@ -7,15 +7,12 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TWAINDSM64", "TWAINDSM64.vd
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Default = Debug|Default
 		Release|Default = Release|Default
 		Description = TWAIN DSM Merge Modual installers for 32 and 64 bit
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E076D3A0-BB1C-4FA5-BA9A-88E334646E62}.Debug|Default.ActiveCfg = Debug
 		{E076D3A0-BB1C-4FA5-BA9A-88E334646E62}.Release|Default.ActiveCfg = Release
 		{E076D3A0-BB1C-4FA5-BA9A-88E334646E62}.Release|Default.Build.0 = Release
-		{81521B40-5790-49A2-A948-577467990A4D}.Debug|Default.ActiveCfg = Debug
 		{81521B40-5790-49A2-A948-577467990A4D}.Release|Default.ActiveCfg = Release
 		{81521B40-5790-49A2-A948-577467990A4D}.Release|Default.Build.0 = Release
 	EndGlobalSection

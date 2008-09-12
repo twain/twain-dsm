@@ -643,7 +643,13 @@ class CTwnDsmApps
                              TW_UINT16 _conditioncode);
 
     /**
-    * Set the state of the DSM for the specified application
+    * Get the state of the DSM for all applications
+    * @return DSM_State, Open if at least one application has DSM open
+    */
+    DSM_State AppGetState();
+
+    /**
+    * Get the state of the DSM for the specified application
     * @param[in] _pAppId id of app
     * @return DSM_State of the application
     */
@@ -810,6 +816,11 @@ class CTwnDsm
             #error Sorry, we do not recognize this system...
         #endif
 
+        /**
+        * Get the state of the DSM by checking the state of all applications
+        * @return DSM_State, Open if at least one application has DSM open
+        */
+        DSM_State DSMGetState();
 
 
     //
@@ -1056,7 +1067,7 @@ class CTwnDsm
 
         /*
         **  If you add a class in future, declare it here and not
-        **  in the pod, or the memset we don on pod will ruin your
+        **  in the pod, or the memset we do on pod will ruin your
         **  day...
         */
 

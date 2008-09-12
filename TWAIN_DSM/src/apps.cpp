@@ -207,6 +207,7 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
   // Validate...
   if (_pAppId->ProductName[0] == 0)
   {
+    kLOG((kLOGERR,"AppId.ProductName is empty"));
     AppSetConditionCode(0,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
@@ -533,6 +534,20 @@ void CTwnDsmAppsImpl::AppSetConditionCode(TW_IDENTITY *_pAppId,
 }
 
 
+DSM_State CTwnDsmApps::AppGetState()
+{
+  // Initialize to PreSession and update it if we find an application that is further along.
+  DSM_State CurrentState = dsmState_PreSession;
+
+  for (int AppID = 1; AppID<MAX_NUM_APPS; AppID++)
+  {
+    if(m_ptwndsmappsimpl->pod.m_AppInfo[AppID].CurrentState > CurrentState)
+    {
+      CurrentState = m_ptwndsmappsimpl->pod.m_AppInfo[AppID].CurrentState;
+    }
+  }
+  return CurrentState;
+}
 
 /**
 * Get our current state.
