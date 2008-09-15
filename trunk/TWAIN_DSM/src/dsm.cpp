@@ -1093,7 +1093,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       // Oh well...
       if (TWRC_SUCCESS != result)
       {
-        kLOG((kLOGERR,"MSG_OPENDS failed..."));
+        kLOG((kLOGINFO,"MSG_OPENDS failed..."));
         pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
       }
     }

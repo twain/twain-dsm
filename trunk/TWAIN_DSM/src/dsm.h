@@ -251,7 +251,7 @@
   // For 64-bit systems we work the same as on Linux/MacOSX...
   #if TWNDSM_OS_64BIT
     #define LOADLIBRARY(lib,hook) LoadLibrary(lib)
-    #define UNLOADLIBRARY(hmodule) FreeLibrary((HMODULE)hmodule)
+    #define UNLOADLIBRARY(hmodule,unhook) FreeLibrary((HMODULE)hmodule)
 
     // For 32-bit systems we use a hooking mechanism to help 1.x
     // drivers find the new TWAINDSM.DLL...
@@ -263,10 +263,11 @@
     );
     BOOL UninstallTwain32DllHooks
     (
-      const HMODULE _hmodule
+      const HMODULE _hmodule,
+      const bool _unhook
     );
     #define LOADLIBRARY(lib,hook) InstallTwain32DllHooks(lib,hook)
-    #define UNLOADLIBRARY(hmodule) UninstallTwain32DllHooks((HMODULE)hmodule)
+    #define UNLOADLIBRARY(hmodule,unhook) UninstallTwain32DllHooks((HMODULE)hmodule,unhook)
   #endif
 
   #define DllExport __declspec( dllexport )
@@ -304,7 +305,7 @@
   #define PATH_SEPERATOR '/'
   #define LOADLIBRARY(lib,hook) dlopen(lib, RTLD_LAZY)
   #define LOADFUNCTION(lib, func) dlsym(lib, func)
-  #define UNLOADLIBRARY(lib) dlclose(lib)
+  #define UNLOADLIBRARY(lib,unhook) dlclose(lib, RTLD_LAZY)
   #define READ read
   #define CLOSE close
   #define SNPRINTF snprintf
