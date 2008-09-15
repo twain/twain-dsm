@@ -193,7 +193,7 @@ class CTwHook
     // issues...
     struct Pod
     {
-      PROC	pOriginal;  // The original procedure we found
+      PROC  pOriginal;  // The original procedure we found
     } pod;
 };
 
@@ -294,11 +294,11 @@ bool CTwHook::Hook
       s_hmoduleTWAIN32 = 0;
     }
 
-	// If we don't have an old pointer, then we're done...
-	if (NULL == pod.pOriginal)
-	{
+    // If we don't have an old pointer, then we're done...
+    if (NULL == pod.pOriginal)
+    {
       return(true);
-	}
+    }
   }
 
   // This is where we'll be hooking into Ldr functions, the calls
@@ -380,19 +380,19 @@ bool CTwHook::Hook
       // Look at the name of this imported function.
       pByName = MakePtr(PIMAGE_IMPORT_BY_NAME,hmodule,pOrigThunk->u1.AddressOfData);
 
-	  // We found it, so scoot...
+      // We found it, so scoot...
       if (    pByName->Name
-		  &&  ('\0' != pByName->Name[0])
+          &&  ('\0' != pByName->Name[0])
           &&  (0 == _stricmp("LdrGetProcedureAddress",(char*)pByName->Name)))
       {
-	    bDoHook = true;
-	    break;
-	  }
+        bDoHook = true;
+        break;
+      }
 
       // Increment both tables, and continue...
       pOrigThunk++;
       pRealThunk++;
-	}
+    }
   }
 
   // If we found something, then hook or unhook it, as appropriate...
@@ -515,19 +515,19 @@ HMODULE InstallTwain32DllHooks
   // enumerate the drivers)...
   if (_hook)
   {
-	// If we already have a hook in place, then bump up our
-	// reference counter...
-	if (   (s_iHookCount > 0)
-	    && ((CTwHook*)NULL == s_ptwhook))
-	{
+    // If we already have a hook in place, then bump up our
+    // reference counter...
+    if (   (s_iHookCount > 0)
+        && ((CTwHook*)NULL != s_ptwhook))
+    {
       s_iHookCount += 1;
-	}
+    }
 
-	// Otherwise load the beastie...
-	else
+    // Otherwise load the beastie...
+    else
     {
       // Allocate our object...
-	  s_iHookCount = 0;
+      s_iHookCount = 0;
       ptwhook = new CTwHook();
       if (ptwhook)
       {
@@ -537,7 +537,7 @@ HMODULE InstallTwain32DllHooks
           // This activates our hooking functions to look for
           // attempts to get DSM_Entry...
           s_ptwhook = ptwhook;
-		  s_iHookCount = 1;
+          s_iHookCount = 1;
         }
         // No joy, cleanup...
         else
@@ -545,7 +545,7 @@ HMODULE InstallTwain32DllHooks
           delete ptwhook;
           ptwhook = (CTwHook*)NULL;
           s_ptwhook = (CTwHook*)NULL;
-	    }
+        }
       }
     }
   }
@@ -556,19 +556,19 @@ HMODULE InstallTwain32DllHooks
   // If we hooked for this module, and the LoadLibrary failed, then
   // undo the hook...
   if (   (NULL == hmodule)
-	  && ((CTwHook*)NULL != ptwhook))
+      && ((CTwHook*)NULL != ptwhook))
   {
     dwResult = ::GetLastError();
-	if (s_iHookCount > 1)
-	{
-	  s_iHookCount -= 1;
-	}
-	else if (s_iHookCount == 1)
-	{
+    if (s_iHookCount > 1)
+    {
+      s_iHookCount -= 1;
+    }
+    else if (s_iHookCount == 1)
+    {
       s_ptwhook = (CTwHook*)NULL;
       delete ptwhook;
-	  s_iHookCount = 0;
-	}
+      s_iHookCount = 0;
+    }
     ::SetLastError(dwResult);
   }
 
@@ -584,30 +584,33 @@ HMODULE InstallTwain32DllHooks
 */
 BOOL UninstallTwain32DllHooks
 (
-  const HMODULE _hmodule
+  const HMODULE _hmodule,
+  const bool _unhook
 )
 {
-  // If we're greater than one on the reference count, then just
-  // decrement the beastie...
-  if (s_iHookCount > 1)
+  if(_unhook)
   {
-	s_iHookCount -= 1;
-  }
+    // If we're greater than one on the reference count, then just
+    // decrement the beastie...
+    if (s_iHookCount > 1)
+    {
+      s_iHookCount -= 1;
+    }
 
-  // If we're at one, then cleanup.  I'm probably being a bit
-  // paranoid about the cleanup scheme, but I like being paranoid
-  // when it comes to hooks...
-  else if (s_iHookCount == 1)
-  {
-    if (s_ptwhook)
-	{
-      CTwHook *ptwhook = s_ptwhook;
-      s_ptwhook = (CTwHook*)NULL;
-      delete ptwhook;
-	}
-    s_iHookCount = 0;
+    // If we're at one, then cleanup.  I'm probably being a bit
+    // paranoid about the cleanup scheme, but I like being paranoid
+    // when it comes to hooks...
+    else if (s_iHookCount == 1)
+    {
+      if (s_ptwhook)
+      {
+        CTwHook *ptwhook = s_ptwhook;
+        s_ptwhook = (CTwHook*)NULL;
+        delete ptwhook;
+      }
+      s_iHookCount = 0;
+    }
   }
-
   // Free the library...
   return(::FreeLibrary(_hmodule));
 }

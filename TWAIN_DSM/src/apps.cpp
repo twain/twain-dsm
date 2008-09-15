@@ -212,6 +212,11 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
+  kLOG((kLOGINFO,"Application: \"%0.32s\"", _pAppId->Manufacturer));
+  kLOG((kLOGINFO,"             \"%0.32s\"", _pAppId->ProductFamily));
+  kLOG((kLOGINFO,"             \"%0.32s\" version: %u.%u", _pAppId->ProductName, _pAppId->Version.MajorNum, _pAppId->Version.MinorNum));
+  kLOG((kLOGINFO,"             TWAIN %u.%u", _pAppId->ProtocolMajor, _pAppId->ProtocolMinor));
+
   // Check to see if this app has already been opened, and
   // if so, treat it as a sequence error, because this app
   // is already open...
@@ -1140,13 +1145,23 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // Initialize stuff...
   pDSInfo = &pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId];
 
+  // Only log DS details when processing a MSG_OPENDS message
+  if(_boolKeepOpen)
+  {
+    kLOG((kLOGINFO,"Datasource: \"%0.32s\"", pDSInfo->Identity.Manufacturer));
+    kLOG((kLOGINFO,"            \"%0.32s\"", pDSInfo->Identity.ProductFamily));
+    kLOG((kLOGINFO,"            \"%0.32s\" version: %u.%u", pDSInfo->Identity.ProductName, pDSInfo->Identity.Version.MajorNum, pDSInfo->Identity.Version.MinorNum));
+    kLOG((kLOGINFO,"            TWAIN %u.%u", pDSInfo->Identity.ProtocolMajor, pDSInfo->Identity.ProtocolMinor));
+  }
+
   // Only hook this driver if we've been asked to keep the driver
   // open (meaning we're processing a MSG_OPENDS) and if we see
   // that the driver is 1.x...(by checking the absence of DF_DS2)
-  
   hook = _boolKeepOpen && !(pDSInfo->Identity.SupportedGroups & DF_DS2);
-  // Try to load the driver...
-  pDSInfo->pHandle = LOADLIBRARY(_pPath,hook);
+
+  // Try to load the driver...  We load the driver again if we are keeping
+  // it open.  This LoadLibrary is always closed so we dont hook this time.
+  pDSInfo->pHandle = LOADLIBRARY(_pPath,false);
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     if (0 == pDSInfo->pHandle)
     {
@@ -1194,7 +1209,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
       kLOG((kLOGERR,"Could not find DS_Entry function in DS: %s",_pPath));
     #endif
 
-    UNLOADLIBRARY(pDSInfo->pHandle);
+    UNLOADLIBRARY(pDSInfo->pHandle,false);
     pDSInfo->pHandle = NULL;
     AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
     return TWRC_FAILURE;
@@ -1213,7 +1228,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   result = pDSInfo->DS_Entry(NULL,DG_CONTROL,DAT_IDENTITY,MSG_GET,(TW_MEMREF)&pDSInfo->Identity);
   if (result != TWRC_SUCCESS)
   {
-    UNLOADLIBRARY(pDSInfo->pHandle);
+    UNLOADLIBRARY(pDSInfo->pHandle,false);
     pDSInfo->pHandle = NULL;
     pDSInfo->DS_Entry = NULL;
     AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
@@ -1226,7 +1241,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   if ( !(  (_pAppId->SupportedGroups & DG_MASK & ~DG_CONTROL)              // app supports
          & (pDSInfo->Identity.SupportedGroups & DG_MASK & ~DG_CONTROL) ) ) // source supports
   {
-    UNLOADLIBRARY(pDSInfo->pHandle);
+    UNLOADLIBRARY(pDSInfo->pHandle,false);
     pDSInfo->pHandle = NULL;
     pDSInfo->DS_Entry = NULL;
     AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
@@ -1241,7 +1256,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // We clear the library to avoid cluttering up the virtual address space, and
   // to prevent scary weirdness that can result from multiple drivers being
   // loaded (if the application wants to load multiple drivers, that's its risk).
-  UNLOADLIBRARY(pDSInfo->pHandle);
+  UNLOADLIBRARY(pDSInfo->pHandle,false);
   pDSInfo->pHandle = NULL;
   pDSInfo->DS_Entry = NULL;
 
@@ -1300,7 +1315,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
     if (pDSInfo->DS_Entry == 0)
     {
       kLOG((kLOGERR,"Could not find DSM_Entry function in DS: %s",_pPath));
-      UNLOADLIBRARY(pDSInfo->pHandle);
+      UNLOADLIBRARY(pDSInfo->pHandle,hook);
       pDSInfo->pHandle = NULL;
       AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
       return TWRC_FAILURE; 
@@ -1334,7 +1349,7 @@ void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
 #else
     int retval = 
 #endif
-    UNLOADLIBRARY(m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].pHandle);
+    UNLOADLIBRARY(m_ptwndsmappsimpl->pod.m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].pHandle,true);
 
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
       if(0 == retval)
