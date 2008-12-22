@@ -339,7 +339,7 @@ typedef struct {
     TW_UINT16   ItemType;
     TW_UINT16   NumItems;
     TW_UINT16   CondCode;
-    TW_UINT32   Item;
+    TW_UINTPTR  Item;
 }TW_INFO, FAR* pTW_INFO;
 
 typedef struct {
