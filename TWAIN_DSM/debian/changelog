@@ -1,15 +1,24 @@
+twaindsm (2.0.3-1) unstable; urgency=low
+
+   * Bug fixes
+
+ -- TWAIN Working Group <twaindsm@twain.org>  Wed, 26 Nov 2008 10:00:00 -0500
+
 twaindsm (2.0.2-1) unstable; urgency=low
 
-  * Bug fix for DAT_STATUS
+   * Bug fix for DAT_STATUS
+
  -- TWAIN Working Group <twaindsm@twain.org>  Thu, 05 Jun 2008 11:00:00 -0400
 
 twaindsm (2.0.1-1) unstable; urgency=low
 
-  * The DSM now guarantees a datasource is fully closed when MSG_OPENDS fails
+   * The DSM now guarantees a datasource is fully closed when MSG_OPENDS fails
+
  -- TWAIN Working Group <twaindsm@twain.org>  Fri, 14 Mar 2008 12:00:00 -0500
 
 twaindsm (2.0.0-1) unstable; urgency=low
 
-  * Initial release
+   * Initial release
+
  -- TWAIN Working Group <twaindsm@twain.org>  Mon, 18 Feb 2008 10:22:58 -0500
 
