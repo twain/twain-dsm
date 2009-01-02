@@ -38,7 +38,7 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# Add here commands to compile the package.
-	$(MAKE)
+	$(MAKE) -C src
 
 	touch build-stamp
 
@@ -59,7 +59,7 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/tmp
-	$(MAKE) install
+	$(MAKE) -C src install
 
 
 # Build architecture-independent files here.

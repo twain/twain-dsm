@@ -305,7 +305,7 @@
   #define PATH_SEPERATOR '/'
   #define LOADLIBRARY(lib,hook) dlopen(lib, RTLD_LAZY)
   #define LOADFUNCTION(lib, func) dlsym(lib, func)
-  #define UNLOADLIBRARY(lib,unhook) dlclose(lib, RTLD_LAZY)
+  #define UNLOADLIBRARY(lib,unhook) dlclose(lib)
   #define READ read
   #define CLOSE close
   #define SNPRINTF snprintf
