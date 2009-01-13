@@ -221,6 +221,11 @@ static TwLocalize s_twlocalize[] =
     #error Sorry, we do not recognize this system...
 #endif
 
+#if TWNDSM_OS_64BIT
+  #define TWNDSM_DS_REG_LOC "Software\\Microsoft\\Windows NT\\CurrentVersion\\TWAIN64"
+#else
+  #define TWNDSM_DS_REG_LOC "Software\\Microsoft\\Windows NT\\CurrentVersion\\TWAIN"
+#endif
 
 
 /**
@@ -1517,6 +1522,15 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd,
       ClientToScreen(hParent,&point);
       point.x -= nWidth / 2;
       point.y -= nHeight / 2;
+      // keep the dialog visible on the screen
+      if(point.x < 0)
+      {
+        point.x = 0;
+      }
+      if(point.y < 0)
+      {
+        point.y = 0;
+      }
       MoveWindow(hWnd,point.x,point.y,nWidth,nHeight,FALSE);
     }
 
@@ -1671,8 +1685,8 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
           szPath = pod.m_ptwndsmapps->DsGetPath(pod.m_pSelectDlgAppId,pod.m_pSelectDlgDsId->Id);
 
           // Open the key, creating it if it doesn't exist.
-          if (RegCreateKeyEx(HKEY_CURRENT_USER,
-                             "Software\\Microsoft\\Windows NT\\CurrentVersion\\Twain",
+          if (RegCreateKeyEx(HKEY_CURRENT_USER, 
+                             TWNDSM_DS_REG_LOC,
                              NULL,
                              NULL,
                              NULL,
@@ -1898,7 +1912,7 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     HKEY hKey;
     if (RegOpenKeyEx(HKEY_CURRENT_USER,
-                     "Software\\Microsoft\\Windows NT\\CurrentVersion\\Twain",
+                     TWNDSM_DS_REG_LOC,
                      0,
                      KEY_READ,
                      &hKey) == ERROR_SUCCESS )

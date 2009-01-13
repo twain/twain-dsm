@@ -79,6 +79,7 @@
     version 2.0  Mar 2008        Depreciated ICAP_PIXELTYPEs TWPT_SRGB64, TWPT_BGR, 
                                  TWPT_CIELAB, TWPT_CIELUV, and TWPT_YCBCR  JMW
     version 2.0  Mar 2008        Added missing new 2.0 CAP_ definitions JMW
+    version 2.0  Dec 2008        Updated TW_INFO structure for 64bit JMW
 \* ======================================================================== */
 
 #ifndef TWAIN
@@ -1882,7 +1883,7 @@ typedef struct  {
 /****************************************************************************
  * Depreciated Items                                                        *
  ****************************************************************************/
-#ifdef WIN32
+#if defined(WIN32) || defined(WIN64)
         #define TW_HUGE
 #elif !defined(TWH_CMP_GNU)
         #define TW_HUGE    huge
