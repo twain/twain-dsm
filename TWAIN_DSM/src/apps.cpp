@@ -273,17 +273,11 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
   #endif
 
   // Recursively navigate the TWAIN datasource dir looking for data sources.
-  if (m_ptwndsmappsimpl->scanDSDir(szDsm,_pAppId) == EXIT_FAILURE)
-  {
-    kLOG((kLOGERR,"Something bad happened while we were looking for drivers..."));
-    AppSetConditionCode(0,TWCC_OPERATIONERROR);
-    return TWRC_FAILURE;
-  }
-  else
-  {
-    // Maybe one of many DS failed but we still found some.
-    AppSetConditionCode(_pAppId, TWCC_SUCCESS);
-  }
+  // Ignor error continue with what we found even if it is nothing
+  m_ptwndsmappsimpl->scanDSDir(szDsm,_pAppId);
+
+  // Maybe one of many DS failed but we still found some.
+  AppSetConditionCode(_pAppId, TWCC_SUCCESS);
 
   // Move DSM to state 3 for this app...
   m_ptwndsmappsimpl->pod.m_AppInfo[ii].CurrentState = dsmState_Open;

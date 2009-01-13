@@ -1,3 +1,12 @@
+2009-01-13 JFL Peripheral Solutions jimw@jflinc.com
+
+    * twain.h Updated TW_INFO structure for 64bit
+    * dsm.cpp store the location for the default DS for 64bit in a different location than 32bit
+    * apps.cpp allow for missing TWAIN_32 or TWAIN_64 directories when scanning for available datasources
+
+dsm.h, apps.cpp, hook.cpp  Fix bug to allow multiple 32-bit windows
+      applications to hook multiple datasources.
+
 2008-09-15 JFL Peripheral Solutions jimw@jflinc.com
 
     * dsm.cpp, dsm.h, apps.cpp, hook.cpp  Fix bug to allow multiple 32-bit windows
