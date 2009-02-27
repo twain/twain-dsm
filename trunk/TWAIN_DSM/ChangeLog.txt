@@ -1,3 +1,7 @@
+2009-02-27 JFL Peripheral Solutions jimw@jflinc.com
+
+    * twain.h, dsm.cpp DAT_STATUS / MSG_CHECKSTATUS is Depreciated using DAT_STATUS / MSG_GET instead.
+
 2009-01-13 JFL Peripheral Solutions jimw@jflinc.com
 
     * twain.h Updated TW_INFO structure for 64bit

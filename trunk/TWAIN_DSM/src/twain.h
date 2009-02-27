@@ -699,19 +699,19 @@ typedef struct  {
 
 /* ICAP_SUPPORTEDSIZES values (SS_ means Supported Sizes) */
 #define TWSS_NONE        0
-#define TWSS_A4LETTER    1
-#define TWSS_B5LETTER    2
+#define TWSS_A4          1
+#define TWSS_JISB5       2
 #define TWSS_USLETTER    3
 #define TWSS_USLEGAL     4
 /* Added 1.5 */
 #define TWSS_A5          5
-#define TWSS_B4          6
-#define TWSS_B6          7
+#define TWSS_ISOB4       6
+#define TWSS_ISOB6       7
 /* Added 1.7 */
 #define TWSS_USLEDGER    9
 #define TWSS_USEXECUTIVE 10
 #define TWSS_A3          11
-#define TWSS_B3          12
+#define TWSS_ISOB3       12
 #define TWSS_A6          13
 #define TWSS_C4          14
 #define TWSS_C5          15
@@ -722,7 +722,6 @@ typedef struct  {
 #define TWSS_A0           19
 #define TWSS_A1           20
 #define TWSS_A2           21
-#define TWSS_A4           TWSS_A4LETTER
 #define TWSS_A7           22
 #define TWSS_A8           23
 #define TWSS_A9           24
@@ -730,10 +729,7 @@ typedef struct  {
 #define TWSS_ISOB0        26
 #define TWSS_ISOB1        27
 #define TWSS_ISOB2        28
-#define TWSS_ISOB3        TWSS_B3
-#define TWSS_ISOB4        TWSS_B4
 #define TWSS_ISOB5        29
-#define TWSS_ISOB6        TWSS_B6
 #define TWSS_ISOB7        30
 #define TWSS_ISOB8        31
 #define TWSS_ISOB9        32
@@ -743,7 +739,6 @@ typedef struct  {
 #define TWSS_JISB2        36
 #define TWSS_JISB3        37
 #define TWSS_JISB4        38
-#define TWSS_JISB5        TWSS_B5LETTER
 #define TWSS_JISB6        39
 #define TWSS_JISB7        40
 #define TWSS_JISB8        41
@@ -783,13 +778,13 @@ typedef struct  {
 #define TWBR_DIFFUSION     3
 
 /* Added 1.7 */
-/* ICAP_DUPLEX values */
+/* CAP_DUPLEX values */
 #define TWDX_NONE         0
 #define TWDX_1PASSDUPLEX  1
 #define TWDX_2PASSDUPLEX  2
 
 /* Added 1.7 */
-/* TWEI_BARCODETYPE values */
+/* ICAP_SUPPORTEDBARCODETYPES and TWEI_BARCODETYPE values */
 #define TWBT_3OF9                 0
 #define TWBT_2OF5INTERLEAVED      1
 #define TWBT_2OF5NONINTERLEAVED   2
@@ -1269,23 +1264,22 @@ typedef struct  {
 /****************************************************************************
  * Language Constants                                                       *
  ****************************************************************************/
-
-#define TWLG_DAN              0 /* Danish                 */
-#define TWLG_DUT              1 /* Dutch                  */
-#define TWLG_ENG              2 /* International English  */
-#define TWLG_FCF              3 /* French Canadian        */
-#define TWLG_FIN              4 /* Finnish                */
-#define TWLG_FRN              5 /* French                 */
-#define TWLG_GER              6 /* German                 */
-#define TWLG_ICE              7 /* Icelandic              */
-#define TWLG_ITN              8 /* Italian                */
-#define TWLG_NOR              9 /* Norwegian              */
-#define TWLG_POR             10 /* Portuguese             */
-#define TWLG_SPA             11 /* Spanish                */
-#define TWLG_SWE             12 /* Swedish                */
-#define TWLG_USA             13 /* U.S. English           */
 /* Added for 1.8 */
 #define TWLG_USERLOCALE           -1
+#define TWLG_DANISH               0    /* Danish                 */
+#define TWLG_DUTCH                1    /* Dutch                  */
+#define TWLG_ENGLISH              2    /* International English  */
+#define TWLG_FRENCH_CANADIAN      3    /* French Canadian        */
+#define TWLG_FINNISH              4    /* Finnish                */
+#define TWLG_FRENCH               5    /* French                 */
+#define TWLG_GERMAN               6    /* German                 */
+#define TWLG_ICELANDIC            7    /* Icelandic              */
+#define TWLG_ITALIAN              8    /* Italian                */
+#define TWLG_NORWEGIAN            9    /* Norwegian              */
+#define TWLG_PORTUGUESE           10   /* Portuguese             */
+#define TWLG_SPANISH              11   /* Spanish                */
+#define TWLG_SWEDISH              12   /* Swedish                */
+#define TWLG_ENGLISH_USA          13   /* U.S. English           */
 #define TWLG_AFRIKAANS            14  
 #define TWLG_ALBANIA              15
 #define TWLG_ARABIC               16
@@ -1318,27 +1312,19 @@ typedef struct  {
 #define TWLG_CHINESE_TRADITIONAL  43
 #define TWLG_CROATIA              44
 #define TWLG_CZECH                45
-#define TWLG_DANISH               TWLG_DAN
-#define TWLG_DUTCH                TWLG_DUT
 #define TWLG_DUTCH_BELGIAN        46
-#define TWLG_ENGLISH              TWLG_ENG
 #define TWLG_ENGLISH_AUSTRALIAN   47
 #define TWLG_ENGLISH_CANADIAN     48
 #define TWLG_ENGLISH_IRELAND      49
 #define TWLG_ENGLISH_NEWZEALAND   50
 #define TWLG_ENGLISH_SOUTHAFRICA  51
 #define TWLG_ENGLISH_UK           52
-#define TWLG_ENGLISH_USA          TWLG_USA
 #define TWLG_ESTONIAN             53
 #define TWLG_FAEROESE             54
 #define TWLG_FARSI                55
-#define TWLG_FINNISH              TWLG_FIN
-#define TWLG_FRENCH               TWLG_FRN
 #define TWLG_FRENCH_BELGIAN       56
-#define TWLG_FRENCH_CANADIAN      TWLG_FCF
 #define TWLG_FRENCH_LUXEMBOURG    57
 #define TWLG_FRENCH_SWISS         58
-#define TWLG_GERMAN               TWLG_GER
 #define TWLG_GERMAN_AUSTRIAN      59
 #define TWLG_GERMAN_LUXEMBOURG    60
 #define TWLG_GERMAN_LIECHTENSTEIN 61
@@ -1346,30 +1332,24 @@ typedef struct  {
 #define TWLG_GREEK                63
 #define TWLG_HEBREW               64
 #define TWLG_HUNGARIAN            65
-#define TWLG_ICELANDIC            TWLG_ICE
 #define TWLG_INDONESIAN           66
-#define TWLG_ITALIAN              TWLG_ITN
 #define TWLG_ITALIAN_SWISS        67
 #define TWLG_JAPANESE             68
 #define TWLG_KOREAN               69
 #define TWLG_KOREAN_JOHAB         70
 #define TWLG_LATVIAN              71
 #define TWLG_LITHUANIAN           72
-#define TWLG_NORWEGIAN            TWLG_NOR
 #define TWLG_NORWEGIAN_BOKMAL     73
 #define TWLG_NORWEGIAN_NYNORSK    74
 #define TWLG_POLISH               75
-#define TWLG_PORTUGUESE           TWLG_POR
 #define TWLG_PORTUGUESE_BRAZIL    76
 #define TWLG_ROMANIAN             77
 #define TWLG_RUSSIAN              78
 #define TWLG_SERBIAN_LATIN        79
 #define TWLG_SLOVAK               80
 #define TWLG_SLOVENIAN            81
-#define TWLG_SPANISH              TWLG_SPA
 #define TWLG_SPANISH_MEXICAN      82
 #define TWLG_SPANISH_MODERN       83
-#define TWLG_SWEDISH              TWLG_SWE
 #define TWLG_THAI                 84
 #define TWLG_TURKISH              85
 #define TWLG_UKRANIAN             86
@@ -1525,9 +1505,6 @@ typedef struct  {
 #define MSG_CLOSEDSOK    0x0103 /* Tell the Application. to save the state.         */
 /* Added 1.8 */
 #define MSG_DEVICEEVENT  0X0104 /* Some event has taken place               */
-
-/* Messages used with a pointer to a DAT_STATUS structure                   */
-#define MSG_CHECKSTATUS  0x0201 /* Get status information                   */
 
 /* Messages used with a pointer to DAT_PARENT data                          */
 #define MSG_OPENDSM      0x0301 /* Open the DSM                             */
@@ -1906,6 +1883,8 @@ typedef wchar_t           TW_UNI512[512],     FAR *pTW_UNI512;
 #define CAP_SUPPORTEDCAPSEXT  0x100c
 #define CAP_FILESYSTEM        //0x????
 
+#define MSG_CHECKSTATUS         0x0201 /* Get status information - use MSG_GET instead */
+
 #define MSG_INVOKE_CALLBACK     0x0903 /* Mac Only, deprecated - use DAT_NULL and MSG_xxx instead */
 
 #define TWSS_B                8
@@ -1915,11 +1894,35 @@ typedef wchar_t           TW_UNI512[512],     FAR *pTW_UNI512;
 #define TWFS_FILESYSTEM       0
 #define TWFS_RECURSIVEDELETE  1
 
+/* ICAP_PIXELTYPE values (PT_ means Pixel Type) */
 #define TWPT_SRGB64     11 /* 1.91 */
 #define TWPT_BGR        12 /* 1.91 */
 #define TWPT_CIELAB     13 /* 1.91 */
 #define TWPT_CIELUV     14 /* 1.91 */
 #define TWPT_YCBCR      15 /* 1.91 */
+
+/* ICAP_SUPPORTEDSIZES values (SS_ means Supported Sizes) */
+#define TWSS_A4LETTER    TWSS_A4      /* use TWSS_A4 instead */
+#define TWSS_B3          TWSS_ISOB3   /* use TWSS_ISOB3 instead */
+#define TWSS_B4          TWSS_ISOB4   /* use TWSS_ISOB4 instead */
+#define TWSS_B6          TWSS_ISOB6   /* use TWSS_ISOB6 instead */
+#define TWSS_B5LETTER    TWSS_JISB5   /* use TWSS_JISB5 instead */
+
+/* CAP_LANGUAGE Language Constants */
+#define TWLG_DAN    TWLG_DANISH           /* use TWLG_DANISH instead */
+#define TWLG_DUT    TWLG_DUTCH            /* use TWLG_DUTCH instead */
+#define TWLG_ENG    TWLG_ENGLISH          /* use TWLG_ENGLISH instead */
+#define TWLG_USA    TWLG_ENGLISH_USA      /* use TWLG_ENGLISH_USA instead */
+#define TWLG_FIN    TWLG_FINNISH          /* use TWLG_FINNISH instead */
+#define TWLG_FRN    TWLG_FRENCH           /* use TWLG_FRENCH instead */
+#define TWLG_FCF    TWLG_FRENCH_CANADIAN  /* use TWLG_FRENCH_CANADIAN instead */
+#define TWLG_GER    TWLG_GERMAN           /* use TWLG_GERMAN instead */
+#define TWLG_ICE    TWLG_ICELANDIC        /* use TWLG_ICELANDIC instead */
+#define TWLG_ITN    TWLG_ITALIAN          /* use TWLG_ITALIAN instead */
+#define TWLG_NOR    TWLG_NORWEGIAN        /* use TWLG_NORWEGIAN instead */
+#define TWLG_POR    TWLG_PORTUGUESE       /* use TWLG_PORTUGUESE instead */
+#define TWLG_SPA    TWLG_SPANISH          /* use TWLG_SPANISH instead */
+#define TWLG_SWE    TWLG_SWEDISH          /* use TWLG_SWEDISH instead */
 
 /* DAT_SETUPFILEXFER2. Sets up DS to application data transfer via a file. */
 /* Added 1.9                                                               */

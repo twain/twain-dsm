@@ -335,7 +335,8 @@ DSMENTRY DSM_Entry(TW_IDENTITY  *_pOrigin,
   // MSG_OPENDSM or after MSG_CLOSEDSM...
   if (0 == g_ptwndsm)
   {
-      if (   (_MSG == MSG_GET)
+      if (   (   _MSG == MSG_GET
+              || _MSG == MSG_CHECKSTATUS )
           && (_DAT == DAT_STATUS)
           && (_DG  == DG_CONTROL)
           && (0 != _pData))
@@ -539,6 +540,11 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         break;
 
       case DAT_STATUS:
+        if( _MSG == MSG_CHECKSTATUS )
+        {
+          _MSG = MSG_GET;
+          kLOG((kLOGINFO, "MSG_CHECKSTATUS is Depreciated using MSG_GET"));
+        }
         // If we get a DSId then it is intended to be passed along to the driver.
         // If the DSId is null then the request is handled by the DSM
         // If we're talking to a driver (state 4 or higher), then we
