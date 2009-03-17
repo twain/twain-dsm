@@ -204,18 +204,22 @@
 * @def PATH_SEPERATOR
 * the operating system's symble used as a path seperator
 * 
-* @def LOADLIBRARY(lib)
+* @def LOADLIBRARY(lib, hook, DSid)
 * Call system loadibrary function.  OS abstraction macro that tries to load a library.
 * @param[in] lib path and name of library
+* @param[in] hook true if we want to attempt to hook this library
+* @param[in] DSid if hooking is the ID of the DS we are hooking
 * 
 * @def LOADFUNCTION(lib, func)
 * Call system GetProcAddress function.  OS abstraction macro that tries to locate the addess of a funtion name.
 * @param[in] lib path and name of library
 * @param[in] func name of the funtion
 *
-* @def UNLOADLIBRARY(lib)
+* @def UNLOADLIBRARY(lib, unhook, DSid)
 * Call system FreeLibrary function.  OS abstraction macro that tries to release the library.
 * @param[in] lib library modual to unload
+* @param[in] unhook true if we want to attempt to unhook this library
+* @param[in] DSid if unhooking is the ID of the DS we are unhooking
 * 
 * @def READ
 * OS abstraction macro that calls system _read function.
@@ -250,8 +254,8 @@
 
   // For 64-bit systems we work the same as on Linux/MacOSX...
   #if TWNDSM_OS_64BIT
-    #define LOADLIBRARY(lib,hook) LoadLibrary(lib)
-    #define UNLOADLIBRARY(hmodule,unhook) FreeLibrary((HMODULE)hmodule)
+    #define LOADLIBRARY(lib,hook,DSID) LoadLibrary(lib)
+    #define UNLOADLIBRARY(hmodule,unhook,DSID) FreeLibrary((HMODULE)hmodule)
 
     // For 32-bit systems we use a hooking mechanism to help 1.x
     // drivers find the new TWAINDSM.DLL...
@@ -259,15 +263,17 @@
     HMODULE InstallTwain32DllHooks
     (
       const char* const _lib,
-      const bool _hook
+      const bool _hook,
+      const TW_UINT32 _DSID
     );
     BOOL UninstallTwain32DllHooks
     (
       const HMODULE _hmodule,
-      const bool _unhook
+      const bool _unhook,
+      const TW_UINT32 _DSID
     );
-    #define LOADLIBRARY(lib,hook) InstallTwain32DllHooks(lib,hook)
-    #define UNLOADLIBRARY(hmodule,unhook) UninstallTwain32DllHooks((HMODULE)hmodule,unhook)
+    #define LOADLIBRARY(lib,hook,DSID) InstallTwain32DllHooks(lib,hook,DSID)
+    #define UNLOADLIBRARY(hmodule,unhook,DSID) UninstallTwain32DllHooks((HMODULE)hmodule,unhook,DSID)
   #endif
 
   #define DllExport __declspec( dllexport )
@@ -303,9 +309,9 @@
   #define DllExport
   #define NCHARS(s) sizeof(s)/sizeof(s[0])
   #define PATH_SEPERATOR '/'
-  #define LOADLIBRARY(lib,hook) dlopen(lib, RTLD_LAZY)
+  #define LOADLIBRARY(lib,hook,DSID) dlopen(lib, RTLD_LAZY)
   #define LOADFUNCTION(lib, func) dlsym(lib, func)
-  #define UNLOADLIBRARY(lib,unhook) dlclose(lib)
+  #define UNLOADLIBRARY(lib,unhook,DSID) dlclose(lib)
   #define READ read
   #define CLOSE close
   #define SNPRINTF snprintf

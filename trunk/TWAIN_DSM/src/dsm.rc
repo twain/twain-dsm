@@ -57,13 +57,13 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,4,0
- PRODUCTVERSION 2,0,4,0
- FILEFLAGSMASK 0x17L
+ FILEVERSION 2,0,5,0
+ PRODUCTVERSION 2,0,5,0
+ FILEFLAGSMASK 0x1fL
 #ifdef _DEBUG
- FILEFLAGS 0x1L
+ FILEFLAGS 0x9L
 #else
- FILEFLAGS 0x0L
+ FILEFLAGS 0x8L
 #endif
  FILEOS 0x4L
  FILETYPE 0x2L
@@ -75,12 +75,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "TWAIN Working Group"
             VALUE "FileDescription", "TWAIN 32 Source Manager (Image Acquisition Interface)"
-            VALUE "FileVersion", "2, 0, 4, 0"
+            VALUE "FileVersion", "2, 0, 5, 0"
             VALUE "InternalName", "DSM"
             VALUE "LegalCopyright", "(C) 1993-2008 TWAIN Working Group.  All rights reserved."
             VALUE "OriginalFilename", "TWAIN_32.dll"
             VALUE "ProductName", "TWAIN DSM Dynamic Link Library"
-            VALUE "ProductVersion", "2, 0, 4, 0"
+            VALUE "ProductVersion", "2, 0, 5, 0"
         END
     END
     BLOCK "VarFileInfo"

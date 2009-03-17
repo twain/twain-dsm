@@ -187,6 +187,24 @@ class CTwHook
       EHOOK _ehook
     );
 
+    // Determine if this DS ID has been hooked
+    bool DSID_Is_Hooked
+    (
+      TW_UINT32 DSID
+    );
+
+    // Add this DS ID as being hooked
+    void Hook_Add_DSID
+    (
+      TW_UINT32 DSID
+    );
+
+    // Remove this DS ID as being hooked
+    bool Hook_Remove_DSID
+    (
+      TW_UINT32 DSID
+    );
+
   private:
 
     // We use a pod so that we don't have to worry about initialization
@@ -194,6 +212,7 @@ class CTwHook
     struct Pod
     {
       PROC  pOriginal;  // The original procedure we found
+      TW_UINT32 HookedDSs[MAX_NUM_DS];
     } pod;
 };
 
@@ -223,6 +242,38 @@ static LdrGetProcedureAddress_t OriginalLdrGetProcedureAddress;
 */
 static HMODULE s_hmoduleTWAIN32 = 0;
 
+/**
+* A static value for the DSMEntry of the TWAIN_32.DLL we load, 
+* which provides us a way to call the original TWAIN_32 if we
+* did not want to hook this data souce.
+*/
+static DSMENTRYPROC TWAIN32_DSMEntry = 0;
+
+/**
+* The entry point we want to return to the caller, instead of the one they
+* thought they were getting from TWAIN_32.DLL...
+*/
+DSMENTRY DSM_HookedEntry
+(
+  TW_IDENTITY  *_pOrigin,
+  TW_IDENTITY  *_pDest,
+  TW_UINT32     _DG,
+  TW_UINT16     _DAT,
+  TW_UINT16     _MSG,
+  TW_MEMREF     _pData
+)
+{
+  if( (   (_DAT == DAT_NULL)
+       || (_DAT == DAT_CALLBACK && _MSG == MSG_INVOKE_CALLBACK) )
+     && _pOrigin
+     && s_ptwhook
+     && s_ptwhook->DSID_Is_Hooked(_pOrigin->Id) )
+  {
+    return DSM_Entry(_pOrigin, _pDest, _DG, _DAT, _MSG, _pData);
+  }
+
+  return TWAIN32_DSMEntry(_pOrigin, _pDest, _DG, _DAT, _MSG, _pData);
+}
 
 
 /**
@@ -450,6 +501,67 @@ bool CTwHook::Hook
   return(true);
 }
 
+/**
+* Determine if the DS has been hooked by checking the ID
+* @param[in] DSID The DS ID to check to see if it has been hooked
+* @return true or false
+*/
+bool CTwHook::DSID_Is_Hooked(TW_UINT32 DSID)
+{
+  int count = min(MAX_NUM_DS, s_iHookCount);
+  for(int i=0; i<count; i++)
+  {
+    if(pod.HookedDSs[i] == DSID)
+      return true;
+  }
+  return false;
+}
+
+/**
+* Add this DS to the list of being hooked
+* @param[in] DSID The DS ID to add to the list
+* @note We allow an application to open the DSM several times and each 
+* application to open several DSs.  (The application must use a different 
+* name each time it loads the DSM).  It is possible for a DS to be opened 
+* several times by different applications. (Although most DSs only support 
+* one connection.)  Therefore we need to allow multiple instances of the
+* same DSID.  No duplicate check needed.
+*/
+void CTwHook::Hook_Add_DSID(TW_UINT32 DSID)
+{
+  pod.HookedDSs[s_iHookCount] = DSID;
+  s_iHookCount++;
+}
+
+/**
+* Remove this DS from the list of being hooked
+* @param[in] DSID The DS ID to remove from the list
+* @return true or false
+*/
+bool CTwHook::Hook_Remove_DSID(TW_UINT32 DSID)
+{
+  int count = min(MAX_NUM_DS, s_iHookCount);
+
+  for(int i=0; i<count; i++)
+  {
+    if(pod.HookedDSs[i] == DSID)
+    {
+      while(i+1<count)
+      {
+        pod.HookedDSs[i] = pod.HookedDSs[i+1];
+      }
+      pod.HookedDSs[i] = 0;
+      s_iHookCount--;
+      return true;
+    }
+  }
+
+  // Should never get here.  It means we are trying to 
+  // remove a DS that was never hooked.
+  kLOG((kLOGERR,"Trying to removing a hook for a DSID (%d) that was never added.", DSID  ));
+  return false;
+}
+
 
 
 /**
@@ -481,7 +593,10 @@ DWORD NTAPI LocalLdrGetProcedureAddress
   // checking...
   if (ModuleHandle == s_hmoduleTWAIN32)
   {
-    *FunctionAddress = ::DSM_Entry;
+    // Get and store the original address in case we need it
+    (OriginalLdrGetProcedureAddress(ModuleHandle,FunctionName,Oridinal,(PVOID*)&TWAIN32_DSMEntry));
+    // Return the address to our own function
+    *FunctionAddress = ::DSM_HookedEntry;
     return (ERROR_SUCCESS);
   }
 
@@ -498,7 +613,8 @@ DWORD NTAPI LocalLdrGetProcedureAddress
 HMODULE InstallTwain32DllHooks
 (
   const char* const _lib,
-  const bool _hook
+  const bool _hook,
+  const TW_UINT32 _DSID
 )
 {
   HMODULE   hmodule;
@@ -520,7 +636,7 @@ HMODULE InstallTwain32DllHooks
     if (   (s_iHookCount > 0)
         && ((CTwHook*)NULL != s_ptwhook))
     {
-      s_iHookCount += 1;
+      s_ptwhook->Hook_Add_DSID(_DSID);
     }
 
     // Otherwise load the beastie...
@@ -537,7 +653,7 @@ HMODULE InstallTwain32DllHooks
           // This activates our hooking functions to look for
           // attempts to get DSM_Entry...
           s_ptwhook = ptwhook;
-          s_iHookCount = 1;
+          s_ptwhook->Hook_Add_DSID(_DSID);
         }
         // No joy, cleanup...
         else
@@ -556,14 +672,12 @@ HMODULE InstallTwain32DllHooks
   // If we hooked for this module, and the LoadLibrary failed, then
   // undo the hook...
   if (   (NULL == hmodule)
-      && ((CTwHook*)NULL != ptwhook))
+      && ((CTwHook*)NULL != ptwhook)
+      && _hook)
   {
     dwResult = ::GetLastError();
-    if (s_iHookCount > 1)
-    {
-      s_iHookCount -= 1;
-    }
-    else if (s_iHookCount == 1)
+    s_ptwhook->Hook_Remove_DSID(_DSID);
+    if (s_iHookCount <= 0)
     {
       s_ptwhook = (CTwHook*)NULL;
       delete ptwhook;
@@ -585,30 +699,27 @@ HMODULE InstallTwain32DllHooks
 BOOL UninstallTwain32DllHooks
 (
   const HMODULE _hmodule,
-  const bool _unhook
+  const bool _unhook,
+  const TW_UINT32 _DSID
 )
 {
   if(_unhook)
   {
-    // If we're greater than one on the reference count, then just
-    // decrement the beastie...
-    if (s_iHookCount > 1)
+    if (s_ptwhook)
     {
-      s_iHookCount -= 1;
-    }
+      // Remove the DS from the list and decrement the count...
+      s_ptwhook->Hook_Remove_DSID(_DSID);
 
-    // If we're at one, then cleanup.  I'm probably being a bit
-    // paranoid about the cleanup scheme, but I like being paranoid
-    // when it comes to hooks...
-    else if (s_iHookCount == 1)
-    {
-      if (s_ptwhook)
+      // If we're at zero, then cleanup.  I'm probably being a bit
+      // paranoid about the cleanup scheme, but I like being paranoid
+      // when it comes to hooks...
+      if (s_iHookCount <= 0)
       {
         CTwHook *ptwhook = s_ptwhook;
         s_ptwhook = (CTwHook*)NULL;
         delete ptwhook;
+        s_iHookCount = 0;
       }
-      s_iHookCount = 0;
     }
   }
   // Free the library...
