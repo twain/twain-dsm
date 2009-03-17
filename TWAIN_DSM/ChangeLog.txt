@@ -1,3 +1,8 @@
+2009-03-11 JFL Peripheral Solutions jimw@jflinc.com
+
+    * hook.cpp, apps.cpp, & dsm.h Only hook DS that we have opened
+    * twain.h update to TWAIN 2.1
+
 2009-02-27 JFL Peripheral Solutions jimw@jflinc.com
 
     * twain.h, dsm.cpp DAT_STATUS / MSG_CHECKSTATUS is Depreciated using DAT_STATUS / MSG_GET instead.
