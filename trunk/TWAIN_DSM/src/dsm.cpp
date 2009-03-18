@@ -486,6 +486,15 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
   {
   switch (_DAT)
     {
+      case DAT_IDENTITY:
+        // If the pDSId is 0 then the message is intended for us
+        if(pDSId==0)
+        {
+          rcDSM = DSM_Identity(pAppId,_MSG,(TW_IDENTITY*)_pData);
+          break;
+        }
+        // else we fall thru to send the message onto the DS
+
       default:
         // check if the application is open or not.  If it isn't, we have a bad sequence
         if (dsmState_Open == pod.m_ptwndsmapps->AppGetState(pAppId))
@@ -525,10 +534,6 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
 
       case DAT_PARENT:
         rcDSM = DSM_Parent(pAppId,_MSG,_pData);
-        break;
-
-      case DAT_IDENTITY:
-        rcDSM = DSM_Identity(pAppId,_MSG,(TW_IDENTITY*)_pData);
         break;
 
       case DAT_TWUNKIDENTITY:
@@ -736,10 +741,6 @@ TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
 
       case MSG_GETDEFAULT:
         result = GetMatchingDefault(_pAppId,_pDsId);
-        break;
-
-      case MSG_GET:
-        result = GetIdentity(_pAppId,_pDsId);
         break;
 
       default:
@@ -1995,90 +1996,6 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
 
   return TWRC_SUCCESS;
 }
-
-
-
-/*
-* In state 3 get the default source, in states 4 and higher
-* get the currently opened source...
-*/
-TW_INT16 CTwnDsm::GetIdentity(TW_IDENTITY *_pAppId,
-                              TW_IDENTITY *_pDsId)
-{
-  TW_INT32    ii;
-  TW_IDENTITY *twidentity;
-
-  // Validate...
-  if (   !pod.m_ptwndsmapps->AppValidateId(_pAppId)
-      || (0 == _pDsId))
-  {
-    kLOG((kLOGERR,"bad _pAppId or _pDsId..."));
-    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
-    return TWRC_FAILURE;
-  }
-
-  // What we do depends on our state...
-  switch (pod.m_ptwndsmapps->AppGetState(_pAppId))
-  {
-    // In state 3, we return the default source because we have
-    // nothing currently open...
-    case dsmState_Loaded:
-    return (GetMatchingDefault(_pAppId,_pDsId));
-
-  // In state 4 and up we have something open, so it's a case
-  // of getting that data...
-  case dsmState_Open:
-    // If the caller already has the right Id, then it ought
-    // to have the rest of the data.  But what are you going
-    // to do?  We get the data anyways...
-    if (_pDsId->Id != 0)
-    {
-      twidentity = pod.m_ptwndsmapps->DsGetIdentity(_pAppId,_pDsId->Id);
-    }
-        // If the id is zero, then look for the first valid id,
-    // we find this by asking for the first DS that reports
-    // to us a valid entry point (meaning that it is open).
-    // We wouldn't do any of this, but the old 1.x DSM did
-    // this...
-    else
-    {
-      twidentity = 0;
-      for (ii = 1;
-         ii < MAX_NUM_DS;
-         ii++)
-      {
-        if (pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,ii))
-        {
-          twidentity = pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii);
-          if (  !twidentity
-            ||  twidentity->Id)
-          {
-            break;
-          }
-        }
-      }
-    }
-    // No joy, complain and get out...
-    // In theory this should be impossible, because we can't
-    // be in this state unless something is opened...
-    if (  !twidentity
-      ||  !twidentity->Id)
-    {
-          kLOG((kLOGERR,"DsGetIdentity failed..."));
-          pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-      return TWRC_FAILURE;
-    }
-    // Copy out the thing we found...
-    *_pDsId = *twidentity;
-    return TWRC_SUCCESS;
-
-  default:
-        kLOG((kLOGERR,"sequence error...",pod.m_ptwndsmapps->AppGetState(_pAppId)));
-        pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_SEQERROR);
-        return TWRC_FAILURE;
-  }
-}
-
 
 
 /*

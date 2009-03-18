@@ -1,3 +1,10 @@
+2009-03-18 JFL Peripheral Solutions jimw@jflinc.com
+
+    * dsm.cpp Allow DAT_IDENTITY messages that have a pDSId to go to the DS.
+    * dsm.cpp Remove the undocumented, non-working, and unnecessary  
+      DAT_IDENTITY / MSG_GET handled by the DSM
+    * Increment version to 2.0.5
+
 2009-03-11 JFL Peripheral Solutions jimw@jflinc.com
 
     * hook.cpp, apps.cpp, & dsm.h Only hook DS that we have opened
