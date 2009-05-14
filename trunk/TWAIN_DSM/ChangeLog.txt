@@ -1,3 +1,18 @@
+2009-05-14 JFL Peripheral Solutions jimw@jflinc.com
+
+    * apps.cpp dsm.cpp For backwards compatibility, prevent DS from receiving
+      a triplet when it has not finished processing the previous triplet.
+    * dsm.cpp Add more logging info
+    * dsm.cpp Return RefCon, that App set in register callback, to App as
+      pData in callback routine
+
+
+2009-05-14 Kodak mlmcl
+
+    * apps.cpp Fix bug when DSM is closed by App when DS are still opened.
+    * CMakeList.txt limit global symbolics names to single process of binary.
+
+
 2009-03-18 JFL Peripheral Solutions jimw@jflinc.com
 
     * dsm.cpp Allow DAT_IDENTITY messages that have a pDSId to go to the DS.
@@ -5,28 +20,35 @@
       DAT_IDENTITY / MSG_GET handled by the DSM
     * Increment version to 2.0.5
 
+
 2009-03-11 JFL Peripheral Solutions jimw@jflinc.com
 
     * hook.cpp, apps.cpp, & dsm.h Only hook DS that we have opened
     * twain.h update to TWAIN 2.1
 
+
 2009-02-27 JFL Peripheral Solutions jimw@jflinc.com
 
-    * twain.h, dsm.cpp DAT_STATUS / MSG_CHECKSTATUS is Depreciated using DAT_STATUS / MSG_GET instead.
+    * twain.h, dsm.cpp DAT_STATUS / MSG_CHECKSTATUS is Depreciated using 
+      DAT_STATUS / MSG_GET instead.
+
 
 2009-01-13 JFL Peripheral Solutions jimw@jflinc.com
 
     * twain.h Updated TW_INFO structure for 64bit
-    * dsm.cpp store the location for the default DS for 64bit in a different location than 32bit
-    * apps.cpp allow for missing TWAIN_32 or TWAIN_64 directories when scanning for available datasources
-
-dsm.h, apps.cpp, hook.cpp  Fix bug to allow multiple 32-bit windows
+    * dsm.cpp store the location for the default DS for 64bit in a different 
+      location than 32bit
+    * apps.cpp allow for missing TWAIN_32 or TWAIN_64 directories when 
+      scanning for available datasources
+    * dsm.h, apps.cpp, hook.cpp  Fix bug to allow multiple 32-bit windows 
       applications to hook multiple datasources.
+
 
 2008-09-15 JFL Peripheral Solutions jimw@jflinc.com
 
     * dsm.cpp, dsm.h, apps.cpp, hook.cpp  Fix bug to allow multiple 32-bit windows
       applications to hook multiple datasources.
+
     
 2008-09-10 JFL Peripheral Solutions jimw@jflinc.com
 
@@ -34,11 +56,13 @@ dsm.h, apps.cpp, hook.cpp  Fix bug to allow multiple 32-bit windows
     * Add more error messages to the log file
     * increase version number
 
+
 2008-07-16 Kodak mlmcl
 
     * hook.cpp Added the hook code for 32-bit windows systems...
       it allows us to capture requests for DSM_Entry meant for TWAIN_32.DLL, 
       and turn them into DSM_Entry for TWAINDSM.DLL...
+
 
 2008-06-10 JFL Peripheral Solutions jimw@jflinc.com
 

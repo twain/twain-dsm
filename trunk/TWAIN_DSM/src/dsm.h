@@ -745,6 +745,26 @@ class CTwnDsmApps
                               TW_UINT32   _DsId,
                               TW_BOOL     _Waiting);
 
+    /**
+    * Check if the DS is still processing last message
+    * @param[in] _pAppId id of app
+    * @param[in] _DsId numeric id of driver
+    * @return TRUE if the DS has not finished processing message
+    */
+    TW_BOOL DsIsProcessingMessage(TW_IDENTITY *_pAppId,
+                                  TW_UINT32    _DsId);
+
+    /**
+    * Set the ProcessingMessage flag.
+    * This is how we know the DS is not done processing the previous message
+    * @param[in] _pAppId id of app
+    * @param[in] _DsId numeric id of driver
+    * @param[in] _Processing the new state for the processing flag
+    */
+    void DsSetProcessingMessage(TW_IDENTITY *_pAppId,
+                                TW_UINT32    _DsId,
+                                TW_BOOL      _Processing);
+
   private:
 
     /**
@@ -1015,6 +1035,20 @@ class CTwnDsm
                                const TW_MEMREF _pData);
 
         /**
+        * prints to stdout information about result of processing the triplets.
+        * @param[in] _DG the Data Group
+        * @param[in] _DAT the Data Argument Type
+        * @param[in] _MSG the Message
+        * @param[in] _pData the Data
+        * @param[in] _RC the Return Code after 
+        */
+        void printResults(const TW_UINT32 _DG,
+                          const TW_UINT16 _DAT,
+                          const TW_UINT16 _MSG,
+                          const TW_MEMREF _pData,
+                          const TW_UINT16 _RC);
+
+        /**
         * Translates the _MSG passed in into a string and returns it
         * @param[out] _szMsg string to copy into
         * @param[in] _nChars max chars in _szMsg
@@ -1053,6 +1087,16 @@ class CTwnDsm
         void StringFromCap(char *_szCap,
                            const int _nChars,
                            const TW_UINT16 _Cap);
+
+        /**
+        * Translates the _ConType and _hContainer passed in into a string and returns it
+        * @param[out] _szCap string to copy into
+        * @param[in] _nChars max chars in _szCap
+        * @param[in] _ConType the TWAIN Container Type to translate
+        */
+        void CTwnDsm::StringFromConType(char     *_szRc,
+                                  const int       _nChars,
+                                  const TW_UINT16 _ConType);
 
         /**
         * Translates the rc passed in into a string and returns it

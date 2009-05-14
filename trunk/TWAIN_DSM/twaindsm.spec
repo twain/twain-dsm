@@ -1,6 +1,6 @@
 Summary: TWAIN Data Source Manager
 Name: twaindsm
-Version: 2.0.3
+Version: 2.0.6
 Release: 1
 Vendor: TWAIN Working Group
 License: LGPL
