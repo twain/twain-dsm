@@ -13,13 +13,16 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 #add definitions, compiler switches, etc.
 ADD_DEFINITIONS(-Wall -Wextra -Werror)
 
+#let's not be sharing our symbols...
+SET(CMAKE_SHARED_LINKER_FLAGS "-Wl,-Bsymbolic -Wl,--no-undefined")
+
 #project name
 PROJECT(twaindsm)
 
 #project version
 SET(${PROJECT_NAME}_MAJOR_VERSION 2)
 SET(${PROJECT_NAME}_MINOR_VERSION 0)
-SET(${PROJECT_NAME}_PATCH_LEVEL 5)
+SET(${PROJECT_NAME}_PATCH_LEVEL 6)
 
 #build a shared library
 ADD_LIBRARY(twaindsm SHARED dsm.cpp apps.cpp log.cpp)

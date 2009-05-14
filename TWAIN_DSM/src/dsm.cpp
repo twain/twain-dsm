@@ -397,7 +397,7 @@ CTwnDsm::CTwnDsm()
   kLOG((kLOGINFO,"************************************************"));
   kLOG((kLOGINFO,"%s",TWNDSM_ORGANIZATION));
   kLOG((kLOGINFO,"%s",TWNDSM_DESCRIPTION));
-  kLOG((kLOGINFO,"version: %s.%s",TWNDSM_VERSIONMAJOR,TWNDSM_VERSIONMINOR));
+  kLOG((kLOGINFO,"version: %s",TWNDSM_VERSION_STR));
 
   // Get our application object...
   pod.m_ptwndsmapps = new CTwnDsmApps();
@@ -487,8 +487,8 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
   switch (_DAT)
     {
       case DAT_IDENTITY:
-        // If the pDSId is 0 then the message is intended for us
-        if(pDSId==0)
+        // If the pDSId is 0 then the message is intended for us...
+        if (pDSId == 0)
         {
           rcDSM = DSM_Identity(pAppId,_MSG,(TW_IDENTITY*)_pData);
           break;
@@ -509,12 +509,30 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
             // Issue the command...
             else if (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))
             {
-              rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(
-                                      pod.m_ptwndsmapps->AppGetIdentity(pAppId),
-                                      _DG,
-                                      _DAT,
-                                      _MSG,
-                                      _pData);
+              if( !pod.m_ptwndsmapps->DsIsProcessingMessage(pAppId,pDSId->Id) )
+              {
+                pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,pDSId->Id,TRUE);
+                rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(
+                                        pod.m_ptwndsmapps->AppGetIdentity(pAppId),
+                                        _DG,
+                                        _DAT,
+                                        _MSG,
+                                        _pData);
+                pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,pDSId->Id,FALSE);
+              }
+              else
+              {
+                kLOG((kLOGINFO,"Nested Triplet Ignored"));
+                if( _DAT == DAT_EVENT && _MSG == MSG_PROCESSEVENT)
+                {
+                  rcDSM = TWRC_NOTDSEVENT;
+                }
+                else
+                {
+                  pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_SEQERROR);
+                  rcDSM = TWRC_FAILURE;
+                }
+              }
             }
 
             // For some reason we have no pointer to the dsentry function...
@@ -591,9 +609,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
   // Log how it went...
   if (bPrinted)
   {
-    char szRc[64];
-    StringFromRC(szRc,NCHARS(szRc),rcDSM);
-    kLOG((kLOGINFO,szRc));
+    printResults(_DG,_DAT,_MSG,_pData,rcDSM);
   }
 
   return rcDSM;
@@ -1106,7 +1122,24 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       if (TWRC_SUCCESS != result)
       {
         kLOG((kLOGINFO,"MSG_OPENDS failed..."));
-        pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+        TW_UINT16  rcDSMStatus;
+        TW_STATUS  twstatus;
+        // If the call to MSG_OPENDS fails, then we need to get the DAT_STATUS and squirrel
+        // it away, because we're going to close this data source soon...
+        rcDSMStatus = (pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))(
+					              pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+					              DG_CONTROL,
+					              DAT_STATUS,
+					              MSG_GET,
+					              (TW_MEMREF)&twstatus);
+        if (rcDSMStatus == TWRC_SUCCESS)
+        {
+          pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,twstatus.ConditionCode);
+        }
+        else
+        {
+          pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_NODS);
+        }
       }
     }
   }
@@ -2009,8 +2042,14 @@ bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
   char szDg[64];
   char szDat[64];
   char szMsg[64];
-  char szCap[128];
+  char szData[128];
   TW_CAPABILITY *_pCap;
+
+  // Don't spend time processing the triplet if we are not logging.
+  if( !g_ptwndsmlog )
+  {
+    return false;
+  }
 
   // too many of these messages to log...
   if (    (DG_CONTROL == _DG)
@@ -2024,26 +2063,72 @@ bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
   StringFromDat(szDat,NCHARS(szDat),_DAT);
   StringFromMsg(szMsg,NCHARS(szMsg),_MSG);
 
-  // Print them, (and give us a blank line)...
-  kLOG((kLOGINFO,""));
-  kLOG((kLOGINFO,"%s/%s/%s",szDg,szDat,szMsg));
+  memset(szData, 0, sizeof(szData));
 
-  // If we're a capability, do some extra work and
-  // try to tell them what cap it is...
-  if (   (DG_CONTROL == _DG)
-      && (DAT_CAPABILITY == _DAT)
-      && (NULL != _pData))
+  // If we have data do some extra work to see what it might be
+  if(NULL != _pData)
   {
-    _pCap = (TW_CAPABILITY*)_pData;
-    StringFromCap(szCap,NCHARS(szCap),_pCap->Cap);
-    kLOG((kLOGINFO,szCap));
+    // If we're a capability, try to tell them what cap it is...
+    if (   (DG_CONTROL == _DG)
+        && (DAT_CAPABILITY == _DAT) )
+    {
+      _pCap = (TW_CAPABILITY*)_pData;
+      StringFromCap(szData,NCHARS(szData),_pCap->Cap);
+
+      // If sending a container, try to tell them what...
+      if( MSG_SET == _MSG )
+      {
+        char szType[32];
+        StringFromConType(szType,NCHARS(szType),_pCap->ConType);
+        SSTRCAT(szData,NCHARS(szData),szType);
+      }
+    }
+  }
+
+  // Print them
+  if(strlen(szData))
+  {
+    kLOG((kLOGINFO,"%s/%s/%s/%s",szDg,szDat,szMsg,szData));
+  }
+  else
+  {
+    kLOG((kLOGINFO,"%s/%s/%s",szDg,szDat,szMsg));
   }
 
   // All done...
   return true;
 }
 
+/*
+* Log the results after processing the Triplet
+*/
+void CTwnDsm::printResults(const TW_UINT32 _DG,
+                           const TW_UINT16 _DAT,
+                           const TW_UINT16 _MSG,
+                           const TW_MEMREF _pData,
+                           const TW_UINT16 _RC)
+{
+  char szRc[64];
 
+  StringFromRC(szRc,NCHARS(szRc),_RC);
+
+  // If we have data do some extra work to see what it might be
+  if( NULL != _pData
+   && DG_CONTROL == _DG
+   && DAT_CAPABILITY == _DAT 
+   && ( MSG_GET == _MSG || MSG_GETCURRENT == _MSG) )
+  {
+      TW_CAPABILITY *_pCap = (TW_CAPABILITY*)_pData;
+      char szType[32];
+      StringFromConType(szType,NCHARS(szType),_pCap->ConType);
+      SSTRCAT(szRc,NCHARS(szRc),szType);
+  }
+
+  // ... and add a blank line
+  SSTRCAT(szRc,NCHARS(szRc),"\n");
+
+  kLOG((kLOGINFO,szRc));
+}
 
 /*
 * DAT_NULL is used by a driver to send certain messages back to the
@@ -2079,6 +2164,14 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
   if (   (0 != ptwcallback)
     && (ptwcallback->CallBackProc))
   {
+    // RefCon is returned back to the calling application in pData
+    // Unfortunately RefCon is defined as TW_INT32
+    // Application writers that want to store a pointer in RefCon
+    // on 64bit will need to store an index to local storage.
+    #pragma warning(disable:4312)
+    TW_MEMREF MemRef = (TW_MEMREF)ptwcallback->RefCon;
+    #pragma warning(default:4312)
+
     // We should have a try/catch around this...
     // Send a message from DS to the Application.
     // Rare case where the origin is the DS and dest is the App
@@ -2088,7 +2181,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
         DG_CONTROL,
         DAT_NULL,
         _MSG,
-        0);
+        MemRef);
   }
 
   // Application has not registered a callback. As a result, the msg will
@@ -2111,7 +2204,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
 * Convert a DG_ data group numerical value to a string...
 */
 void CTwnDsm::StringFromDg(char      *_szDg,
-                           int        _nChars,
+                     const int        _nChars,
                      const TW_UINT32  _DG)
 {
   switch(_DG)
@@ -2140,7 +2233,7 @@ void CTwnDsm::StringFromDg(char      *_szDg,
 * Convert a DAT_ data argument type numerical value to a string...
 */
 void CTwnDsm::StringFromDat(char     *_szDat,
-                            int       _nChars,
+                      const int       _nChars,
                       const TW_UINT16 _DAT)
 {
   switch(_DAT)
@@ -2284,7 +2377,7 @@ void CTwnDsm::StringFromDat(char     *_szDat,
 * Convert a MSG_ message numerical value to a string...
 */
 void CTwnDsm::StringFromMsg(char     *_szMsg,
-                            const int       _nChars,
+                      const int       _nChars,
                       const TW_UINT16 _MSG)
 {
   switch (_MSG)
@@ -2445,7 +2538,7 @@ void CTwnDsm::StringFromMsg(char     *_szMsg,
 * Convert a CAP_ or ICAP_ capability numerical value to a string...
 */
 void CTwnDsm::StringFromCap(char     *_szCap,
-                            const int       _nChars,
+                      const int       _nChars,
                       const TW_UINT16 _Cap)
 {
   switch (_Cap)
@@ -2962,7 +3055,7 @@ void CTwnDsm::StringFromCap(char     *_szCap,
 * Convert a TWRC_ return code numerical value to a string...
 */
 void CTwnDsm::StringFromRC(char     *_szRc,
-                           const int       _nChars,
+                     const int       _nChars,
                      const TW_UINT16 _rc)
 {
   switch (_rc)
@@ -3009,6 +3102,41 @@ void CTwnDsm::StringFromRC(char     *_szRc,
 
     case TWRC_DATANOTAVAILABLE:
       SSTRCPY(_szRc,_nChars,"TWRC_DATANOTAVAILABLE");
+      break;
+  }
+}
+
+/*
+* Convert a Container type to a string...
+*/
+void CTwnDsm::StringFromConType(char     *_szData,
+                          const int       _nChars,
+                          const TW_UINT16 _ConType)
+{
+  switch (_ConType)
+  {
+    default:    
+      SSNPRINTF(_szData,_nChars,_nChars," TWON_0x%04x",_ConType);
+      break;
+
+    case TWON_DONTCARE16:
+      SSTRCPY(_szData,_nChars," TWON_DONTCARE16");
+      break;
+
+    case TWON_ARRAY:
+      SSTRCPY(_szData,_nChars," TWON_ARRAY");
+      break;
+
+    case TWON_ENUMERATION:
+      SSTRCPY(_szData,_nChars," TWON_ENUMERATION");
+      break;
+
+    case TWON_ONEVALUE:
+      SSTRCPY(_szData,_nChars," TWON_ONEVALUE ");
+      break;
+
+    case TWON_RANGE:
+      SSTRCPY(_szData,_nChars," TWON_RANGE");
       break;
   }
 }
