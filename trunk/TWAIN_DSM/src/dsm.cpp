@@ -526,6 +526,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
                 if( _DAT == DAT_EVENT && _MSG == MSG_PROCESSEVENT)
                 {
                   rcDSM = TWRC_NOTDSEVENT;
+                  ((TW_EVENT*)(_pData))->TWMessage = MSG_NULL;
                 }
                 else
                 {
