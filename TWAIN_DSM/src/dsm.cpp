@@ -2168,9 +2168,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
     // Unfortunately RefCon is defined as TW_INT32
     // Application writers that want to store a pointer in RefCon
     // on 64bit will need to store an index to local storage.
-    #pragma warning(disable:4312)
-    TW_MEMREF MemRef = (TW_MEMREF)ptwcallback->RefCon;
-    #pragma warning(default:4312)
+    TW_MEMREF MemRef = (TW_MEMREF)(TW_UINTPTR)ptwcallback->RefCon;
 
     // We should have a try/catch around this...
     // Send a message from DS to the Application.
