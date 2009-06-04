@@ -44,6 +44,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/*
 
 %changelog
+* Tue Jun 02 2009 TWAIN Working Group <twaindsm@twain.org>
+- Bug fixes
 * Wed Nov 26 2008 TWAIN Working Group <twaindsm@twain.org>
 - Bug fixes
 * Thu Jun 05 2008 TWAIN Working Group <twaindsm@twain.org>

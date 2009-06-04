@@ -1094,9 +1094,9 @@ class CTwnDsm
         * @param[in] _nChars max chars in _szCap
         * @param[in] _ConType the TWAIN Container Type to translate
         */
-        void CTwnDsm::StringFromConType(char     *_szRc,
-                                  const int       _nChars,
-                                  const TW_UINT16 _ConType);
+        void StringFromConType(char     *_szRc,
+                               const int       _nChars,
+                               const TW_UINT16 _ConType);
 
         /**
         * Translates the rc passed in into a string and returns it
