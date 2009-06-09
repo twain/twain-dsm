@@ -509,15 +509,27 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
             // Issue the command...
             else if (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))
             {
+              // Don't send a new message if the DS is still processing a previous message
+              // Place a Try | Catch around the function so we can maintain correct state 
+              // in the case of an exception
               if( !pod.m_ptwndsmapps->DsIsProcessingMessage(pAppId,pDSId->Id) )
               {
                 pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,pDSId->Id,TRUE);
-                rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(
-                                        pod.m_ptwndsmapps->AppGetIdentity(pAppId),
-                                        _DG,
-                                        _DAT,
-                                        _MSG,
-                                        _pData);
+                try
+                {
+                  rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(
+                                          pod.m_ptwndsmapps->AppGetIdentity(pAppId),
+                                          _DG,
+                                          _DAT,
+                                          _MSG,
+                                          _pData);
+                }
+                catch(...)
+                {
+                  rcDSM = TWRC_FAILURE;
+                  pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_BUMMER);
+                  kLOG((kLOGERR,"Exception caught while DS was processing message.  Returning Failure."));
+                }
                 pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,pDSId->Id,FALSE);
               }
               else
@@ -2174,13 +2186,22 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
     // We should have a try/catch around this...
     // Send a message from DS to the Application.
     // Rare case where the origin is the DS and dest is the App
-    ((DSMENTRYPROC)(ptwcallback->CallBackProc))(
-        pod.m_ptwndsmapps->DsGetIdentity(_pAppId,_pDsId->Id),
-        pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
-        DG_CONTROL,
-        DAT_NULL,
-        _MSG,
-        MemRef);
+    try
+    {
+      ((DSMENTRYPROC)(ptwcallback->CallBackProc))(
+          pod.m_ptwndsmapps->DsGetIdentity(_pAppId,_pDsId->Id),
+          pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+          DG_CONTROL,
+          DAT_NULL,
+          _MSG,
+          MemRef);
+    }
+    catch(...)
+    {
+      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BUMMER);
+      kLOG((kLOGERR,"Exception caught while App was processing message.  Returning Failure."));
+      return TWRC_FAILURE;
+    }
   }
 
   // Application has not registered a callback. As a result, the msg will
