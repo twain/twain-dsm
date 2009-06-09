@@ -273,15 +273,15 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
     #error Sorry, we do not recognize this system...
   #endif
 
+  // Move DSM to state 3 for this app...
+  m_ptwndsmappsimpl->pod.m_AppInfo[ii].CurrentState = dsmState_Open;
+
   // Recursively navigate the TWAIN datasource dir looking for data sources.
   // Ignor error continue with what we found even if it is nothing
   m_ptwndsmappsimpl->scanDSDir(szDsm,_pAppId);
 
   // Maybe one of many DS failed but we still found some.
   AppSetConditionCode(_pAppId, TWCC_SUCCESS);
-
-  // Move DSM to state 3 for this app...
-  m_ptwndsmappsimpl->pod.m_AppInfo[ii].CurrentState = dsmState_Open;
 
   // at this point we can safely add our flag to the caller's
   // application id, but don't bother to do it unless they put
