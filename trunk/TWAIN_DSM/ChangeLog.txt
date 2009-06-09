@@ -1,3 +1,10 @@
+2009-06-09 JFL Peripheral Solutions jimw@jflinc.com
+
+    * dsm.cpp Add Try | Catch around messages sent to either DS or App
+    * apps.cpp Fix bug that would cause the DSM to Close down completely if 
+      it received a OPENDSM & CLOSEDSM while processing the first OPENDSM.
+
+
 2009-05-14 JFL Peripheral Solutions jimw@jflinc.com
 
     * apps.cpp dsm.cpp For backwards compatibility, prevent DS from receiving
