@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TWAINDSM32", "TWAINDSM32.vdproj", "{E076D3A0-BB1C-4FA5-BA9A-88E334646E62}"
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TWAINDSM64", "TWAINDSM64.vdproj", "{81521B40-5790-49A2-A948-577467990A4D}"

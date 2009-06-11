@@ -21,7 +21,7 @@ is kept. Here is an example of setting the environment variable from a
 command prompt: 
 
   To send to a file: 
-  set TWAIN_LOG=/tmp/twain.log 
+  set TWAINDSM_LOG=/tmp/twain.log 
   
 The source code is documented using the Doxygen documentation system. 
   
@@ -30,6 +30,8 @@ on TWAIN.
 
 CMake is used to generate the makefiles. You can get a copy of this free 
 from http://www.cmake.org. Or use the provided Visual Studio project file. 
+To prevent hook code from causing an exception on some systems with DEP 
+turned on, link the 32bit version with the /NXCOMPAT:NO flag.
 
 Use the TWAINDSM merge module with installations of TWAIN applications and 
 data sources to distribute the TWAINDSM.dll. 
@@ -50,10 +52,10 @@ is kept. Here are some examples of setting the environment variable from a
 bash shell: 
 
   To send to a file: 
-  export TWAIN_LOG=/tmp/twain.log 
+  export TWAINDSM_LOG=/tmp/twain.log 
   
   To send to the console: 
-  export TWAIN_LOG=/dev/stdout 
+  export TWAINDSM_LOG=/dev/stdout 
 
 The source code is documented using the Doxygen documentation system. 
 
