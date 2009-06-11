@@ -454,7 +454,7 @@ bool CTwHook::Hook
     // the function pointer. Note that I'm now writing into
     // the real thunk area!
     VirtualQuery(pRealThunk,&mbi_thunk,sizeof(MEMORY_BASIC_INFORMATION));
-    if (FALSE == VirtualProtect(mbi_thunk.BaseAddress,mbi_thunk.RegionSize,PAGE_READWRITE,&mbi_thunk.Protect))
+    if (FALSE == VirtualProtect(mbi_thunk.BaseAddress,mbi_thunk.RegionSize,PAGE_EXECUTE_READWRITE,&mbi_thunk.Protect))
     {
       return(false);
     }

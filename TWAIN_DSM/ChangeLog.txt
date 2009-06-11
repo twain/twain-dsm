@@ -1,3 +1,9 @@
+2009-06-11 JFL Peripheral Solutions jimw@jflinc.com
+
+    * hook.cpp VirtualProtect would cause exception on some systems if DEP is enabled.
+      TWAINDSM.dll must be compiled using atleast VS2008 with /NXCOMPAT:NO link flag
+
+
 2009-06-09 JFL Peripheral Solutions jimw@jflinc.com
 
     * dsm.cpp Add Try | Catch around messages sent to either DS or App
