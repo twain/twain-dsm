@@ -303,6 +303,7 @@ bool CTwHook::Hook
   PIMAGE_NT_HEADERS           pNTHeader;
   PSTR                        szCurrMod;
   HMODULE                     hmodule;
+  char                        szTwain32[MAX_PATH];
 
   // Initialize stuff when we're doing an attach...
   if (_ehook == HOOK_ATTACH)
@@ -322,7 +323,10 @@ bool CTwHook::Hook
     // TWAINDSM.DLL, then does a GetProcAddress for DSM_Entry
     // with TWAIN_32.DLL, it's going to go ka-boom.  If this
     // is a problem, then go back to using ::LoadLibrary()...
-    s_hmoduleTWAIN32 = ::LoadLibraryEx("TWAIN_32.DLL",NULL,DONT_RESOLVE_DLL_REFERENCES);
+    memset(szTwain32,0,sizeof(szTwain32));
+	::GetWindowsDirectory(szTwain32,sizeof(szTwain32)-1);
+    SSTRCAT(szTwain32,sizeof(szTwain32)-1,"\\TWAIN_32.DLL");
+    s_hmoduleTWAIN32 = ::LoadLibraryEx(szTwain32,NULL,DONT_RESOLVE_DLL_REFERENCES);
     if (0 == s_hmoduleTWAIN32)
     {
       return(false);
