@@ -15,6 +15,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_1483C08C4AF14B2089FFC387F5A445DA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_24984B56C4CA4B9DAA870E50E9F0B0E5"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -63,6 +69,26 @@
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1483C08C4AF14B2089FFC387F5A445DA"
+            {
+            "SourcePath" = "8:..\\..\\pub\\bin\\twain32\\TWAINDSM.dll"
+            "TargetName" = "8:TWAINDSM.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_6F32DB9006E3441F967DF8DCF9711414"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:TRUE"
+            "Permanent" = "11:TRUE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_24984B56C4CA4B9DAA870E50E9F0B0E5"
             {
             "SourcePath" = "8:..\\..\\pub\\bin\\twain64\\TWAINDSM.dll"
@@ -96,6 +122,17 @@
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Property" = "8:System64Folder"
+                "Folders"
+                {
+                }
+            }
+            "{1525181F-901A-416C-8A58-119130FE478E}:_6F32DB9006E3441F967DF8DCF9711414"
+            {
+            "Name" = "8:#1914"
+            "AlwaysCreate" = "11:FALSE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Property" = "8:SystemFolder"
                 "Folders"
                 {
                 }
