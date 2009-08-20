@@ -360,7 +360,14 @@ bool CTwHook::Hook
   // themselves are in ntdll.dll.  Kernel32 calls them, and that's
   // where we can take advantage of the DLL indirection to do this
   // spiffy DLL injection thingy...
-  hmodule = GetModuleHandle("kernel32.dll");
+  // Starting with Windows7 the hooking has moved from kernel32.dll 
+  // to a new library kernelbase.dll.  Atempt kernelbase first
+  // if it fails then we are not Windows7 and try kernel32
+  hmodule = GetModuleHandle("kernelbase.dll");
+  if( NULL == hmodule )
+  {
+    hmodule = GetModuleHandle("kernel32.dll");
+  }
 
   // Get the DOS header...
   pDOSHeader = (PIMAGE_DOS_HEADER)hmodule;
