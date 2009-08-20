@@ -34,7 +34,8 @@ To prevent hook code from causing an exception on some systems with DEP
 turned on, link the 32bit version with the /NXCOMPAT:NO flag.
 
 Use the TWAINDSM merge module with installations of TWAIN applications and 
-data sources to distribute the TWAINDSM.dll. 
+data sources to distribute the TWAINDSM.dll. The 64bit merge module, 
+TWAINDSM64.msm, contains both the 32bit and 64bit versions of the DSM.
 
 [Linux] 
 The TWAIN DSM is a shared object named libtwaindsm.so that is installed 
