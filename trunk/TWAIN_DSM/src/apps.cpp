@@ -182,6 +182,21 @@ CTwnDsmApps::~CTwnDsmApps()
 {
   if (m_ptwndsmappsimpl)
   {
+    // We should not have to go through the list of Apps at this point and 
+    // close them. The application should close any open DSs and then Close
+    // the DSM which should take care of this. But just in case, we will 
+    // clean up any DS left open.
+    for (int i = 1; i < MAX_NUM_APPS; i++)
+    {
+      if( m_ptwndsmappsimpl->pod.m_AppInfo[i].identity.Id 
+       && dsmState_Open != m_ptwndsmappsimpl->pod.m_AppInfo[i].CurrentState )
+      {
+        kLOG((kLOGINFO,"The Application, \"%0.32s\", has left the DSM in an open state when it was unloaded!", 
+          m_ptwndsmappsimpl->pod.m_AppInfo[i].identity.ProductName));
+
+        RemoveApp(&m_ptwndsmappsimpl->pod.m_AppInfo[i].identity);
+      }
+    }
     delete m_ptwndsmappsimpl;
     m_ptwndsmappsimpl = 0;
   }
@@ -299,13 +314,7 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
 
 /**
 * Remove an application.
-* Attempt to add an application to our list.  Truth be told we only expect
-* an application to do this once, but for legacy's sake we support the
-* ability to do it more than once, but the Application has to provide a
-* unique ProductName in its Identity.  If an Application really has to
-* support multiple drivers, then it's recommended that it do this through
-* seperate processes, since their is no guarantee that any two drivers will
-* operator correctly in the same process...
+* Attempt to remove an application to our list.
 */
 TW_UINT16 CTwnDsmApps::RemoveApp(TW_IDENTITY *_pAppId)
 {

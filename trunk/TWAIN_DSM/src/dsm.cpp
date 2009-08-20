@@ -1290,6 +1290,17 @@ BOOL WINAPI DllMain(HINSTANCE _hmodule,
       g_hinstance = _hmodule;
       break;
     case DLL_PROCESS_DETACH:
+      if( g_ptwndsm )
+      {
+        if( g_ptwndsm->DSMGetState() == dsmState_Open )
+        {
+          // This should never happen!
+          // The Application should always close any open DS, then Close the DSM.
+          kLOG((kLOGERR,"The DSM was left in an open state when it was unloaded!"));
+        }
+        delete g_ptwndsm;
+        g_ptwndsm = 0;
+      }
       break;
   }
   return(TRUE);

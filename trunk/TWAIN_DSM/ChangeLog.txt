@@ -1,6 +1,14 @@
+2009-08-20 JFL Peripheral Solutions jimw@jflinc.com
+
+    * hook.cpp Fix hooking code to work with Windows7
+    * dsm.cpp, apps.cpp Fix issue of badly written application not closing DS
+    and DSM before unloading the DSM. 
+
+
 2009-07-07 Kodak mlmcl
 
     * hook.cpp explicitly hook the twain_32.dll file in the windows folder.
+
 
 2009-06-11 JFL Peripheral Solutions jimw@jflinc.com
 
