@@ -136,6 +136,7 @@
   #endif
   #include <windows.h>
   #include <direct.h>
+  #include <share.h>
 
 #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
   #include <dirent.h>
@@ -292,11 +293,7 @@
   #define STRNICMP _strnicmp
   #define DSMENTRY TW_UINT16 FAR PASCAL
   #define GETTHREADID ::GetCurrentThreadId
-  #if (TWNDSM_CMP_VERSION >= 1400)
-    #define FOPEN(pf, name, mode) (void)fopen_s(&pf, name, mode)
-  #else
-    #define FOPEN(pf, name, mode) pf = fopen(name, mode)
-  #endif
+  #define FOPEN(pf, name, mode) pf = _fsopen(name, mode, _SH_DENYNO)
   #ifndef kTWAIN_DS_DIR
     #if TWNDSM_OS_64BIT
       #define kTWAIN_DS_DIR "twain_64"
