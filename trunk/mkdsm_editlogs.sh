@@ -51,5 +51,18 @@ fi
 popd &> /dev/null
 
 
+# Update CMakeLists.txt with the new version...
+echo "  ...updating CMakeLists.txt"
+pushd TWAIN_DSM/src &> /dev/null
+rm -rf tmp1.tmp tmp2.tmp tmp3.tmp tmp4.tmp
+cp CMakeLists.txt tmp1.tmp
+cat tmp1.tmp | sed "s/SET(\${PROJECT_NAME}_MAJOR_VERSION.*/SET(\${PROJECT_NAME}_MAJOR_VERSION ${DSMMAJOR})/" > tmp2.tmp
+cat tmp2.tmp | sed "s/SET(\${PROJECT_NAME}_MINOR_VERSION.*/SET(\${PROJECT_NAME}_MINOR_VERSION ${DSMMINOR})/" > tmp3.tmp
+cat tmp3.tmp | sed "s/SET(\${PROJECT_NAME}_PATCH_LEVEL.*/SET(\${PROJECT_NAME}_PATCH_LEVEL ${DSMBUILD})/" > tmp4.tmp
+cp tmp4.tmp CMakeLists.txt
+rm -rf tmp1.tmp tmp2.tmp tmp3.tmp tmp4.tmp
+popd &> /dev/null
+
+
 # Bye-bye
 exit 0
