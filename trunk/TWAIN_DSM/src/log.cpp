@@ -96,9 +96,9 @@ class CTwnDsmLogImpl
 * The constructor for our class.  This is where we see if we have a
 * file in the TWAINDSM_LOG environment variable.  If so, then we'll
 * log stuff.  If not, then we'll log nothing.  TWAINDSM_LOGMODE
-* selects how we open the file.  The default value is "w", which
+* selects how we open the file.  The default value is "w+", which
 * means it's wiped out each time a new session is started.  Setting
-* this environmental to "a" will cause the log information to be
+* this environmental to "a+" will cause the log information to be
 * appended to an existing file (a new one will still be created if
 * needed...
 */
@@ -207,7 +207,7 @@ void CTwnDsmLog::Log(const int         _doassert,
     FOPEN(m_ptwndsmlogimpl->pod.m_plog,m_ptwndsmlogimpl->pod.m_logpath,m_ptwndsmlogimpl->pod.m_logmode);
     if (0 == m_ptwndsmlogimpl->pod.m_plog)
     {
-      fprintf(stderr,"DSM: Error - logging has been disabled because logfile could not be opened: %s,%s\r\n",m_ptwndsmlogimpl->pod.m_logpath,m_ptwndsmlogimpl->pod.m_logmode);
+      fprintf(stderr,"DSM: Error - logging has been disabled because logfile could not be opened: file=<%s>, mode=<%s>, errno=%d\r\n",m_ptwndsmlogimpl->pod.m_logpath,m_ptwndsmlogimpl->pod.m_logmode,errno);
       m_ptwndsmlogimpl->pod.m_logpath[0] = 0;
     }
     return;
@@ -287,6 +287,7 @@ void CTwnDsmLog::Log(const int         _doassert,
 
   // Write the message...
   fprintf(m_ptwndsmlogimpl->pod.m_plog,"%s\r\n",m_ptwndsmlogimpl->pod.m_message);
+  fflush(m_ptwndsmlogimpl->pod.m_plog);
 
   // Do the assert, if asked for...
   if (_doassert)
