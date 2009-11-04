@@ -1,5 +1,5 @@
 /***************************************************************************
- * TWAIN Data Source Manager version 2.0 
+ * TWAIN Data Source Manager version 2.1
  * Manages image acquisition data sources used by a machine. 
  * Copyright © 2007 TWAIN Working Group:  
  * Adobe Systems Incorporated,AnyDoc Software Inc., Eastman Kodak Company, 
