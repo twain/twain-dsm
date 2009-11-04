@@ -24,7 +24,6 @@
 			OutputDirectory="$(ConfigurationName)08_32"
 			IntermediateDirectory="$(ConfigurationName)08_32"
 			ConfigurationType="2"
-			InheritedPropertySheets="C:\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -111,7 +110,6 @@
 			OutputDirectory="$(ConfigurationName)08_64"
 			IntermediateDirectory="$(ConfigurationName)08_64"
 			ConfigurationType="2"
-			InheritedPropertySheets="C:\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -200,7 +198,6 @@
 			OutputDirectory="$(ConfigurationName)08_32"
 			IntermediateDirectory="$(ConfigurationName)08_32"
 			ConfigurationType="2"
-			InheritedPropertySheets="C:\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -283,7 +280,6 @@
 			OutputDirectory="$(ConfigurationName)08_64"
 			IntermediateDirectory="$(ConfigurationName)08_64"
 			ConfigurationType="2"
-			InheritedPropertySheets="C:\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
