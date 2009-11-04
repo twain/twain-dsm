@@ -1,6 +1,6 @@
 Summary: TWAIN Data Source Manager
 Name: twaindsm
-Version: 2.0.7
+Version: 2.0.8
 Release: 1
 Vendor: TWAIN Working Group
 License: LGPL
@@ -44,6 +44,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/*
 
 %changelog
+* Tue Nov 04 2009 TWAIN Working Group <twaindsm@twain.org>
+- TWAIN 2.1 features
 * Tue Sep 09 2009 TWAIN Working Group <twaindsm@twain.org>
 - TWAIN 2.1 features
 * Tue Jun 02 2009 TWAIN Working Group <twaindsm@twain.org>
