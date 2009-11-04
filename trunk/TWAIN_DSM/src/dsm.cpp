@@ -727,16 +727,10 @@ TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
   TW_INT16  result;
 
   // Validate...
-  if (0 == _pAppId)
+  if (0 == _pAppId || _pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp())
   {
       kLOG((kLOGERR,"_pAppId is null"));
       pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-      return TWRC_FAILURE;
-  }
-  else if (_pAppId->Id >= MAX_NUM_APPS)
-  {
-      kLOG((kLOGERR,"too many apps"));
-      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_MAXCONNECTIONS);
       return TWRC_FAILURE;
   }
 
@@ -804,16 +798,10 @@ TW_INT16 CTwnDsm::DSM_TwunkIdentity(TW_IDENTITY  *_pAppId,
   TW_INT16  result = TWRC_SUCCESS;
 
   // Validate...
-  if (0 == _pAppId)
+  if (0 == _pAppId || _pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp())
   {
     kLOG((kLOGERR,"_pAppId is null"));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
-    return TWRC_FAILURE;
-  }
-  else if (_pAppId->Id >= MAX_NUM_APPS)
-  {
-    kLOG((kLOGERR,"too many apps"));
-    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_MAXCONNECTIONS);
     return TWRC_FAILURE;
   }
   else if (dsmState_Open != pod.m_ptwndsmapps->AppGetState(_pAppId))
@@ -1026,7 +1014,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       return TWRC_FAILURE;
   }
   else if (   (_pAppId->Id < 1)
-           || (_pAppId->Id >= MAX_NUM_APPS))
+           || (_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp()))
   {
       kLOG((kLOGERR,"id is out of range...%d",_pAppId->Id));
       pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_MAXCONNECTIONS);
@@ -1227,7 +1215,7 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
   else if (   (_pAppId->Id < 1)
-           || (_pAppId->Id >= MAX_NUM_APPS))
+           || (_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp()))
   {
     kLOG((kLOGERR,"id out of range...%d",_pAppId->Id));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
@@ -1674,7 +1662,7 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
   if (   (_pAppId->Id < 1)
-      || (_pAppId->Id >= MAX_NUM_APPS))
+      || (_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp()))
   {
     kLOG((kLOGERR,"_pAppId.Id is out of range"));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);

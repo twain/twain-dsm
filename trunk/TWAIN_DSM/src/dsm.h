@@ -465,18 +465,6 @@
 */
 #define MAX_NUM_DS 50
 
-/**
-* Maximum number of Applications that can be opened in one session.
-* This item smacks of legacy.  Under the Windows 3.1 and 9x
-* platforms it was possible for one DLL to be shared among several
-* programs.  Today there is no easy way to do this, but more
-* importantly, no desireable reason to do this.  However, we'll
-* keep it, because backwards compatability is a good thing.  We're
-* not going to support a lot of them, though.
-*/
-#define MAX_NUM_APPS 8
-
-
 
 /**
 * Possible States of the DSM.
@@ -761,6 +749,12 @@ class CTwnDsmApps
     void DsSetProcessingMessage(TW_IDENTITY *_pAppId,
                                 TW_UINT32    _DsId,
                                 TW_BOOL      _Processing);
+
+    /**
+    * Get number of allocated App slots (Last valid App ID +1)
+    * @return number of allocated App slots (Last valid App ID +1)
+    */
+    TW_UINT32 AppGetNumApp();
 
   private:
 
