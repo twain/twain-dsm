@@ -1,14 +1,17 @@
 2009-11-04 JFL Peripheral Solutions jimw@jflinc.com
 
     * Update to Version 2.1 
+
     
 2009-11-04 JFL Peripheral Solutions mihailm@jflinc.com
 
     * apps.cpp, dsm.h, & dsm.cpp Dynamically add applications loading the DSM
 
+
 2009-11-03 JFL Peripheral Solutions jimw@jflinc.com
 
     * dsm.h & dsm.cpp Add TWAIN2.1 feature DAT_IDENTITY / MSG_SET 
+
 
 2009-08-20 JFL Peripheral Solutions jimw@jflinc.com
 
