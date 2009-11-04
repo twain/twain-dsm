@@ -1815,10 +1815,10 @@ TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
-  if (   (_pAppId->Id < 1)
-      || (_pAppId->Id >= MAX_NUM_APPS))
+  else if ( _pAppId->Id < 1
+         || _pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp() )
   {
-    kLOG((kLOGERR,"_pAppId.Id is out of range"));
+    kLOG((kLOGERR,"_pAppId.Id is out of range...%d",_pAppId->Id));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
