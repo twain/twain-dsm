@@ -1,6 +1,6 @@
 /*
 * [Overview]
-*   The contents of this module allow the new TWAINDSM.DLL (tied to the 2.0 version
+*   The contents of this module allow the new TWAINDSM.DLL (tied to the 2.x version
 *   of the TWAIN Specifiction) to hook functions that might try to access the 1.x
 *   TWAIN_32.DLL.  We need this because the DG_CONTROL/DAT_NULL/MSG_* triplets are
 *   sent from the data source (driver) to the application through the data source

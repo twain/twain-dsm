@@ -27,8 +27,8 @@
 # files like changelog or twaindsm.spec...
 #
 export DSMMAJOR=2
-export DSMMINOR=0
-export DSMBUILD=7
+export DSMMINOR=1
+export DSMBUILD=0
 export DSMREASON="TWAIN 2.1 features"
 
 # Don't touch these lines...

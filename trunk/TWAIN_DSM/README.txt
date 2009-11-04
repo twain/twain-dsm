@@ -1,5 +1,5 @@
 TWAIN Data Source Manager [DSM], 
-compliant with version 2.0 of the TWAIN specification. 
+compliant with version 2.1 of the TWAIN specification. 
 
 [Windows] 
 The TWAIN DSM is a shared library named TWAINDSM.DLL.  There is a 32bit and a 
