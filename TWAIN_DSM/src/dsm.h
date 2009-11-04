@@ -966,6 +966,15 @@ class CTwnDsm
                               TW_IDENTITY *_pDsId);
 
         /**
+        * Set the default source.
+        * @param[in] _pAppId Origin of message
+        * @param[in] _pDsId TW_IDENTITY structure
+        * @return a valid TWRC_xxxx return code
+        */
+        TW_INT16 DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
+                                  TW_IDENTITY *_pDsId);
+
+        /**
         * Goes through the applications supported data sources looking for one that has
         * the exact same name as product name in the passed in identity. Will update the
         * _pDsId structure to match the name.

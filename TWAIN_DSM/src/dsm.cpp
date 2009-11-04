@@ -772,6 +772,10 @@ TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
         result = GetMatchingDefault(_pAppId,_pDsId);
         break;
 
+      case MSG_SET:
+        result = DSM_SetDefaultDS(_pAppId,_pDsId);
+        break;
+
       default:
         result = TWRC_FAILURE;
         pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
@@ -1160,32 +1164,39 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   // Remember that we opened this DS...
   if (TWRC_SUCCESS == result)
   {
-    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
-      // skip...
-    #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
-      FILE *pfile;
-      char *szHome;
-      char szFile[FILENAME_MAX];
-      szHome = getenv("HOME");
-      if (szHome)
-      {
-        SSTRCPY(szFile,sizeof(szFile),szHome);
-        SSTRCAT(szFile,sizeof(szFile),"/.twndsmrc");
-        mkdir(szFile,0660);
-        SSTRCAT(szFile,sizeof(szFile),"/defaultds");
-        FOPEN(pfile,szFile,"w");
-        if (pfile)
+    // Starting with TWAIN 2.1 the application will use DAT_IDENTITY / MSG_SET
+    // to set the default DS
+    if( ( _pAppId->ProtocolMajor == 2
+       && _pAppId->ProtocolMinor == 0 )
+     || _pAppId->ProtocolMajor < 2 ) 
+    {
+      #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+        // skip...
+      #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+        FILE *pfile;
+        char *szHome;
+        char szFile[FILENAME_MAX];
+        szHome = getenv("HOME");
+        if (szHome)
         {
-          fwrite(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id),
-                 1,
-                 strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)),
-                 pfile);
-          fclose(pfile);
+          SSTRCPY(szFile,sizeof(szFile),szHome);
+          SSTRCAT(szFile,sizeof(szFile),"/.twndsmrc");
+          mkdir(szFile,0660);
+          SSTRCAT(szFile,sizeof(szFile),"/defaultds");
+          FOPEN(pfile,szFile,"w");
+          if (pfile)
+          {
+            fwrite(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id),
+                   1,
+                   strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)),
+                   pfile);
+            fclose(pfile);
+          }
         }
-      }
-    #else
-      #error Sorry, we do not recognize this system...
-    #endif
+      #else
+        #error Sorry, we do not recognize this system...
+      #endif
+    }
   }
 
   // If we had an error, make sure we unload the ds...
@@ -1800,6 +1811,114 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
   #endif
 }
 
+
+/*
+* Set the datasource as the default
+*/
+TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
+                                   TW_IDENTITY *_pDsId)
+{
+  TW_INT16 result = TWRC_SUCCESS;
+
+  // Validate app ...
+  if (0 == _pAppId)
+  {
+    kLOG((kLOGERR,"_pAppId is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+  if (   (_pAppId->Id < 1)
+      || (_pAppId->Id >= MAX_NUM_APPS))
+  {
+    kLOG((kLOGERR,"_pAppId.Id is out of range"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+  else if (dsmState_Open != pod.m_ptwndsmapps->AppGetState(_pAppId))
+  {
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_SEQERROR);
+    return TWRC_FAILURE;
+  }
+
+  // Validate DS
+  if(0 == _pDsId)
+  {
+    kLOG((kLOGERR,"_pDsId is null"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
+    return TWRC_FAILURE;
+  }
+  else if (_pDsId->Id < 1
+        || _pDsId->Id >= MAX_NUM_DS)
+  {
+    kLOG((kLOGERR,"Id is out of range 0 - 49..."));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+
+  char     *szPath = pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id); // Get the path we're using...
+
+  if(!szPath)
+  {
+    kLOG((kLOGERR,"DS is not valid"));
+    pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
+    return TWRC_FAILURE;
+  }
+
+  // Windows... save default source to Registry  
+  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    HKEY      hKey;
+    long      status = ERROR_SUCCESS;
+
+    // Open the key, creating it if it doesn't exist.
+    if (RegCreateKeyEx(HKEY_CURRENT_USER, 
+                       TWNDSM_DS_REG_LOC,
+                       NULL,
+                       NULL,
+                       NULL,
+                       KEY_READ | KEY_WRITE, NULL,
+                       &hKey,
+                       NULL) == ERROR_SUCCESS)
+    {
+      status = RegSetValueEx(hKey,"Default Source",0,REG_SZ,(LPBYTE)szPath,(DWORD)strlen((char*)szPath)+1);
+      if (status != ERROR_SUCCESS)
+      {
+        // Failed to save default DS to registry
+        kLOG((kLOGERR,"Failed to save default DS to registry"));
+        // Nothing preventing us from using the default right now
+        pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BUMMER);
+        result = TWRC_FAILURE;
+      }
+
+      // Close the key.
+      RegCloseKey(hKey);
+    }
+
+  // Linux looks in the user's directory...
+  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    FILE *pfile;
+    char *szHome;
+    char szFile[FILENAME_MAX];
+    szHome = getenv("HOME");
+    if (szHome)
+    {
+      SSTRCPY(szFile,sizeof(szFile),szHome);
+      SSTRCAT(szFile,sizeof(szFile),"/.twndsmrc/defaultds");
+      FOPEN(pfile,szFile,"w");
+      if (pfile)
+      {
+        fwrite(szPath, 1, strlen(szPath), pfile);
+        fclose(pfile);
+      }
+    }
+
+  // eek...
+  #else
+    #error Sorry, we do not recognize this system...
+    result = TWRC_FAILURE
+  #endif
+
+  return result;
+}
 
 
 /*
