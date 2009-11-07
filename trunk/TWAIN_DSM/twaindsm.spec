@@ -47,7 +47,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Nov 04 2009 TWAIN Working Group <twaindsm@twain.org>
 - TWAIN 2.1 features
 * Tue Sep 09 2009 TWAIN Working Group <twaindsm@twain.org>
-- TWAIN 2.1 features
+- TWAIN 2.1 features (not released)
 * Tue Jun 02 2009 TWAIN Working Group <twaindsm@twain.org>
 - Bug fixes
 * Wed Nov 26 2008 TWAIN Working Group <twaindsm@twain.org>
