@@ -517,8 +517,11 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
                 pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,pDSId->Id,TRUE);
                 try
                 {
-                  rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(
-                                          pod.m_ptwndsmapps->AppGetIdentity(pAppId),
+                  // Create a local copy of the AppIdentity
+                  TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(pAppId);
+
+                  rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,pDSId->Id))(
+                                          &AppId,
                                           _DG,
                                           _DAT,
                                           _MSG,
@@ -590,8 +593,11 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
           &&  pod.m_ptwndsmapps->AppValidateIds(pAppId,pDSId)
           &&  (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id)))
         {
-          rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))(
-                                  pod.m_ptwndsmapps->AppGetIdentity(pAppId),
+          // Create a local copy of the AppIdentity
+          TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(pAppId);
+
+          rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,pDSId->Id))(
+                                  &AppId,
                                   _DG,
                                   _DAT,
                                   _MSG,
@@ -1088,6 +1094,10 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
     // If the DS reports support for DF_DS2, then send it our DAT_ENTRYPOINT
     // information.  Failure to handle this is treated like a failure to open...
     result = TWRC_SUCCESS;
+
+    // Create a local copy of the AppIdentity
+    TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(_pAppId);
+
     if (_pDsId->SupportedGroups & DF_DS2)
     {
       memset(&twentrypoint,0,sizeof(twentrypoint));
@@ -1097,8 +1107,8 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       twentrypoint.DSM_MemFree      = DSM_MemFree;
       twentrypoint.DSM_MemLock      = DSM_MemLock;
       twentrypoint.DSM_MemUnlock    = DSM_MemUnlock;
-      result = pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id)(
-                                pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+      result = pod.m_ptwndsmapps->DsGetEntryProc(&AppId,_pDsId->Id)(
+                                &AppId,
                                 DG_CONTROL,
                                 DAT_ENTRYPOINT,
                                 MSG_SET,
@@ -1109,15 +1119,15 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
     if (TWRC_SUCCESS != result)
     {
       kLOG((kLOGERR,"DAT_ENTRYPOINT failed..."));
-      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+      pod.m_ptwndsmapps->AppSetConditionCode(&AppId,TWCC_OPERATIONERROR);
     }
 
     // Okay, we're good.  Either we're a 1.x driver, or we were able to
     // push down our entrypoint info, so open the ds...
     else
     {
-      result = pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id)(
-                                pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+      result = pod.m_ptwndsmapps->DsGetEntryProc(&AppId,_pDsId->Id)(
+                                &AppId,
                                 DG_CONTROL,
                                 DAT_IDENTITY,
                                 MSG_OPENDS,
@@ -1131,19 +1141,19 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
         TW_STATUS  twstatus;
         // If the call to MSG_OPENDS fails, then we need to get the DAT_STATUS and squirrel
         // it away, because we're going to close this data source soon...
-        rcDSMStatus = (pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))(
-					              pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+        rcDSMStatus = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,_pDsId->Id))(
+					              &AppId,
 					              DG_CONTROL,
 					              DAT_STATUS,
 					              MSG_GET,
 					              (TW_MEMREF)&twstatus);
         if (rcDSMStatus == TWRC_SUCCESS)
         {
-          pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,twstatus.ConditionCode);
+          pod.m_ptwndsmapps->AppSetConditionCode(&AppId,twstatus.ConditionCode);
         }
         else
         {
-          pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_NODS);
+          pod.m_ptwndsmapps->AppSetConditionCode(&AppId,TWCC_NODS);
         }
       }
     }
@@ -1243,8 +1253,11 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
   // close the ds
   if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))
   {
-    result = (pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))(
-                             pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+    // Create a local copy of the AppIdentity
+    TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(_pAppId);
+
+    result = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,_pDsId->Id))(
+                             &AppId,
                              DG_CONTROL,
                              DAT_IDENTITY,
                              MSG_CLOSEDS,
@@ -1252,12 +1265,12 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
 
     if (TWRC_SUCCESS != result)
     {
-      pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+      pod.m_ptwndsmapps->AppSetConditionCode(&AppId,TWCC_OPERATIONERROR);
       return result;
     }
 
     // Cleanup...
-    pod.m_ptwndsmapps->UnloadDS(_pAppId,_pDsId->Id);
+    pod.m_ptwndsmapps->UnloadDS(&AppId,_pDsId->Id);
   }
 
   // All done...
@@ -2306,9 +2319,12 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
     // Rare case where the origin is the DS and dest is the App
     try
     {
+      // Create a local copy of the AppIdentity
+      TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(_pAppId);
+
       ((DSMENTRYPROC)(ptwcallback->CallBackProc))(
-          pod.m_ptwndsmapps->DsGetIdentity(_pAppId,_pDsId->Id),
-          pod.m_ptwndsmapps->AppGetIdentity(_pAppId),
+          pod.m_ptwndsmapps->DsGetIdentity(&AppId,_pDsId->Id),
+          &AppId,
           DG_CONTROL,
           DAT_NULL,
           _MSG,
