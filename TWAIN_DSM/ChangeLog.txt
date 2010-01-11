@@ -1,3 +1,16 @@
+2010-01-11 JFL Peripheral Solutions jimw@jflinc.com
+
+    * dsm.cpp Update logging with new 2.1 Capabilities and other missing defines
+    
+    
+2009-12-31 JFL Peripheral Solutions jimw@jflinc.com
+
+    * dsm.cpp Create a local copy of the AppID that is passed to DS for processing.
+      Fix the problem that the reallocate to the list of Application may causes the
+      pointer to the AppID passed to be corrupt before OpenDS finishes.  This only 
+      happens when the DSM recieves multiple OpenDSM messages in the same process space.
+      If this happens, messages sent from DS to App will get lost.
+
 2009-11-04 JFL Peripheral Solutions jimw@jflinc.com
 
     * Update to Version 2.1 
