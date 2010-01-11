@@ -2467,6 +2467,10 @@ void CTwnDsm::StringFromDat(char     *_szDat,
       SSTRCPY(_szDat,_nChars,"DAT_CALLBACK");
       break;
 
+    case DAT_STATUSUTF8:
+      SSTRCPY(_szDat,_nChars,"DAT_STATUSUTF8");
+      break;
+
     case DAT_IMAGEINFO:
       SSTRCPY(_szDat,_nChars,"DAT_IMAGEINFO");
       break;
@@ -2521,6 +2525,18 @@ void CTwnDsm::StringFromDat(char     *_szDat,
 
     case DAT_AUDIONATIVEXFER:
       SSTRCPY(_szDat,_nChars,"DAT_AUDIONATIVEXFER");
+      break;
+
+    case DAT_ICCPROFILE:
+      SSTRCPY(_szDat,_nChars,"DAT_ICCPROFILE");
+      break;
+
+    case DAT_IMAGEMEMFILEXFER:
+      SSTRCPY(_szDat,_nChars,"DAT_IMAGEMEMFILEXFER");
+      break;
+
+    case DAT_ENTRYPOINT:
+      SSTRCPY(_szDat,_nChars,"DAT_ENTRYPOINT");
       break;
   }
 }
@@ -2578,6 +2594,18 @@ void CTwnDsm::StringFromMsg(char     *_szMsg,
 
     case MSG_QUERYSUPPORT:
       SSTRCPY(_szMsg,_nChars,"MSG_QUERYSUPPORT");
+      break;
+
+    case MSG_GETHELP:
+      SSTRCPY(_szMsg,_nChars,"MSG_GETHELP");
+      break;
+
+    case MSG_GETLABEL:
+      SSTRCPY(_szMsg,_nChars,"MSG_GETLABEL");
+      break;
+
+    case MSG_GETLABELENUM:
+      SSTRCPY(_szMsg,_nChars,"MSG_GETLABELENUM");
       break;
 
     case MSG_XFERREADY:
@@ -2682,6 +2710,10 @@ void CTwnDsm::StringFromMsg(char     *_szMsg,
 
     case MSG_REGISTER_CALLBACK:
       SSTRCPY(_szMsg,_nChars,"MSG_REGISTER_CALLBACK");
+      break;
+
+    case MSG_RESETALL:
+      SSTRCPY(_szMsg,_nChars,"MSG_RESETALL");
       break;
   }
 }
@@ -2917,6 +2949,42 @@ void CTwnDsm::StringFromCap(char     *_szCap,
       SSTRCPY(_szCap,_nChars,"CAP_BATTERYPERCENTAGE");
       break;
 
+    case CAP_CAMERASIDE:
+      SSTRCPY(_szCap,_nChars,"CAP_CAMERASIDE");
+      break;
+
+    case CAP_SEGMENTED:
+      SSTRCPY(_szCap,_nChars,"CAP_SEGMENTED");
+      break;
+
+    case CAP_CAMERAENABLED:
+      SSTRCPY(_szCap,_nChars,"CAP_CAMERAENABLED");
+      break;
+
+    case CAP_CAMERAORDER:
+      SSTRCPY(_szCap,_nChars,"CAP_CAMERAORDER");
+      break;
+
+    case CAP_MICRENABLED:
+      SSTRCPY(_szCap,_nChars,"CAP_MICRENABLED");
+      break;
+
+    case CAP_FEEDERPREP:
+      SSTRCPY(_szCap,_nChars,"CAP_FEEDERPREP");
+      break;
+
+    case CAP_FEEDERPOCKET:
+      SSTRCPY(_szCap,_nChars,"CAP_FEEDERPOCKET");
+      break;
+
+    case CAP_AUTOMATICSENSEMEDIUM:
+      SSTRCPY(_szCap,_nChars,"CAP_AUTOMATICSENSEMEDIUM");
+      break;
+
+    case CAP_CUSTOMINTERFACEGUID:
+      SSTRCPY(_szCap,_nChars,"CAP_CUSTOMINTERFACEGUID");
+      break;
+
     case ICAP_AUTOBRIGHT:
       SSTRCPY(_szCap,_nChars,"ICAP_AUTOBRIGHT");
       break;
@@ -3097,6 +3165,10 @@ void CTwnDsm::StringFromCap(char     *_szCap,
       SSTRCPY(_szCap,_nChars,"ICAP_MINIMUMWIDTH");
       break;
 
+    case ICAP_AUTODISCARDBLANKPAGES:
+      SSTRCPY(_szCap,_nChars,"ICAP_AUTODISCARDBLANKPAGES");
+      break;
+
     case ICAP_FLIPROTATION:
       SSTRCPY(_szCap,_nChars,"ICAP_FLIPROTATION");
       break;
@@ -3191,6 +3263,50 @@ void CTwnDsm::StringFromCap(char     *_szCap,
 
     case ICAP_JPEGQUALITY:
       SSTRCPY(_szCap,_nChars,"ICAP_JPEGQUALITY");
+      break;
+
+    case ICAP_FEEDERTYPE:
+      SSTRCPY(_szCap,_nChars,"ICAP_FEEDERTYPE");
+      break;
+
+    case ICAP_ICCPROFILE:
+      SSTRCPY(_szCap,_nChars,"ICAP_ICCPROFILE");
+      break;
+
+    case ICAP_AUTOSIZE:
+      SSTRCPY(_szCap,_nChars,"ICAP_AUTOSIZE");
+      break;
+
+    case ICAP_AUTOMATICCROPUSESFRAME:
+      SSTRCPY(_szCap,_nChars,"ICAP_AUTOMATICCROPUSESFRAME");
+      break;
+
+    case ICAP_AUTOMATICLENGTHDETECTION:
+      SSTRCPY(_szCap,_nChars,"ICAP_AUTOMATICLENGTHDETECTION");
+      break;
+
+    case ICAP_AUTOMATICCOLORENABLED:
+      SSTRCPY(_szCap,_nChars,"ICAP_AUTOMATICCOLORENABLED");
+      break;
+
+    case ICAP_AUTOMATICCOLORNONCOLORPIXELTYPE:
+      SSTRCPY(_szCap,_nChars,"ICAP_AUTOMATICCOLORNONCOLORPIXELTYPE");
+      break;
+
+    case ICAP_COLORMANAGEMENTENABLED:
+      SSTRCPY(_szCap,_nChars,"ICAP_COLORMANAGEMENTENABLED");
+      break;
+
+    case ICAP_IMAGEMERGE:
+      SSTRCPY(_szCap,_nChars,"ICAP_IMAGEMERGE");
+      break;
+
+    case ICAP_IMAGEMERGEHEIGHTTHRESHOLD:
+      SSTRCPY(_szCap,_nChars,"ICAP_IMAGEMERGEHEIGHTTHRESHOLD");
+      break;
+
+    case ICAP_SUPPORTEDEXTIMAGEINFO:
+      SSTRCPY(_szCap,_nChars,"ICAP_SUPPORTEDEXTIMAGEINFO");
       break;
 
     case ACAP_AUDIOFILEFORMAT:

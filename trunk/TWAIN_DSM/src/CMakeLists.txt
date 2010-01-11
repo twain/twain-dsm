@@ -22,7 +22,7 @@ PROJECT(twaindsm)
 #project version
 SET(${PROJECT_NAME}_MAJOR_VERSION 2)
 SET(${PROJECT_NAME}_MINOR_VERSION 1)
-SET(${PROJECT_NAME}_PATCH_LEVEL 0)
+SET(${PROJECT_NAME}_PATCH_LEVEL 1)
 
 #build a shared library
 ADD_LIBRARY(twaindsm SHARED dsm.cpp apps.cpp log.cpp)
