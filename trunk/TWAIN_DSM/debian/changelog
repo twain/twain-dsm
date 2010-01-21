@@ -1,3 +1,9 @@
+twaindsm (2.1.1-1) unstable; urgency=low
+
+   * bug fixes
+
+ -- TWAIN Working Group <twaindsm@twain.org>  Wed, 20 Jan 2010 07:36:18 -0500
+
 twaindsm (2.1.0-1) unstable; urgency=low
 
    * TWAIN 2.1 release
