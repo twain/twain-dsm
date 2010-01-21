@@ -28,8 +28,8 @@
 #
 export DSMMAJOR=2
 export DSMMINOR=1
-export DSMBUILD=0
-export DSMREASON="TWAIN 2.1 features and some bug fixes"
+export DSMBUILD=1
+export DSMREASON="bug fixes"
 
 # Don't touch these lines...
 export DSMBUILDER="good"
