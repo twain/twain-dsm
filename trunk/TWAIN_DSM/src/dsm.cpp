@@ -456,7 +456,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
   }
 
   // Print the triplets to stdout for information purposes
-  bPrinted = printTripletsInfo(_DG,_DAT,_MSG,_pData);
+  bPrinted = printTripletsInfo(_pOrigin,_pDest,_DG,_DAT,_MSG,_pData);
 
   // Sniff for the application forwarding an event to the
   // DS. It may be possible that the app has a message waiting for
@@ -474,6 +474,12 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
     {
       ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(pAppId,pDSId->Id);
       ((TW_EVENT*)(_pData))->TWMessage = ptwcallback->Message;
+      if( g_ptwndsmlog )
+      {
+        char szMsg[64];
+        StringFromMsg(szMsg,NCHARS(szMsg),ptwcallback->Message);
+        kLOG((kLOGINFO,"App retrieving DAT_EVENT / %s\n", szMsg));
+      }
       ptwcallback->Message = 0;
       pod.m_ptwndsmapps->DsCallbackSetWaiting(pAppId,pDSId->Id,FALSE);
       rcDSM = TWRC_DSEVENT;
@@ -537,9 +543,9 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
               }
               else
               {
-                kLOG((kLOGINFO,"Nested Triplet Ignored"));
                 if( _DAT == DAT_EVENT && _MSG == MSG_PROCESSEVENT)
                 {
+                  kLOG((kLOGINFO,"Nested DAT_EVENT / MSG_PROCESSEVENT Ignored"));
                   rcDSM = TWRC_NOTDSEVENT;
                   ((TW_EVENT*)(_pData))->TWMessage = MSG_NULL;
                 }
@@ -2178,7 +2184,9 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
 /*
 * Log the triplets that the application sends to us...
 */
-bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
+bool CTwnDsm::printTripletsInfo(const TW_IDENTITY *_pOrigin,
+                                const TW_IDENTITY *_pDest,
+                                const TW_UINT32 _DG,
                                 const TW_UINT16 _DAT,
                                 const TW_UINT16 _MSG,
                                 const TW_MEMREF _pData)
@@ -2229,6 +2237,9 @@ bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
     }
   }
 
+  // Print out the orgin and Destination
+  kLOG((kLOGINFO,"%.32s -> %.32s",_pOrigin? _pOrigin->ProductName:"DSM", _pDest? _pDest->ProductName:"DSM"));
+  
   // Print them
   if(strlen(szData))
   {
@@ -2238,6 +2249,7 @@ bool CTwnDsm::printTripletsInfo(const TW_UINT32 _DG,
   {
     kLOG((kLOGINFO,"%s/%s/%s",szDg,szDat,szMsg));
   }
+  g_ptwndsmlog->Indent(1);
 
   // All done...
   return true;
@@ -2257,20 +2269,39 @@ void CTwnDsm::printResults(const TW_UINT32 _DG,
   StringFromRC(szRc,NCHARS(szRc),_RC);
 
   // If we have data do some extra work to see what it might be
-  if( NULL != _pData
-   && DG_CONTROL == _DG
-   && DAT_CAPABILITY == _DAT 
-   && ( MSG_GET == _MSG || MSG_GETCURRENT == _MSG) )
+  if( NULL != _pData && TWRC_FAILURE != _RC)
   {
-      TW_CAPABILITY *_pCap = (TW_CAPABILITY*)_pData;
-      char szType[32];
-      StringFromConType(szType,NCHARS(szType),_pCap->ConType);
-      SSTRCAT(szRc,NCHARS(szRc),szType);
+    if( DG_CONTROL == _DG
+     && DAT_CAPABILITY == _DAT 
+     && ( MSG_GET == _MSG || MSG_GETCURRENT == _MSG || MSG_GETDEFAULT == _MSG || MSG_RESET == _MSG ) )
+    {
+        TW_CAPABILITY *_pCap = (TW_CAPABILITY*)_pData;
+        char szType[32];
+        StringFromConType(szType, NCHARS(szType), _pCap->ConType);
+        SSTRCAT(szRc, NCHARS(szRc), szType);
+    }
+    else if( DG_CONTROL == _DG
+     && DAT_PENDINGXFERS == _DAT )
+    {
+        TW_PENDINGXFERS *pXfer = (TW_PENDINGXFERS*)_pData;
+        char szValue[32];
+        SSNPRINTF(szValue, NCHARS(szValue), NCHARS(szValue), " Count = %d", pXfer->Count==0xFFFF?-1:pXfer->Count);
+        SSTRCAT(szRc, NCHARS(szRc), szValue);
+    }
+    else if( DG_CONTROL == _DG
+     && DAT_STATUS == _DAT )
+    {
+        TW_STATUS *pStatus = (TW_STATUS*)_pData;
+        char szStatus[32];
+        StringFromConditionCode(szStatus, NCHARS(szStatus), pStatus->ConditionCode);
+        SSTRCAT(szRc, NCHARS(szRc), szStatus);
+    }
   }
 
   // ... and add a blank line
   SSTRCAT(szRc,NCHARS(szRc),"\n");
 
+  g_ptwndsmlog->Indent(-1);
   kLOG((kLOGINFO,szRc));
 }
 
@@ -2282,7 +2313,10 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
                            TW_IDENTITY *_pDsId,
                            TW_UINT16    _MSG)
 {
-  TW_CALLBACK *ptwcallback;
+  TW_CALLBACK  *ptwcallback;
+  TW_INT16      result    = TWRC_SUCCESS;
+  TW_MEMREF     MemRef; 
+  bool          bPrinted  = false;
 
   // Validate...
   if ( !pod.m_ptwndsmapps->AppValidateIds(_pAppId,_pDsId) )
@@ -2312,7 +2346,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
     // Unfortunately RefCon is defined as TW_INT32
     // Application writers that want to store a pointer in RefCon
     // on 64bit will need to store an index to local storage.
-    TW_MEMREF MemRef = (TW_MEMREF)(TW_UINTPTR)ptwcallback->RefCon;
+    MemRef = (TW_MEMREF)(TW_UINTPTR)ptwcallback->RefCon;
 
     // We should have a try/catch around this...
     // Send a message from DS to the Application.
@@ -2322,7 +2356,10 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
       // Create a local copy of the AppIdentity
       TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(_pAppId);
 
-      ((DSMENTRYPROC)(ptwcallback->CallBackProc))(
+      // Print the triplets to stdout for information purposes
+      bPrinted = printTripletsInfo(NULL,&AppId,DG_CONTROL,DAT_NULL,_MSG,&MemRef);
+
+      result = ((DSMENTRYPROC)(ptwcallback->CallBackProc))(
           pod.m_ptwndsmapps->DsGetIdentity(&AppId,_pDsId->Id),
           &AppId,
           DG_CONTROL,
@@ -2334,7 +2371,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
     {
       pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BUMMER);
       kLOG((kLOGERR,"Exception caught while App was processing message.  Returning Failure."));
-      return TWRC_FAILURE;
+      result = TWRC_FAILURE;
     }
   }
 
@@ -2349,7 +2386,13 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
     pod.m_ptwndsmapps->AppWakeup(_pAppId);
   }
 
-  return TWRC_SUCCESS;
+  // Log how it went...
+  if (bPrinted)
+  {
+    printResults(DG_CONTROL,DAT_NULL,_MSG,&MemRef,result);
+  }
+
+  return result;
 }
 
 
@@ -3411,6 +3454,132 @@ void CTwnDsm::StringFromConType(char     *_szData,
   }
 }
 
+/*
+* Convert a Condition Code to a string...
+*/
+void CTwnDsm::StringFromConditionCode(char     *_szData,
+                                const int       _nChars,
+                                const TW_UINT16 _ConCode)
+{
+  switch (_ConCode)
+  {
+    default:    
+      SSNPRINTF(_szData,_nChars,_nChars," TWCC_0x%04x",_ConCode);
+      break;
+
+    case TWCC_SUCCESS:
+      SSTRCPY(_szData,_nChars," TWCC_SUCCESS");
+      break;
+
+    case TWCC_BUMMER:
+      SSTRCPY(_szData,_nChars," TWCC_BUMMER");
+      break;
+
+    case TWCC_LOWMEMORY:
+      SSTRCPY(_szData,_nChars," TWCC_LOWMEMORY");
+      break;
+
+    case TWCC_NODS:
+      SSTRCPY(_szData,_nChars," TWCC_NODS");
+      break;
+
+    case TWCC_MAXCONNECTIONS:
+      SSTRCPY(_szData,_nChars," TWCC_MAXCONNECTIONS");
+      break;
+
+    case TWCC_OPERATIONERROR:
+      SSTRCPY(_szData,_nChars," TWCC_OPERATIONERROR");
+      break;
+
+    case TWCC_BADCAP:
+      SSTRCPY(_szData,_nChars," TWCC_BADCAP");
+      break;
+
+    case TWCC_BADPROTOCOL:
+      SSTRCPY(_szData,_nChars," TWCC_BADPROTOCOL");
+      break;
+
+    case TWCC_BADVALUE:
+      SSTRCPY(_szData,_nChars," TWCC_BADVALUE");
+      break;
+
+    case TWCC_SEQERROR:
+      SSTRCPY(_szData,_nChars," TWCC_SEQERROR");
+      break;
+
+    case TWCC_BADDEST:
+      SSTRCPY(_szData,_nChars," TWCC_BADDEST");
+      break;
+
+    case TWCC_CAPUNSUPPORTED:
+      SSTRCPY(_szData,_nChars," TWCC_CAPUNSUPPORTED");
+      break;
+
+    case TWCC_CAPBADOPERATION:
+      SSTRCPY(_szData,_nChars," TWCC_CAPBADOPERATION");
+      break;
+
+    case TWCC_CAPSEQERROR:
+      SSTRCPY(_szData,_nChars," TWCC_CAPSEQERROR");
+      break;
+
+    case TWCC_DENIED:
+      SSTRCPY(_szData,_nChars," TWCC_DENIED");
+      break;
+
+    case TWCC_FILEEXISTS:
+      SSTRCPY(_szData,_nChars," TWCC_FILEEXISTS");
+      break;
+
+    case TWCC_FILENOTFOUND:
+      SSTRCPY(_szData,_nChars," TWCC_FILENOTFOUND");
+      break;
+
+    case TWCC_NOTEMPTY:
+      SSTRCPY(_szData,_nChars," TWCC_NOTEMPTY");
+      break;
+
+    case TWCC_PAPERJAM:
+      SSTRCPY(_szData,_nChars," TWCC_PAPERJAM");
+      break;
+
+    case TWCC_PAPERDOUBLEFEED:
+      SSTRCPY(_szData,_nChars," TWCC_PAPERDOUBLEFEED");
+      break;
+
+    case TWCC_FILEWRITEERROR:
+      SSTRCPY(_szData,_nChars," TWCC_FILEWRITEERROR");
+      break;
+
+    case TWCC_CHECKDEVICEONLINE:
+      SSTRCPY(_szData,_nChars," TWCC_CHECKDEVICEONLINE");
+      break;
+
+    case TWCC_INTERLOCK:
+      SSTRCPY(_szData,_nChars," TWCC_INTERLOCK");
+      break;
+
+    case TWCC_DAMAGEDCORNER:
+      SSTRCPY(_szData,_nChars," TWCC_DAMAGEDCORNER");
+      break;
+
+    case TWCC_FOCUSERROR:
+      SSTRCPY(_szData,_nChars," TWCC_FOCUSERROR");
+      break;
+
+    case TWCC_DOCTOOLIGHT:
+      SSTRCPY(_szData,_nChars," TWCC_DOCTOOLIGHT");
+      break;
+
+    case TWCC_DOCTOODARK:
+      SSTRCPY(_szData,_nChars," TWCC_DOCTOODARK");
+      break;
+
+    case TWCC_NOMEDIA:
+      SSTRCPY(_szData,_nChars," TWCC_NOMEDIA");
+      break;
+    }
+}
 
 
 /*

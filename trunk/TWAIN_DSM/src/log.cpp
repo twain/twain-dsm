@@ -87,6 +87,7 @@ class CTwnDsmLogImpl
       char *m_message;               /**< buffer for our messages. */
       char  m_logpath[FILENAME_MAX]; /**< where we put the file. */
       char  m_logmode[16];           /**< how we fopen the file. */
+      int   m_nIndent;               /**< how far to indent the log message */
     } pod;    /**< Pieces of data for CTwnDsmAppsImpl*/
 };
 
@@ -244,11 +245,12 @@ void CTwnDsmLog::Log(const int         _doassert,
                       #if (TWNDSM_CMP_VERSION >= 1400)
                         TWNDSM_MAX_MSG,
                       #endif
-                      "[%02d%02d%02d%03d %-8s %4d %5d %p] ",
+                      "[%02d%02d%02d%03d %-8s %4d %5d %p] %.*s",
                       st.wHour,st.wMinute,st.wSecond,st.wMilliseconds,
                       file,_line,
                       nError,
-                      (void*)(UINT_PTR)GETTHREADID());
+                      (void*)(UINT_PTR)GETTHREADID(),
+                      m_ptwndsmlogimpl->pod.m_nIndent*2, "            ");
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     timeval tv;
     tm tm;
@@ -257,11 +259,12 @@ void CTwnDsmLog::Log(const int         _doassert,
     localtime_r(&tv.tv_sec,&tm);
     nChars = SNPRINTF(m_ptwndsmlogimpl->pod.m_message,
                       TWNDSM_MAX_MSG,
-                      "[%02d%02d%02d%03ld %-8s %4d %5d %p] ",
+                      "[%02d%02d%02d%03ld %-8s %4d %5d %p] %.*s",
                       tm.tm_hour,tm.tm_min,tm.tm_sec,tv.tv_usec / 1000,
                       file,_line,
                       nError,
-                      (void*)GETTHREADID());
+                      (void*)GETTHREADID(),
+                      m_ptwndsmlogimpl->pod.m_nIndent*2, "            ");
 
   #else
     #error Sorry, we do not recognize this system...
@@ -294,4 +297,9 @@ void CTwnDsmLog::Log(const int         _doassert,
   {
     assert(0);
   }
+}
+
+void CTwnDsmLog::Indent(int nChange)
+{
+  m_ptwndsmlogimpl->pod.m_nIndent += nChange;
 }
