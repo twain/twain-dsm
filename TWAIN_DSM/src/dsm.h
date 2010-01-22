@@ -523,6 +523,12 @@ class CTwnDsmLog
              const char* const _format,
              ...);
 
+    /**
+    * Indent the logging to help with seeing recursive calls
+    * param[in] nChange Either +1 or -1 
+    */
+    void Indent(int nChange);
+
   private:
 
     /**
@@ -1023,13 +1029,17 @@ class CTwnDsm
 
         /**
         * prints to stdout information about the triplets.
+        * @param[in] _pOrigin the Orgin to print the Product Name
+        * @param[in] _pDest the Destination to print the Product Name
         * @param[in] _DG the Data Group
         * @param[in] _DAT the Data Argument Type
         * @param[in] _MSG the Message
         * @param[in] _pData the Data
         * @return return true if actually printed triplet
         */
-        bool printTripletsInfo(const TW_UINT32 _DG,
+        bool printTripletsInfo(const TW_IDENTITY *_pOrigin,
+                               const TW_IDENTITY *_pDest,
+                               const TW_UINT32 _DG,
                                const TW_UINT16 _DAT,
                                const TW_UINT16 _MSG,
                                const TW_MEMREF _pData);
@@ -1090,11 +1100,11 @@ class CTwnDsm
 
         /**
         * Translates the _ConType and _hContainer passed in into a string and returns it
-        * @param[out] _szCap string to copy into
+        * @param[out] _szConType string to copy into
         * @param[in] _nChars max chars in _szCap
         * @param[in] _ConType the TWAIN Container Type to translate
         */
-        void StringFromConType(char     *_szRc,
+        void StringFromConType(char     *_szConType,
                                const int       _nChars,
                                const TW_UINT16 _ConType);
 
@@ -1108,6 +1118,15 @@ class CTwnDsm
                           const int _nChars,
                           const TW_UINT16 _rc);
 
+        /**
+        * Translates the Condition Code passed in into a string and returns it
+        * @param[out] _szCondCode string to copy into
+        * @param[in] _nChars max chars in szRc
+        * @param[in] _cc the TWAIN Condition Code to translate
+        */
+        void StringFromConditionCode(char *_szCondCode,
+                                     const int _nChars,
+                                     const TW_UINT16 _cc);
 
 
     //

@@ -1,3 +1,8 @@
+2010-01-22 JFL Peripheral Solutions jimw@jflinc.com
+
+    * dsm.h, dsm.cpp, & log.cpp Update logging with more information
+    
+    
 2010-01-11 JFL Peripheral Solutions jimw@jflinc.com
 
     * dsm.cpp Update logging with new 2.1 Capabilities and other missing defines
