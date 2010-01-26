@@ -600,6 +600,8 @@ typedef struct {
 #define TWTY_STR64       0x000a    /* Means Item is a TW_STR64  */
 #define TWTY_STR128      0x000b    /* Means Item is a TW_STR128 */
 #define TWTY_STR255      0x000c    /* Means Item is a TW_STR255 */
+#define TWTY_HANDLE      0x000f    /* Means Item is a TW_HANDLE */
+
 
 /****************************************************************************
  * Capability Constants                                                     *
@@ -1875,9 +1877,13 @@ typedef wchar_t           TW_UNI512[512],     FAR *pTW_UNI512;
 #define DAT_TWUNKIDENTITY     0x000b    /* Additional message required for thunker to request the special identity information. */
 #define DAT_SETUPFILEXFER2    0x0301    /* Data transfer via a file. deprecated - use DAT_SETUPFILEXFER instead*/
 
-#define CAP_SUPPORTEDCAPSEXT  0x100c
-#define CAP_FILESYSTEM        //0x????
-#define ACAP_AUDIOFILEFORMAT  0x1201    /* Added 1.8 */
+#define CAP_SUPPORTEDCAPSEXT      0x100c
+#define CAP_FILESYSTEM            //0x????
+#define CAP_PAGEMULTIPLEACQUIRE   0x1023    /* Added 1.8 */
+#define CAP_PAPERBINDING          0x102f    /* Added 1.8 */
+#define CAP_PASSTHRU              0x1031    /* Added 1.8 */
+#define CAP_POWERDOWNTIME         0x1034    /* Added 1.8 */  //0x1034 is reused by CAP_CAMERASIDE
+#define ACAP_AUDIOFILEFORMAT      0x1201    /* Added 1.8 */
 
 #define MSG_CHECKSTATUS       0x0201    /* Get status information - use MSG_GET instead */
 
