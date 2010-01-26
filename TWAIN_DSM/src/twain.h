@@ -1569,7 +1569,6 @@ typedef struct {
 #define CAP_FEEDPAGE                0x1009
 #define CAP_REWINDPAGE              0x100a
 #define CAP_INDICATORS              0x100b   /* Added 1.1 */
-#define CAP_SUPPORTEDCAPSEXT        0x100c   /* Added 1.6 */
 #define CAP_PAPERDETECTABLE         0x100d   /* Added 1.6 */
 #define CAP_UICONTROLLABLE          0x100e   /* Added 1.6 */
 #define CAP_DEVICEONLINE            0x100f   /* Added 1.6 */
