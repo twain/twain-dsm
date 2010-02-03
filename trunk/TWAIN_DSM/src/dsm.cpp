@@ -478,7 +478,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
       {
         char szMsg[64];
         StringFromMsg(szMsg,NCHARS(szMsg),ptwcallback->Message);
-        kLOG((kLOGINFO,"App retrieving DAT_EVENT / %s\n", szMsg));
+        kLOG((kLOGINFO,"%.32s retrieving DAT_EVENT / %s\n", pAppId->ProductName, szMsg));
       }
       ptwcallback->Message = 0;
       pod.m_ptwndsmapps->DsCallbackSetWaiting(pAppId,pDSId->Id,FALSE);
@@ -2381,6 +2381,12 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
   // a callback to a single app, and we are not going to lose MSG's
   else
   {
+    if(ptwcallback->Message!=0)
+    {
+      char szMsg[64];
+      StringFromMsg(szMsg,NCHARS(szMsg),ptwcallback->Message);
+      kLOG((kLOGERR,"%.32s NEVER retrieved DAT_EVENT / %s\n", _pAppId->ProductName, szMsg));
+    }
     ptwcallback->Message = _MSG;
     pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,_pDsId->Id,TRUE);
     pod.m_ptwndsmapps->AppWakeup(_pAppId);
