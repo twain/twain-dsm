@@ -1729,11 +1729,14 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
       result = GetMatchingDefault(_pAppId,_pDsId);
       pod.m_pSelectDlgDsId = _pDsId;
 
+      // a.walling - Get the HWND of the parent window, if any, and use it as the dialog's parent
+      HWND hParent = (HWND)pod.m_ptwndsmapps->AppHwnd(_pAppId);
+
       // create the dialog window
       int ret = (int)::DialogBoxW(g_hinstance,
-                                 (LPCWSTR)IDD_DLG_SOURCE,
-                                 (HWND)NULL,
-                                 (DLGPROC)::SelectDlgProc);
+                                  (LPCWSTR)IDD_DLG_SOURCE,
+                                  (HWND)hParent,
+                                  (DLGPROC)::SelectDlgProc);
 
       // User picked something...
       if (ret == IDOK)
