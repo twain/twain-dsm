@@ -757,6 +757,26 @@ class CTwnDsmApps
                                 TW_BOOL      _Processing);
 
     /**
+    * Check if the App is still processing last callback.
+    * @param[in] _pAppId id of app
+    * @param[in] _DsId numeric id of driver
+    * @return TRUE if the App has not finished processing callback
+    */
+    TW_BOOL DsIsAppProcessingCallback(TW_IDENTITY *_pAppId,
+                                      TW_UINT32    _DsId);
+
+    /**
+    * Set the AppProcessingCallback flag.
+    * This is how we know the App is not done processing the previous callback
+    * @param[in] _pAppId id of app
+    * @param[in] _DsId numeric id of driver
+    * @param[in] _Processing the new state for the processing flag
+    */
+    void DsSetAppProcessingCallback(TW_IDENTITY *_pAppId,
+                                    TW_UINT32    _DsId,
+                                    TW_BOOL      _Processing);
+
+    /**
     * Get number of allocated App slots (Last valid App ID +1)
     * @return number of allocated App slots (Last valid App ID +1)
     */

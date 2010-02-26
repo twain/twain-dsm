@@ -49,7 +49,8 @@ typedef struct
   char          szPath[FILENAME_MAX];   /**< location of the DS */
   TW_CALLBACK   twcallback;             /**< callback structure */
   TW_BOOL       bCallbackPending;       /**< True if an application is old style and a callback was supposed to be made to it */
-  TW_BOOL       bProcessingMessage;     /**< True if the application is still waiting for the DS to return from processing a message */
+  TW_BOOL       bDSProcessingMessage;   /**< True if the application is still waiting for the DS to return from processing a message */
+  TW_BOOL       bAppProcessingCallback; /**< True if the application is still waiting for the DS to return from processing a message */
 } DS_INFO;
 
 
@@ -904,7 +905,7 @@ TW_BOOL CTwnDsmApps::DsIsProcessingMessage(TW_IDENTITY *_pAppId,
       &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bProcessingMessage;
+    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bDSProcessingMessage;
   }
   // Something is toasted, so return FALSE...
   else
@@ -929,7 +930,7 @@ void CTwnDsmApps::DsSetProcessingMessage(TW_IDENTITY *_pAppId,
       &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bProcessingMessage = _Processing;
+    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bDSProcessingMessage = _Processing;
   }
   // Something is toasted, so whine about it...
   else
@@ -938,6 +939,52 @@ void CTwnDsmApps::DsSetProcessingMessage(TW_IDENTITY *_pAppId,
   }
 }
 
+
+/**
+* Check if the App is still processing last callback.
+* This allows the DSM to prevent the app from calling the DS with a  
+* message before it returns from recieving the last callback.
+*/
+TW_BOOL CTwnDsmApps::DsIsAppProcessingCallback(TW_IDENTITY *_pAppId,
+                                             TW_UINT32    _DsId)
+{
+  // Check the waiting flag...
+  if (    AppValidateId(_pAppId)
+      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  (_DsId < MAX_NUM_DS))
+  {
+    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bAppProcessingCallback;
+  }
+  // Something is toasted, so return FALSE...
+  else
+  {
+    kLOG((kLOGERR,"Returning FALSE from DsIsAppProcessingCallback..."));
+    return FALSE;
+  }
+}
+
+
+/**
+* Set the AppProcessingCallback flag.
+* This is how we know the App is not done processing the previous callback
+*/
+void CTwnDsmApps::DsSetAppProcessingCallback(TW_IDENTITY *_pAppId,
+                                           TW_UINT32    _DsId,
+                                           TW_BOOL      _Processing)
+{
+  // Set the processing flag...
+  if (    AppValidateId(_pAppId)
+      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  (_DsId < MAX_NUM_DS))
+  {
+    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bAppProcessingCallback = _Processing;
+  }
+  // Something is toasted, so whine about it...
+  else
+  {
+    kLOG((kLOGERR,"Unable to properly handle DsSetAppProcessingCallback..."));
+  }
+}
 
 
 /**
