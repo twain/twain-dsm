@@ -516,9 +516,11 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
             else if (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))
             {
               // Don't send a new message if the DS is still processing a previous message
+              // or if the application has not returned back from recieving callback.
               // Place a Try | Catch around the function so we can maintain correct state 
               // in the case of an exception
-              if( !pod.m_ptwndsmapps->DsIsProcessingMessage(pAppId,pDSId->Id) )
+              if( !pod.m_ptwndsmapps->DsIsProcessingMessage(pAppId,pDSId->Id)
+               && !pod.m_ptwndsmapps->DsIsAppProcessingCallback(pAppId,pDSId->Id) )
               {
                 pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,pDSId->Id,TRUE);
                 try
@@ -551,6 +553,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
                 }
                 else
                 {
+                  kLOG((kLOGERR,"Nested calls back to the DS.  Returning Failure."));
                   pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_SEQERROR);
                   rcDSM = TWRC_FAILURE;
                 }
@@ -2351,6 +2354,10 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
     // on 64bit will need to store an index to local storage.
     MemRef = (TW_MEMREF)(TW_UINTPTR)ptwcallback->RefCon;
 
+    // Set flag to prevent Application from sending a new message 
+    // before returning back from recieving this callback.
+    pod.m_ptwndsmapps->DsSetAppProcessingCallback(_pAppId,_pDsId->Id,TRUE);
+
     // We should have a try/catch around this...
     // Send a message from DS to the Application.
     // Rare case where the origin is the DS and dest is the App
@@ -2376,6 +2383,8 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
       kLOG((kLOGERR,"Exception caught while App was processing message.  Returning Failure."));
       result = TWRC_FAILURE;
     }
+
+    pod.m_ptwndsmapps->DsSetAppProcessingCallback(_pAppId,_pDsId->Id,FALSE);
   }
 
   // Application has not registered a callback. As a result, the msg will

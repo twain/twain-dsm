@@ -1,3 +1,15 @@
+2010-02-26 JFL Peripheral Solutions jimw@jflinc.com
+
+    * dsm.h, dsm.cpp, & apps.cpp Prevent Application from reentry to DS
+      before returning from callback message.
+    
+    
+2010-02-26 a.walling
+
+    * dsm.cpp Get the HWND of the parent window, if any, and use it as the
+      dialog's parent.
+    
+
 2010-01-22 JFL Peripheral Solutions jimw@jflinc.com
 
     * dsm.h, dsm.cpp, & log.cpp Update logging with more information
@@ -15,6 +27,7 @@
       pointer to the AppID passed to be corrupt before OpenDS finishes.  This only 
       happens when the DSM recieves multiple OpenDSM messages in the same process space.
       If this happens, messages sent from DS to App will get lost.
+      
 
 2009-11-04 JFL Peripheral Solutions jimw@jflinc.com
 
