@@ -183,10 +183,10 @@ void CTwnDsmLog::Log(const int         _doassert,
   }
 
   // Okay, now use the stack...
-  UINT  nError;
-  UINT  nChars;
-  char *message;
-  const char *file;
+  UINT  nError = 0;
+  UINT  nChars = 0;
+  char *message = NULL;
+  const char *file = NULL;
 
   // Grab the system error, this can be really useful...
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
