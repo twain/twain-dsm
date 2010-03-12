@@ -467,6 +467,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
     // Check that the AppID and DSID are valid...
     if (!pod.m_ptwndsmapps->AppValidateIds(pAppId,pDSId))
     {
+      kLOG((kLOGINFO,"Bad TW_IDENTITY"));
       pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
       rcDSM = TWRC_FAILURE;
     }
@@ -508,6 +509,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
             // Check that the AppID and DSID are valid...
             if (!pod.m_ptwndsmapps->AppValidateIds(pAppId,pDSId))
             {
+              kLOG((kLOGINFO,"Bad TW_IDENTITY"));
               pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
               rcDSM = TWRC_FAILURE;
             }
@@ -570,6 +572,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         }
         else
         {
+            kLOG((kLOGINFO,"DS is not open"));
             pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_SEQERROR);
             rcDSM = TWRC_FAILURE;
         }

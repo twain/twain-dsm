@@ -453,6 +453,7 @@ TW_UINT16 CTwnDsmApps::RemoveApp(TW_IDENTITY *_pAppId)
   // this I'm not aware of...
   if (dsmState_Open != m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].CurrentState)
   {
+    kLOG((kLOGINFO,"%0.32s not open.",_pAppId->ProductName));
     AppSetConditionCode(0,TWCC_SEQERROR);
     return TWRC_FAILURE;
   }
@@ -1350,10 +1351,17 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   bool hook;
 
   // Validate...
-  if (   (0 == _pPath)
-      || (_DsId >= MAX_NUM_DS))
+  if ( 0 == _pPath )
   {
-    // bad path or too many DS's already open
+    // bad path
+    kLOG((kLOGERR,"bad path."));
+    AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+    return TWRC_FAILURE;
+  }
+  if ( _DsId >= MAX_NUM_DS )
+  {
+    // too many DS's already open
+    kLOG((kLOGINFO,"Too many DS's already open."));
     AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
     return TWRC_FAILURE;
   }
@@ -1447,6 +1455,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
     UNLOADLIBRARY(pDSInfo->pHandle,false,0);
     pDSInfo->pHandle = NULL;
     pDSInfo->DS_Entry = NULL;
+    kLOG((kLOGINFO,"DG_CONTROL,DAT_IDENTITY,MSG_GET failed"));
     AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
     return TWRC_FAILURE;
   }
@@ -1460,6 +1469,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
     UNLOADLIBRARY(pDSInfo->pHandle,false,0);
     pDSInfo->pHandle = NULL;
     pDSInfo->DS_Entry = NULL;
+    kLOG((kLOGINFO,"The SupportedGroups do not match."));
     AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
     return TWRC_FAILURE;
   }
