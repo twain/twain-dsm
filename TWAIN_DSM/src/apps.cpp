@@ -354,12 +354,14 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
   kLOG((kLOGINFO,"             \"%0.32s\" version: %u.%u", _pAppId->ProductName, _pAppId->Version.MajorNum, _pAppId->Version.MinorNum));
   kLOG((kLOGINFO,"             TWAIN %u.%u", _pAppId->ProtocolMajor, _pAppId->ProtocolMinor));
 
+  // An application is identified by the name and handle
   // Check to see if this app has already been opened, and
   // if so, treat it as a sequence error, because this app
   // is already open...
   for (ii = 1; ii < m_ptwndsmappsimpl->m_AppInfo.size(); ii++)
   {
-    if (!strncmp(m_ptwndsmappsimpl->m_AppInfo[ii].identity.ProductName,_pAppId->ProductName,sizeof(TW_STR32)))
+    if ( !strncmp(m_ptwndsmappsimpl->m_AppInfo[ii].identity.ProductName,_pAppId->ProductName,sizeof(TW_STR32))
+      && m_ptwndsmappsimpl->m_AppInfo[ii].hwnd == (HWND)(_MemRef?*(HWND*)_MemRef:0) )
     {
       kLOG((kLOGERR,"A successful MSG_OPENDSM was already done for %s...",_pAppId->ProductName));
       AppSetConditionCode(0,TWCC_SEQERROR);
