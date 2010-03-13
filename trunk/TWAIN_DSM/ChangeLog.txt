@@ -1,3 +1,8 @@
+2010-03-12 JFL Peripheral Solutions jimw@jflinc.com
+
+    * apps.cpp Allow application to connect to DSM if different handle used each time.
+
+
 2010-02-26 JFL Peripheral Solutions jimw@jflinc.com
 
     * dsm.h, dsm.cpp, & apps.cpp Prevent Application from reentry to DS
