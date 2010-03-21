@@ -28,8 +28,8 @@
 #
 export DSMMAJOR=2
 export DSMMINOR=1
-export DSMBUILD=1
-export DSMREASON="bug fixes"
+export DSMBUILD=2
+export DSMREASON="thread related bug fixes"
 
 # Don't touch these lines...
 export DSMBUILDER="good"

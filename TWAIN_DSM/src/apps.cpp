@@ -1018,7 +1018,7 @@ const char *CTwnDsmAppsImpl::StringFromCC(const TW_UINT16 cc)
       break;
 
     case TWCC_OPERATIONERROR:
-      return "DS or DSM reported error, application shouldn't";
+      return "DS or DSM reported error, application shouldn't display an error";
       break;
 
     case TWCC_BADCAP:

@@ -1,3 +1,9 @@
+twaindsm (2.1.2-1) unstable; urgency=low
+
+   * thread related bug fixes
+
+ -- TWAIN Working Group <twaindsm@twain.org>  Thu, 18 Mar 2010 15:13:40 -0400
+
 twaindsm (2.1.1-1) unstable; urgency=low
 
    * bug fixes

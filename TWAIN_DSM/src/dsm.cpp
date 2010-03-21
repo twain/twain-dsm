@@ -565,6 +565,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
             // For some reason we have no pointer to the dsentry function...
             else
             {
+			  kLOG((kLOGERR,"Unable to find driver, check your AppId and DsId values..."));
               pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_OPERATIONERROR);
               kLOG((kLOGERR,"DS_Entry is null...%ld",pAppId->Id));
               rcDSM = TWRC_FAILURE;
