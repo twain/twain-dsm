@@ -28,8 +28,8 @@
 #
 export DSMMAJOR=2
 export DSMMINOR=1
-export DSMBUILD=2
-export DSMREASON="thread related bug fixes"
+export DSMBUILD=3
+export DSMREASON="reenterent check enforced for 2.2 apps and later..."
 
 # Don't touch these lines...
 export DSMBUILDER="good"

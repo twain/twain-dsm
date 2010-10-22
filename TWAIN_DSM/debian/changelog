@@ -1,3 +1,9 @@
+twaindsm (2.1.3-1) unstable; urgency=low
+
+   * reenterent check enforced for 2.2 apps and later...
+
+ -- TWAIN Working Group <twaindsm@twain.org>  Tue, 19 Oct 2010 13:04:41 -0400
+
 twaindsm (2.1.2-1) unstable; urgency=low
 
    * thread related bug fixes

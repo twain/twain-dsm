@@ -521,8 +521,15 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
               // or if the application has not returned back from recieving callback.
               // Place a Try | Catch around the function so we can maintain correct state 
               // in the case of an exception
-              if( !pod.m_ptwndsmapps->DsIsProcessingMessage(pAppId,pDSId->Id)
-               && !pod.m_ptwndsmapps->DsIsAppProcessingCallback(pAppId,pDSId->Id) )
+			  //
+			  // We are only enforcing this new behavior for TWAIN 2.2 applications and
+			  // and higher.  Older apps can still use the 'wrong' behavior.  We need this
+			  // to preserve backwards compability, and to give ourselves a chance to
+			  // inform developers of the new requirement...
+			  //
+              if (	 (((pAppId->ProtocolMajor*10) + (pAppId->ProtocolMinor)) <= 201)
+				  || (!pod.m_ptwndsmapps->DsIsProcessingMessage(pAppId,pDSId->Id)
+				  && !pod.m_ptwndsmapps->DsIsAppProcessingCallback(pAppId,pDSId->Id)))
               {
                 pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,pDSId->Id,TRUE);
                 try
