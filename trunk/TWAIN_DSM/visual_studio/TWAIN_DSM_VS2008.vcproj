@@ -102,7 +102,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) to system32 and twain.h to pub directory"
-				CommandLine="copy &quot;$(TargetPath)&quot; c:\windows\system32 &amp; copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\..\pub\include\twain&quot;"
+				CommandLine="mkdir &quot;$(ProjectDir)\..\pub&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\include&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\include\twain&quot;&#x0D;&#x0A;copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\pub\include\twain&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -190,7 +190,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) to system64 and twain.h to pub directory"
-				CommandLine="copy &quot;$(TargetPath)&quot; c:\windows\system64 &amp; copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\..\pub\include\twain&quot;"
+				CommandLine="mkdir &quot;$(ProjectDir)\..\pub&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\include&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\include\twain&quot;&#x0D;&#x0A;copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\pub\include\twain&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -272,7 +272,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)\..\..\pub\bin\twain32&quot; &amp; copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\..\pub\include\twain&quot;"
+				CommandLine="mkdir &quot;$(ProjectDir)\..\pub&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\include&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\bin&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\bin\twain32&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\include\twain&quot;&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)\..\pub\bin\twain32&quot;&#x0D;&#x0A;copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\pub\include\twain&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -356,7 +356,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy $(TargetFileName) and twain.h to pub directory"
-				CommandLine="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)\..\..\pub\bin\twain64&quot; &amp; copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\..\pub\include\twain&quot;"
+				CommandLine="mkdir &quot;$(ProjectDir)\..\pub&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\include&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\bin&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\bin\twain64&quot;&#x0D;&#x0A;mkdir &quot;$(ProjectDir)\..\pub\include\twain&quot;&#x0D;&#x0A;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)\..\pub\bin\twain64&quot;&#x0D;&#x0A;copy &quot;$(ProjectDir)\..\src\twain.h&quot; &quot;$(ProjectDir)\..\pub\include\twain&quot;"
 			/>
 		</Configuration>
 	</Configurations>
