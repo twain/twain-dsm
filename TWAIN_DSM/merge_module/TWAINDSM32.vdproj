@@ -15,7 +15,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_F5A8176E974B4A0C9DC798CBFFA4E432"
+        "MsmKey" = "8:_63CE5D382BA8467F8F67F4B66E7026DD"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -63,9 +63,9 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F5A8176E974B4A0C9DC798CBFFA4E432"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_63CE5D382BA8467F8F67F4B66E7026DD"
             {
-            "SourcePath" = "8:..\\..\\pub\\bin\\twain32\\TWAINDSM.dll"
+            "SourcePath" = "8:..\\pub\\bin\\twain32\\TWAINDSM.dll"
             "TargetName" = "8:TWAINDSM.dll"
             "Tag" = "8:"
             "Folder" = "8:_00726D8F6BC5410396757EB578FE8CA6"
@@ -74,8 +74,8 @@
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
             "Hidden" = "11:FALSE"
-            "System" = "11:TRUE"
-            "Permanent" = "11:TRUE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
@@ -100,20 +100,6 @@
                 {
                 }
             }
-            "{F4FE1E22-A4D2-4EE8-9259-29A1CE8BB2FF}:_92C0B735BA65418D80665F240AE78CAF"
-            {
-            "DefaultLocation" = "8:[TARGETDIR]"
-            "DisplayName" = "8:Module Retargetable Folder"
-            "Description" = "8:"
-            "Name" = "8:Module Retargetable Folder"
-            "AlwaysCreate" = "11:FALSE"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Property" = "8:NEWRETARGETABLEPROPERTY1"
-                "Folders"
-                {
-                }
-            }
         }
         "Sequences"
         {
@@ -134,7 +120,7 @@
         "UseSystemSearchPath" = "11:TRUE"
         "TargetPlatform" = "3:0"
         "PreBuildEvent" = "8:"
-        "PostBuildEvent" = "8:copy \"$(BuiltOuputPath)\" \"$(ProjectDir)..\\..\\pub\\bin\\twain32\\\""
+        "PostBuildEvent" = "8:copy \"$(BuiltOuputPath)\" \"$(ProjectDir)..\\pub\\bin\\twain32\\\""
         "RunPostBuildEvent" = "3:0"
         }
         "ProjectOutput"
