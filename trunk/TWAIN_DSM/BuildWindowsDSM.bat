@@ -18,8 +18,8 @@ goto CheckVersion
 :CheckVersion
 echo off
 if not exist "./src/resource.h" goto error3
-find "TWNDSM_VERSION_NUM" "./src/resource.h"
-echo Is the DSM version shown above is correct (Y/N)?
+findstr "TWNDSM_VERSION_NUM" ".\src\resource.h"
+echo Is the DSM version shown above correct (Y/N)?
 set /p DSMVerAnswer=
 if %DSMVerAnswer% == Y goto BuildDSM
 if %DSMVerAnswer% == y goto BuildDSM
@@ -36,11 +36,13 @@ if exist "./buildDSM_x86.log" del "./buildDSM_x86.log"
 %VCBUILD% ".\visual_studio\TWAIN_DSM_VS2008.sln" /rebuild Release /ProjectConfig "Release|Win32" /project TWAIN_DSM_VS2008 /log ./buildDSM_x86.log /out ./buildDSM_x86.log
 if %errorlevel% neq 0 goto error1
 echo - 32 bit DSM build succeeded
+echo - DSM file is located in %CD%\pub\bin\twain32
 del "./buildDSM_x86.log"
 
 %VCBUILD% ".\visual_studio\TWAIN_DSM_VS2008.sln" /rebuild Release /ProjectConfig "Release|x64" /project TWAIN_DSM_VS2008 /log ./buildDSM_x86.log /out ./buildDSM_x64.log
 if %errorlevel% neq 0 goto error2
 echo - 64 bit DSM build succeeded
+echo - DSM file is located in %CD%\pub\bin\twain64
 del "./buildDSM_x64.log"
 pause
 exit /b 0
