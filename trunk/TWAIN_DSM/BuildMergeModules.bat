@@ -1,22 +1,15 @@
 echo off
 rem BuildMergeModules.Bat - rebuilds the DSM Merge Modules
 
-if exist "%ProgramFiles%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" goto 32bitWindows
-if exist "%ProgramFiles(x86)%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" goto 64bitWindows
+if "%VS90COMNTOOLS%"=="" goto MSVSerror 
+echo %VS90COMNTOOLS% |findstr "Tools\\" > temp.txt
+If %ERRORLEVEL% NEQ 0 goto :MSVSerror
+del temp.txt
 
-echo - MSVC 2008 not found. Please installe it and try again
-exit /b 1
+set VCBUILD=..\IDE\devenv.exe
+set VCBUILD="%VS90COMNTOOLS%%VCBUILD%"
 
-:32bitWindows
-set VCBUILD="%ProgramFiles%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" 
-goto CheckVersion
 
-:64bitWindows
-set VCBUILD="%ProgramFiles(x86)%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" 
-goto CheckVersion
-
-:CheckVersion
-echo off
 if not exist ".\merge_module\TWAINDSM32.vdproj" goto error3
 if not exist ".\merge_module\TWAINDSM64.vdproj" goto error4
 setlocal
@@ -172,5 +165,11 @@ exit /b 1
 
 :error4
 echo TWAINDSM64.vdproj file does not exist.
+pause
+exit /b 1
+
+:MSVSerror
+if exist temp.txt del temp.txt
+echo - MSVC 2008 not found. Please install it and try again
 pause
 exit /b 1

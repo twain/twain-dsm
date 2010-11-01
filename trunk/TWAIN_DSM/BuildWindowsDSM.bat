@@ -1,23 +1,15 @@
 echo off
 rem BuildWindowsDSM.Bat - rebuilds the DSM
-del ".\src\new.h"
+if exist ".\src\new.h" del ".\src\new.h"
 
-
-if exist "%ProgramFiles%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" goto 32bitWindows
-if exist "%ProgramFiles(x86)%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" goto 64bitWindows
-
-echo - MSVC 2008 not found. Please installe it and try again
-exit /b 1
-
-:32bitWindows
-set VCBUILD="%ProgramFiles%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" 
-goto CheckVersion
-
-:64bitWindows
-set VCBUILD="%ProgramFiles(x86)%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" 
-goto CheckVersion
-
-:CheckVersion
+if "%VS90COMNTOOLS%"=="" goto MSVSerror 
+echo %VS90COMNTOOLS% |findstr "Tools\\" >temp.txt
+If %ERRORLEVEL% NEQ 0 goto :MSVSerror
+del temp.txt
+		
+set VCBUILD=..\IDE\devenv.exe
+set VCBUILD="%VS90COMNTOOLS%%VCBUILD%"
+	
 if not exist "./src/resource.h" goto error3
 findstr "TWNDSM_VERSION_NUM" ".\src\resource.h"
 echo Is the DSM version shown above correct (Y/N)?
@@ -28,7 +20,7 @@ if %DSMVerAnswer% == y goto BuildDSM
 SETLOCAL EnableDelayedExpansion
 :ReplaceVer
 set /p ver="Type the right version (X,X,X,X): "
-echo "%ver%" |findstr /R "[0-9],[0-9],[0-9],[0-9]" >temp.txt
+echo "%ver%" |findstr /R "[0-9],[0-9],[0-9],[0-9]" 	
 If %ERRORLEVEL% EQU 0 goto :l11
 echo "Wrong version format. Use X,X,X,X"
 goto ReplaceVer
@@ -105,5 +97,11 @@ exit /b 1
 
 :error3
 echo resource.h file does not exist.
+pause
+exit /b 1
+
+:MSVSerror
+if exist temp.txt del temp.txt
+echo - MSVC 2008 not found. Please install it and try again
 pause
 exit /b 1
