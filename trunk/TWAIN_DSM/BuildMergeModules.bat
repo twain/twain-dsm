@@ -26,6 +26,59 @@ del temp.txt
 for /f "tokens=* delims= " %%a in ("%XXX%") do set XXX=%%a
 set YYY=%XXX:~15,7%
 echo 32 bit Merge module version %YYY%
+endlocal
+
+echo Is the DSM version shown above correct (Y/N)?
+set /p DSMVerAnswer=
+if %DSMVerAnswer% == Y goto Check64
+if %DSMVerAnswer% == y goto Check64
+
+if exist ".\merge_module\new.vdproj" del ".\merge_module\new.vdproj"
+SETLOCAL EnableDelayedExpansion
+:ReplaceVer
+set /p ver="Type the right version (X.X.X.X): "
+echo "%ver%" |findstr "[0-9]\.[0-9]\.[0-9]\.[0-9]" >temp.txt
+If %ERRORLEVEL% EQU 0 goto :l11
+echo "Wrong version format. Use X.X.X.X"
+goto ReplaceVer
+
+:l11
+set rep=        "Version" = "8:
+set rep=%rep%%ver%
+set ver="
+set rep=%rep%%ver%
+
+
+
+for /f "tokens=* delims=" %%a in (.\merge_module\TWAINDSM32.vdproj) do  (
+set Temp=%%a
+call :replace
+)
+ENDLOCAL EnableDelayedExpansion
+
+del ".\merge_module\TWAINDSM32.vdproj"
+move /y ".\merge_module\new.vdproj" ".\merge_module\TWAINDSM32.vdproj" >>  temp.txt
+if exist temp.txt del temp.txt
+
+
+goto Check64
+
+
+:replace
+
+echo "%Temp%" |findstr ":[0-9]\.[0-9]\.[0-9]\.[0-9]" >temp.txt
+If %ERRORLEVEL% EQU 0 goto :l1
+(echo !Temp!)>>".\merge_module\new.vdproj" 
+goto :l2
+:l1
+(echo !rep!)>>".\merge_module\new.vdproj"
+:l2
+
+exit /b
+
+ 
+:Check64
+setlocal
 findstr "\"Version\"" ".\merge_module\TWAINDSM64.vdproj" > temp.txt
 set /p XXX= < temp.txt
 del temp.txt
@@ -34,14 +87,51 @@ set YYY=%XXX:~15,7%
 echo 64 bit Merge module version %YYY%
 endlocal
 
-echo Are the DSM versions shown above correct (Y/N)?
+echo Is the DSM version shown above correct (Y/N)?
 set /p DSMVerAnswer=
 if %DSMVerAnswer% == Y goto BuildDSM
 if %DSMVerAnswer% == y goto BuildDSM
 
-echo Build aborted
-pause
-exit /b 1
+if exist ".\merge_module\new.vdproj" del ".\merge_module\new.vdproj"
+SETLOCAL EnableDelayedExpansion
+:ReplaceVer_64
+set /p ver="Type the right version (X.X.X.X): "
+echo "%ver%" |findstr "[0-9]\.[0-9]\.[0-9]\.[0-9]" >temp.txt
+If %ERRORLEVEL% EQU 0 goto :l11
+echo "Wrong version format. Use X.X.X.X"
+goto ReplaceVer_64
+
+:l11
+set rep=        "Version" = "8:
+set rep=%rep%%ver%
+set ver="
+set rep=%rep%%ver%
+
+
+
+for /f "tokens=* delims=" %%a in (.\merge_module\TWAINDSM64.vdproj) do  (
+set Temp=%%a
+call :replace_64
+)
+ENDLOCAL EnableDelayedExpansion
+
+del ".\merge_module\TWAINDSM64.vdproj"
+move /y ".\merge_module\new.vdproj" ".\merge_module\TWAINDSM64.vdproj" >>  temp.txt
+if exist temp.txt del temp.txt
+
+goto BuildDSM
+
+
+:replace_64
+
+echo "%Temp%" |findstr ":[0-9]\.[0-9]\.[0-9]\.[0-9]" >temp.txt
+If %ERRORLEVEL% EQU 0 goto :l1_64
+(echo !Temp!)>>".\merge_module\new.vdproj" 
+goto :l2_64
+:l1_64
+(echo !rep!)>>".\merge_module\new.vdproj"
+:l2_64
+exit /b
  
 :BuildDSM
 echo off
