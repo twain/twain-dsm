@@ -1,5 +1,7 @@
 echo off
 rem BuildWindowsDSM.Bat - rebuilds the DSM
+del ".\src\new.h"
+
 
 if exist "%ProgramFiles%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" goto 32bitWindows
 if exist "%ProgramFiles(x86)%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.exe" goto 64bitWindows
@@ -16,7 +18,6 @@ set VCBUILD="%ProgramFiles(x86)%\Microsoft Visual Studio 9.0\Common7\IDE\devenv.
 goto CheckVersion
 
 :CheckVersion
-echo off
 if not exist "./src/resource.h" goto error3
 findstr "TWNDSM_VERSION_NUM" ".\src\resource.h"
 echo Is the DSM version shown above correct (Y/N)?
@@ -24,9 +25,53 @@ set /p DSMVerAnswer=
 if %DSMVerAnswer% == Y goto BuildDSM
 if %DSMVerAnswer% == y goto BuildDSM
 
-echo Build aborted
-pause
-exit /b 1
+SETLOCAL EnableDelayedExpansion
+:ReplaceVer
+set /p ver="Type the right version (X,X,X,X): "
+echo "%ver%" |findstr /R "[0-9],[0-9],[0-9],[0-9]" >temp.txt
+If %ERRORLEVEL% EQU 0 goto :l11
+echo "Wrong version format. Use X,X,X,X"
+goto ReplaceVer
+
+:l11
+for /f "tokens=1,2,3,4 delims=, " %%a in ("%ver%") do set v1=%%a&set v2=%%b&set v3=%%c&set v4=%%d
+set ver=%v1%, %v2%, %v3%, %v4%
+
+for /f "tokens=* delims=" %%a in (.\src\resource.h) do  (
+set Temp=%%a
+call :replace
+)
+ENDLOCAL EnableDelayedExpansion
+
+del ".\src\resource.h"
+move /y ".\src\new.h" ".\src\resource.h" >>  temp.txt
+if exist temp.txt del temp.txt
+
+goto BuildDSM
+
+
+:replace
+
+echo "%Temp%" |findstr "TWNDSM_VERSION_NUM" >temp.txt
+If %ERRORLEVEL% EQU 0 goto :l1
+echo "%Temp%" |findstr "TWNDSM_VERSION_STR" >temp.txt
+If %ERRORLEVEL% EQU 0 goto :l2
+(echo !Temp!)>>".\src\new.h" 
+goto :l3
+:l1
+set repNum=#define TWNDSM_VERSION_NUM      
+set repNum=%repNum%%ver%
+(echo !repNum!)>>".\src\new.h"
+goto l3
+:l2
+set repVer=#define TWNDSM_VERSION_STR      
+set repVer=%repVer%"%ver%"
+(echo !repVer!)>>".\src\new.h"
+goto l3
+:l3
+
+exit /b
+
 
 :BuildDSM
 echo Build started ...
