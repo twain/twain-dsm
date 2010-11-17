@@ -1,3 +1,11 @@
+
+2010-11-17 JFL Peripheral Solutions mihailm@jflinc.com
+
+    * dsm.cpp, Prevent Application from reentry to DS before returning from callback message 
+      only if Application is 2.2 or higher version
+    * dsm.cpp Prevent DS from receiving a triplet when it has not finished processing the 
+      previous triplet only if Application is 2.1 or higher version
+
 2010-03-12 JFL Peripheral Solutions jimw@jflinc.com
 
     * apps.cpp Allow application to connect to DSM if different handle used each time.
