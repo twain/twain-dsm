@@ -60,6 +60,10 @@ if [ "$OSNAME" == "suse" ] ;then
 		mkdir /usr/local/lib/twain
 	fi
 
+	# Cleaning /usr/local/lib/libtwaindsm.so*...
+	echo "  ...cleaning /usr/local/lib/libtwaindsm.so*"
+	rm -rf /usr/local/lib/libtwaindsm.so*
+
 	# Cleaning /usr/src/packages/BUILD...
 	echo "  ...cleaning /usr/src/packages/BUILD"
 	rm -rf /usr/src/packages/BUILD/twaindsm*
