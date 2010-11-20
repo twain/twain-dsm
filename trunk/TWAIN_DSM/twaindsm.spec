@@ -1,6 +1,6 @@
 Summary: TWAIN Data Source Manager
 Name: twaindsm
-Version: 2.1.3
+Version: 2.1.4
 Release: 1
 Vendor: TWAIN Working Group
 License: LGPL
@@ -44,6 +44,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/*
 
 %changelog
+* Fri Nov 19 2010 TWAIN Working Group <twaindsm@twain.org>
+- fully restore original 2.1 behavior for reentrant and threaded apps
 * Tue Oct 19 2010 TWAIN Working Group <twaindsm@twain.org>
 - reenterent check enforced for 2.2 apps and later...
 * Thu Mar 18 2010 TWAIN Working Group <twaindsm@twain.org>

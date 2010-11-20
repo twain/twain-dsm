@@ -28,8 +28,8 @@
 #
 export DSMMAJOR=2
 export DSMMINOR=1
-export DSMBUILD=3
-export DSMREASON="reenterent check enforced for 2.2 apps and later..."
+export DSMBUILD=4
+export DSMREASON="fully restore original 2.1 behavior for reentrant and threaded apps"
 
 # Don't touch these lines...
 export DSMBUILDER="good"
