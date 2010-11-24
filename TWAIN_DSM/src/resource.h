@@ -14,8 +14,8 @@
 //
 #define TWNDSM_ORGANIZATION     "TWAIN Working Group"
 #define TWNDSM_DESCRIPTION      "TWAIN " TWNDSM_OS_BIT_STR " Source Manager (Image Acquisition Interface)"
-#define TWNDSM_VERSION_NUM      2, 1, 3, 0
-#define TWNDSM_VERSION_STR      "2, 1, 3, 0"
+#define TWNDSM_VERSION_NUM      2, 1, 4, 0
+#define TWNDSM_VERSION_STR      "2, 1, 4, 0"
 #define ID_LST_SOURCES          10
 #define IDC_STATIC              11
 #define IDD_DLG_SOURCE          101
