@@ -1425,7 +1425,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
       // The WIATwain.ds does not have an entry point 
       if(0 == strstr(_pPath, "wiatwain.ds"))
       {
-        kLOG((kLOGERR,"Could not find DS_Entry function in DS: %s",_pPath));
+        kLOG((kLOGERR,"We're deliberately skipping this file: %s",_pPath));
       }
       else
       {
