@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Remove CRLF (replacing with LF) in all of the
 # specified files (or directories)...
@@ -17,9 +17,9 @@ fi
 echo " ...fixing files in TWAIN_DSM"
 pushd TWAIN_DSM &> /dev/null
 if [ "$OSNAME" == "ubuntu" ] ;then
-	dos2unix -p Doxyfile twaindsm.spec *.txt
+	$(DOS2UNIX) -p Doxyfile twaindsm.spec *.txt
 else
-	dos2unix -q -k -o Doxyfile twaindsm.spec *.txt 
+	$(DOS2UNIX) -q -k -o Doxyfile twaindsm.spec *.txt 
 fi
 popd &> /dev/null
 
@@ -27,9 +27,9 @@ popd &> /dev/null
 echo " ...fixing files in TWAIN_DSM/debian"
 pushd TWAIN_DSM/debian &> /dev/null
 if [ "$OSNAME" == "ubuntu" ] ;then
-	dos2unix -p *
+	$(DOS2UNIX) -p *
 else
-	dos2unix -q -k -o *
+	$(DOS2UNIX) -q -k -o *
 fi
 popd &> /dev/null
 
@@ -37,9 +37,9 @@ popd &> /dev/null
 echo " ...fixing files in TWAIN_DSM/src"
 pushd TWAIN_DSM/src &> /dev/null
 if [ "$OSNAME" == "ubuntu" ] ;then
-	dos2unix -p *
+	$(DOS2UNIX) -p *
 else
-	dos2unix -q -k -o *
+	$(DOS2UNIX) -q -k -o *
 fi
 popd &> /dev/null
 
