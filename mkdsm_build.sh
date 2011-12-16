@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Build the DSM...
 #
@@ -33,7 +33,7 @@ if [ "$OSNAME" == "ubuntu" ] ;then
 	echo ""
 	echo "  ...running debuild"
 	pushd TWAIN_DSM &> /dev/null
-	if ! debuild ;then
+	if ! ${DEBUILD} ;then
 		echo "  debuild failed..."
 		echo "  success if last message was 'running debsign failed'"
 		###exit 1
