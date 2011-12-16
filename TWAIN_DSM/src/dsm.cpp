@@ -1192,6 +1192,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
         // skip...
       #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+		int iResult;
         FILE *pfile;
         char *szHome;
         char szFile[FILENAME_MAX];
@@ -1205,10 +1206,17 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
           FOPEN(pfile,szFile,"w");
           if (pfile)
           {
-            fwrite(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id),
-                   1,
-                   strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)),
-                   pfile);
+            iResult = fwrite
+			(
+				pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id),
+                1,
+                strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)),
+                pfile
+			);
+			if (iResult < (int)strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)))
+			{
+				kLOG((kLOGERR,"fwrite defaultds failed..."));
+			}
             fclose(pfile);
           }
         }
@@ -1920,6 +1928,7 @@ TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
 
   // Linux looks in the user's directory...
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    int iResult;
     FILE *pfile;
     char *szHome;
     char szFile[FILENAME_MAX];
@@ -1931,7 +1940,11 @@ TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
       FOPEN(pfile,szFile,"w");
       if (pfile)
       {
-        fwrite(szPath, 1, strlen(szPath), pfile);
+        iResult = fwrite(szPath, 1, strlen(szPath), pfile);
+		if (iResult < (int)strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)))
+		{
+			kLOG((kLOGERR,"fwrite defaultds failed..."));
+		}
         fclose(pfile);
       }
     }
@@ -2136,6 +2149,7 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
 
   // Linux looks in the user's directory...
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    int iResult;
     FILE *pfile;
     char *szHome;
     char szFile[FILENAME_MAX];
@@ -2148,7 +2162,12 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
       FOPEN(pfile,szFile,"r");
       if (pfile)
       {
-        fread(pod.m_DefaultDSPath,1,sizeof(pod.m_DefaultDSPath)-1,pfile);
+        iResult = fread(pod.m_DefaultDSPath,1,sizeof(pod.m_DefaultDSPath)-1,pfile);
+		if (iResult <= 0)
+		{
+			kLOG((kLOGINFO,"The defaultds file is empty, this is okay..."));
+			pod.m_DefaultDSPath[0] = 0;
+		}
         bDefaultFound = true;
         fclose(pfile);
       }
