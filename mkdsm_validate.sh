@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Validate that we have all the stuff we need...
 #
@@ -23,11 +23,15 @@ if ! which cmake &> /dev/null; then
 	exit 1
 fi
 
-# dos2unix
-echo "  ...checking for dos2unix"
+# dos2unix/fromdos
+echo "  ...checking for dos2unix/dos2unix"
+export DOS2UNIX=dos2unix
 if ! which dos2unix &> /dev/null; then
-	echo "  Please install 'dos2unix'..."
-	exit 1
+	export DOS2UNIX=fromdos
+	if ! which fromdos &> /dev/null; then
+		echo "  Please install 'dos2unix' or 'tofrodos'..."
+		exit 1
+	fi
 fi
 
 # g++
@@ -50,10 +54,17 @@ fi
 #
 if [ "$OSNAME" == "ubuntu" ] ;then
 
+	# debhelper
+	echo "  ...checking for debhelper"
+	if [ ! -e /usr/share/debhelper ]; then
+		echo "  Please install 'debhelper'..."
+		exit 1
+	fi
+
 	# debuild
 	echo "  ...checking for debuild"
 	if ! which debuild &> /dev/null; then
-		echo "  Please install 'debuild'..."
+		echo "  Please install 'devscripts'..."
 		exit 1
 	fi
 
