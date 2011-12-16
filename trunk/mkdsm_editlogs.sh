@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #  Update the appropriate change logs.  We do all logs for all OS's,
 #  since the system will detect if a change has already been made...
