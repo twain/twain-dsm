@@ -1,4 +1,5 @@
 # this is just a basic CMakeLists.txt, for more information see the cmake manpage...
+cmake_minimum_required(VERSION 2.4)
 
 # Setup the install prefix, if it's not already defined
 IF(NOT CMAKE_INSTALL_PREFIX)
