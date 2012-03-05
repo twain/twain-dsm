@@ -1,3 +1,9 @@
+twaindsm (2.2.0-1) unstable; urgency=low
+
+   * released with the 2.2 specification
+
+ -- TWAIN Working Group <twaindsm@twain.org>  Mon,  5 Mar 2012 04:59:40 -0500
+
 twaindsm (2.1.4-1) unstable; urgency=low
 
    * fully restore original 2.1 behavior for reentrant and threaded apps

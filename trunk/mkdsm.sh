@@ -27,9 +27,9 @@
 # files like changelog or twaindsm.spec...
 #
 export DSMMAJOR=2
-export DSMMINOR=1
-export DSMBUILD=4
-export DSMREASON="fully restore original 2.1 behavior for reentrant and threaded apps"
+export DSMMINOR=2
+export DSMBUILD=0
+export DSMREASON="released with the 2.2 specification"
 
 # Don't touch these lines...
 export DSMBUILDER="good"
