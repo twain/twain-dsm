@@ -233,6 +233,7 @@ static TwLocalize s_twlocalize[] =
 * @{
 */
 
+#if 0
 /**
 * Memory Allocate
 * @param[in] _size the size of the memory to allocate
@@ -259,7 +260,7 @@ static TW_MEMREF PASCAL DSM_MemLock(TW_HANDLE _handle);
 */
 static void PASCAL DSM_MemUnlock(TW_HANDLE _handle);
 // @}
-
+#endif
 
 /**
 * Data Source Manager Entry Point.
@@ -335,11 +336,11 @@ DSMENTRY DSM_Entry(TW_IDENTITY  *_pOrigin,
   // MSG_OPENDSM or after MSG_CLOSEDSM...
   if (0 == g_ptwndsm)
   {
-      if (   (   _MSG == MSG_GET
-              || _MSG == MSG_CHECKSTATUS )
+      if (   ( (_MSG == MSG_GET) || (_MSG == MSG_CHECKSTATUS) )
           && (_DAT == DAT_STATUS)
           && (_DG  == DG_CONTROL)
-          && (0 != _pData))
+          && (0 != _pData)
+          )
       {
         ((TW_STATUS*)_pData)->ConditionCode = TWCC_BUMMER;
         return (TWRC_SUCCESS);
@@ -605,6 +606,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
           _MSG = MSG_GET;
           kLOG((kLOGINFO, "MSG_CHECKSTATUS is Depreciated using MSG_GET"));
         }
+
         // If we get a DSId then it is intended to be passed along to the driver.
         // If the DSId is null then the request is handled by the DSM
         // If we're talking to a driver (state 4 or higher), then we
@@ -2715,11 +2717,9 @@ void CTwnDsm::StringFromMsg(char     *_szMsg,
     case MSG_DEVICEEVENT:
       SSTRCPY(_szMsg,_nChars,"MSG_DEVICEEVENT");
       break;
-
     case MSG_CHECKSTATUS:
       SSTRCPY(_szMsg,_nChars,"MSG_CHECKSTATUS");
       break;
-
     case MSG_OPENDSM:
       SSTRCPY(_szMsg,_nChars,"MSG_OPENDSM");
       break;

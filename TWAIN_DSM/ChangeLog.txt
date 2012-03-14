@@ -1,4 +1,11 @@
 
+2012-03-14 JFL Peripheral Solutions peterp@jflinc.com
+
+    * dsm.cpp, Remove static forward declarations of DSM_Mem?? functions causing compiler
+      warning
+    * replace twain.h with 2.2 version
+    * update version number to 2.2
+
 2010-11-17 JFL Peripheral Solutions mihailm@jflinc.com
 
     * dsm.cpp, Prevent Application from reentry to DS before returning from callback message 
