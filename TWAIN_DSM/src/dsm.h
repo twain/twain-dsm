@@ -712,8 +712,8 @@ class CTwnDsmApps
     * @param[in] _DsId numeric id of driver
     * @return pointer to the callback structure for this driver or NULL
     */
-    TW_CALLBACK *DsCallbackGet(TW_IDENTITY *_pAppId,
-                               TW_UINT32   _DsId);
+    TW_CALLBACK2 *DsCallback2Get(TW_IDENTITY *_pAppId,
+                                TW_UINT32   _DsId);
 
     /**
     * Test if the driver has a callback pending for attention...
@@ -955,6 +955,19 @@ class CTwnDsm
                               TW_IDENTITY *_pDsId,
                               TW_UINT16 _MSG,
                               TW_CALLBACK *_pData);
+
+        /**
+        * Register application's callback.
+        * @param[in] _pAppId Origin of message
+        * @param[in] _pDsId TW_IDENTITY structure
+        * @param[in] _MSG message id: MSG_xxxx valid = MSG_REGISTER_CALLBACK
+        * @param[in] _pData pointer to a callback2 struct
+        * @return a valid TWRC_xxxx return code
+        */
+        TW_INT16 DSM_Callback2(TW_IDENTITY *_pAppId,
+                              TW_IDENTITY *_pDsId,
+                              TW_UINT16 _MSG,
+                              TW_CALLBACK2 *_pData);
 
         /**
         * Opens the Data Source specified by pDSIdentity.  

@@ -42,7 +42,7 @@
 *
 * [Hooked Functions]
 *   This is the ntdll.dll function we're hooking from kernel32.dll...
-*     LdrGetProcedureAddress
+*     LdrGetProcedureAddress (or LdrGetProcedureAddressForCaller)
 *   This gives us full coverage for the following function...
 *     GetProcAddress
 *
@@ -132,7 +132,15 @@ typedef NTSYSAPI DWORD (NTAPI *LdrGetProcedureAddress_t)
   __in_opt WORD          Oridinal,
   __out    PVOID        *FunctionAddress
 );
-
+typedef NTSYSAPI DWORD (NTAPI *LdrGetProcedureAddressForCaller_t)
+(
+  __in     HMODULE       ModuleHandle,
+  __in_opt PANSI_STRING  FunctionName,
+  __in_opt WORD          Oridinal,
+  __out    PVOID        *FunctionAddress,
+  __in     BOOL          bValue,
+  __in     PVOID        *CallbackAddress
+);
 
 /**
 * Forward declarations for our functions, so we can build our m_proc table...
@@ -144,7 +152,15 @@ DWORD NTAPI LocalLdrGetProcedureAddress
   __in_opt WORD          Oridinal,
   __out    PVOID        *FunctionAddress
 );
-
+DWORD NTAPI LocalLdrGetProcedureAddressForCaller
+(
+  __in     HMODULE       ModuleHandle,
+  __in_opt PANSI_STRING  FunctionName,
+  __in_opt WORD          Oridinal,
+  __out    PVOID        *FunctionAddress,
+  __in     BOOL          bValue,
+  __in     PVOID        *CallbackAddress
+);
 
 /**
 * The entry point we want to return to the caller, instead of the one they
@@ -233,7 +249,8 @@ static CTwHook *s_ptwhook = (CTwHook*)NULL;
 * actual pointers to the Ldr functions, and this is what allows us to be
 * used safely, no matter what the state of the CTwHook object is in...
 */
-static LdrGetProcedureAddress_t OriginalLdrGetProcedureAddress;
+static LdrGetProcedureAddress_t OriginalLdrGetProcedureAddress = 0;
+static LdrGetProcedureAddressForCaller_t OriginalLdrGetProcedureAddressForCaller = 0;
 
 
 /**
@@ -249,31 +266,34 @@ static HMODULE s_hmoduleTWAIN32 = 0;
 */
 static DSMENTRYPROC TWAIN32_DSMEntry = 0;
 
+
+
 /**
 * The entry point we want to return to the caller, instead of the one they
 * thought they were getting from TWAIN_32.DLL...
 */
 DSMENTRY DSM_HookedEntry
 (
-  TW_IDENTITY  *_pOrigin,
-  TW_IDENTITY  *_pDest,
-  TW_UINT32     _DG,
-  TW_UINT16     _DAT,
-  TW_UINT16     _MSG,
-  TW_MEMREF     _pData
+	TW_IDENTITY	*_pOrigin,
+	TW_IDENTITY	*_pDest,
+	TW_UINT32	_DG,
+	TW_UINT16	_DAT,
+	TW_UINT16	_MSG,
+	TW_MEMREF	_pData
 )
 {
-  if( (   (_DAT == DAT_NULL)
-       || (_DAT == DAT_CALLBACK && _MSG == MSG_INVOKE_CALLBACK) )
-     && _pOrigin
-     && s_ptwhook
-     && s_ptwhook->DSID_Is_Hooked(_pOrigin->Id) )
-  {
-    return DSM_Entry(_pOrigin, _pDest, _DG, _DAT, _MSG, _pData);
-  }
+	if	(	((_DAT == DAT_NULL)
+		 ||  (_DAT == DAT_CALLBACK && _MSG == MSG_INVOKE_CALLBACK))
+		 && _pOrigin
+		 && s_ptwhook
+		 && s_ptwhook->DSID_Is_Hooked(_pOrigin->Id))
+	{
+		return (DSM_Entry(_pOrigin,_pDest,_DG,_DAT,_MSG,_pData));
+	}
 
-  return TWAIN32_DSMEntry(_pOrigin, _pDest, _DG, _DAT, _MSG, _pData);
+	return (TWAIN32_DSMEntry(_pOrigin,_pDest,_DG,_DAT,_MSG,_pData));
 }
+
 
 
 /**
@@ -287,229 +307,264 @@ DSMENTRY DSM_HookedEntry
 */
 bool CTwHook::Hook
 (
-  EHOOK _ehook
+	EHOOK _ehook
 )
 {
-  BOOL                        boolResult;
-  PIMAGE_IMPORT_DESCRIPTOR    pImportDesc;
-  PIMAGE_THUNK_DATA           pOrigThunk;
-  PIMAGE_THUNK_DATA           pRealThunk;
-  PIMAGE_IMPORT_BY_NAME       pByName;
-  bool                        bDoHook;
-  MEMORY_BASIC_INFORMATION    mbi_thunk;
-  DWORD_PTR                  *pTemp;
-  DWORD                       dwOldProtect;
-  PIMAGE_DOS_HEADER           pDOSHeader;
-  PIMAGE_NT_HEADERS           pNTHeader;
-  PSTR                        szCurrMod;
-  HMODULE                     hmodule;
-  char                        szTwain32[MAX_PATH];
+	BOOL                        boolResult;
+	PIMAGE_IMPORT_DESCRIPTOR    pImportDesc;
+	PIMAGE_THUNK_DATA           pOrigThunk;
+	PIMAGE_THUNK_DATA           pRealThunk;
+	PIMAGE_IMPORT_BY_NAME       pByName;
+	bool                        bDoHook;
+	MEMORY_BASIC_INFORMATION    mbi_thunk;
+	DWORD_PTR                  *pTemp;
+	DWORD                       dwOldProtect;
+	PIMAGE_DOS_HEADER           pDOSHeader;
+	PIMAGE_NT_HEADERS           pNTHeader;
+	PSTR                        szCurrMod;
+	HMODULE                     hmodule;
+	char                        szTwain32[MAX_PATH];
+	const char                 *szFunctionName;
 
-  // Initialize stuff when we're doing an attach...
-  if (_ehook == HOOK_ATTACH)
-  {
-    // If we don't find TWAIN_32.DLL, then we're not going to
-    // make life any better by doing the hooks, so bail.  Also,
-    // We're not going to allow any flavor of GetProcAddress
-    // to access this library, which is why we're using the
-    // extra flag, to keep TWAIN_32.DLL from loading anything
-    // other than itself.
-    //
-    // BUG ALERT
-    // ~~~~~~~~~
-    // There is a potential bug here, but one that depends
-    // on really bad behavior.  If the application loads
-    // TWAINDSM.DLL, then loads TWAIN_32.DLL, then unloads
-    // TWAINDSM.DLL, then does a GetProcAddress for DSM_Entry
-    // with TWAIN_32.DLL, it's going to go ka-boom.  If this
-    // is a problem, then go back to using ::LoadLibrary()...
-    memset(szTwain32,0,sizeof(szTwain32));
-	::GetWindowsDirectory(szTwain32,sizeof(szTwain32)-1);
-    SSTRCAT(szTwain32,sizeof(szTwain32)-1,"\\TWAIN_32.DLL");
-    s_hmoduleTWAIN32 = ::LoadLibraryEx(szTwain32,NULL,DONT_RESOLVE_DLL_REFERENCES);
-    if (0 == s_hmoduleTWAIN32)
-    {
-      return(false);
-    }
+	// Initialize stuff when we're doing an attach...
+	if (_ehook == HOOK_ATTACH)
+	{
+		// If we don't find TWAIN_32.DLL, then we're not going to
+		// make life any better by doing the hooks, so bail.  Also,
+		// We're not going to allow any flavor of GetProcAddress
+		// to access this library, which is why we're using the
+		// extra flag, to keep TWAIN_32.DLL from loading anything
+		// other than itself.
+		//
+		// BUG ALERT
+		// ~~~~~~~~~
+		// There is a potential bug here, but one that depends
+		// on really bad behavior.  If the application loads
+		// TWAINDSM.DLL, then loads TWAIN_32.DLL, then unloads
+		// TWAINDSM.DLL, then does a GetProcAddress for DSM_Entry
+		// with TWAIN_32.DLL, it's going to go ka-boom.  If this
+		// is a problem, then go back to using ::LoadLibrary()...
+		memset(szTwain32,0,sizeof(szTwain32));
+		::GetWindowsDirectory(szTwain32,sizeof(szTwain32)-1);
+		SSTRCAT(szTwain32,sizeof(szTwain32)-1,"\\TWAIN_32.DLL");
+		s_hmoduleTWAIN32 = ::LoadLibraryEx(szTwain32,NULL,DONT_RESOLVE_DLL_REFERENCES);
+		if (0 == s_hmoduleTWAIN32)
+		{
+			return(false);
+		}
 
-    // Load the undocumented routine...
-    hmodule = GetModuleHandle("ntdll.dll");
-    if (hmodule)
-    {
-      OriginalLdrGetProcedureAddress  = (LdrGetProcedureAddress_t)GetProcAddress(hmodule,"LdrGetProcedureAddress");
-    }
-  }
+		// Load the undocumented routine, we're going for both, if we find
+		// LdrGetProcedureAddressForCaller, then we'll prefer it over LdrGetProcedureAddress...
+		szFunctionName = "";
+		OriginalLdrGetProcedureAddress = 0;
+		OriginalLdrGetProcedureAddressForCaller = 0;
+		hmodule = GetModuleHandle("ntdll.dll");
+		if (hmodule)
+		{
+			szFunctionName = "LdrGetProcedureAddressForCaller";
+			OriginalLdrGetProcedureAddressForCaller = (LdrGetProcedureAddressForCaller_t)GetProcAddress(hmodule,szFunctionName);
+			if (!OriginalLdrGetProcedureAddressForCaller)
+			{
+				szFunctionName = "LdrGetProcedureAddress";
+				OriginalLdrGetProcedureAddress = (LdrGetProcedureAddress_t)GetProcAddress(hmodule,szFunctionName);
+			}
+		}
+	}
 
-  // If we're detaching, then make sure our reference to TWAIN_32.DLL is gone...
-  else
-  {
-    if (s_hmoduleTWAIN32)
-    {
-      ::FreeLibrary(s_hmoduleTWAIN32);
-      s_hmoduleTWAIN32 = 0;
-    }
+	// If we're detaching, then make sure our reference to TWAIN_32.DLL is gone...
+	else
+	{
+		if (s_hmoduleTWAIN32)
+		{
+			::FreeLibrary(s_hmoduleTWAIN32);
+			s_hmoduleTWAIN32 = 0;
+		}
 
-    // If we don't have an old pointer, then we're done...
-    if (NULL == pod.pOriginal)
-    {
-      return(true);
-    }
-  }
+		// If we don't have an old pointer, then we're done...
+		if (NULL == pod.pOriginal)
+		{
+			return (true);
+		}
 
-  // This is where we'll be hooking into Ldr functions, the calls
-  // themselves are in ntdll.dll.  Kernel32 calls them, and that's
-  // where we can take advantage of the DLL indirection to do this
-  // spiffy DLL injection thingy...
-  // Starting with Windows7 the hooking has moved from kernel32.dll 
-  // to a new library kernelbase.dll.  Atempt kernelbase first
-  // if it fails then we are not Windows7 and try kernel32
-  hmodule = GetModuleHandle("kernelbase.dll");
-  if( NULL == hmodule )
-  {
-    hmodule = GetModuleHandle("kernel32.dll");
-  }
+		// Pick the name...
+		if (OriginalLdrGetProcedureAddressForCaller)
+		{
+			szFunctionName = "LdrGetProcedureAddressForCaller";
+		}
+		else
+		{
+			szFunctionName = "LdrGetProcedureAddress";
+		}
+	}
 
-  // Get the DOS header...
-  pDOSHeader = (PIMAGE_DOS_HEADER)hmodule;
+	// This is where we'll be hooking into Ldr functions, the calls
+	// themselves are in ntdll.dll.  Kernel32 calls them, and that's
+	// where we can take advantage of the DLL indirection to do this
+	// spiffy DLL injection thingy...
+	// Starting with Windows7 the hooking has moved from kernel32.dll 
+	// to a new library kernelbase.dll.  Atempt kernelbase first
+	// if it fails then we are not Windows7 and try kernel32
+	hmodule = GetModuleHandle("kernelbase.dll");
+	if ( NULL == hmodule )
+	{
+		hmodule = GetModuleHandle("kernel32.dll");
+	}
 
-  // Is this the MZ header?
-  if (   (TRUE == IsBadReadPtr(pDOSHeader,sizeof(IMAGE_DOS_HEADER)))
-    || (IMAGE_DOS_SIGNATURE != pDOSHeader->e_magic))
-  {
-    return(false);
-  }
+	// Get the DOS header...
+	pDOSHeader = (PIMAGE_DOS_HEADER)hmodule;
 
-  // Get the PE header.
-  pNTHeader = MakePtr(PIMAGE_NT_HEADERS,pDOSHeader,pDOSHeader->e_lfanew);
+	// Is this the MZ header?
+	if (   (TRUE == IsBadReadPtr(pDOSHeader,sizeof(IMAGE_DOS_HEADER)))
+		|| (IMAGE_DOS_SIGNATURE != pDOSHeader->e_magic))
+	{
+		return (false);
+	}
 
-  // Is this a real PE image?
-  if (   (TRUE == IsBadReadPtr(pNTHeader,sizeof(IMAGE_NT_HEADERS)))
-    || (IMAGE_NT_SIGNATURE != pNTHeader->Signature))
-  {
-    return(false);
-  }
+	// Get the PE header.
+	pNTHeader = MakePtr(PIMAGE_NT_HEADERS,pDOSHeader,pDOSHeader->e_lfanew);
 
-  // If there is no imports section, leave now.
-  if (0 == pNTHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress)
-  {
-    return(false);
-  }
+	// Is this a real PE image?
+	if (   (TRUE == IsBadReadPtr(pNTHeader,sizeof(IMAGE_NT_HEADERS)))
+		|| (IMAGE_NT_SIGNATURE != pNTHeader->Signature))
+	{
+		return (false);
+	}
 
-  // Get the pointer to the imports section.
-  pImportDesc = MakePtr(PIMAGE_IMPORT_DESCRIPTOR,pDOSHeader,pNTHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+	// If there is no imports section, leave now.
+	if (0 == pNTHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress)
+	{
+		return (false);
+	}
 
-  // Loop through the import module descriptors looking for the
-  // ntdll.dll module, which is where the Ldr functions live...
-  while (NULL != pImportDesc->Name)
-  {
-    szCurrMod = MakePtr(PSTR,pDOSHeader,pImportDesc->Name);
-    if (0 == _stricmp(szCurrMod,"ntdll.dll"))
-    {
-      // Found it.
-      break;
-    }
-    // Look at the next one.
-    pImportDesc++ ;
-  }
+	// Get the pointer to the imports section.
+	pImportDesc = MakePtr(PIMAGE_IMPORT_DESCRIPTOR,pDOSHeader,pNTHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
 
-  // If the name is NULL, then the module is not imported.
-  if (NULL == pImportDesc->Name)
-  {
-    return(false);
-  }
+	// Loop through the import module descriptors looking for the
+	// ntdll.dll module, which is where the Ldr functions live...
+	while (NULL != pImportDesc->Name)
+	{
+		szCurrMod = MakePtr(PSTR,pDOSHeader,pImportDesc->Name);
+		if (0 == _stricmp(szCurrMod,"ntdll.dll"))
+		{
+			// Found it.
+			break;
+		}
+		// Look at the next one.
+		pImportDesc++ ;
+	}
 
-  // Get the original thunk information for this DLL. I can't use
-  // the thunk information stored in pImportDesc->FirstThunk
-  // because the loader has already changed that array to fix up
-  // all the imports. The original thunk gives me access to the
-  // function names.
-  pOrigThunk = MakePtr(PIMAGE_THUNK_DATA,hmodule,pImportDesc->OriginalFirstThunk);
+	// If the name is NULL, then the module is not imported.
+	if (NULL == pImportDesc->Name)
+	{
+		return (false);
+	}
 
-  // Get the array the pImportDesc->FirstThunk points to because
-  // I'll do the actual bashing and hooking there.
-  pRealThunk = MakePtr(PIMAGE_THUNK_DATA,hmodule,pImportDesc->FirstThunk);
+	// Get the original thunk information for this DLL. I can't use
+	// the thunk information stored in pImportDesc->FirstThunk
+	// because the loader has already changed that array to fix up
+	// all the imports. The original thunk gives me access to the
+	// function names.
+	pOrigThunk = MakePtr(PIMAGE_THUNK_DATA,hmodule,pImportDesc->OriginalFirstThunk);
 
-  // Determines whether I hook the function
-  bDoHook = false;
+	// Get the array the pImportDesc->FirstThunk points to because
+	// I'll do the actual bashing and hooking there.
+	pRealThunk = MakePtr(PIMAGE_THUNK_DATA,hmodule,pImportDesc->FirstThunk);
 
-  // Loop through and find the function to hook.
-  while (NULL != pOrigThunk->u1.Function)
-  {
-    // Look only at functions that are imported by name, not those
-    // that are imported by ordinal value.
-    if (IMAGE_ORDINAL_FLAG != (pOrigThunk->u1.Ordinal & IMAGE_ORDINAL_FLAG))
-    {
-      // Look at the name of this imported function.
-      pByName = MakePtr(PIMAGE_IMPORT_BY_NAME,hmodule,pOrigThunk->u1.AddressOfData);
+	// Determines whether I hook the function
+	bDoHook = false;
 
-      // We found it, so scoot...
-      if (    pByName->Name
-          &&  ('\0' != pByName->Name[0])
-          &&  (0 == _stricmp("LdrGetProcedureAddress",(char*)pByName->Name)))
-      {
-        bDoHook = true;
-        break;
-      }
+	// Loop through and find the function to hook.
+	while (NULL != pOrigThunk->u1.Function)
+	{
+		// Look only at functions that are imported by name, not those
+		// that are imported by ordinal value.
+		if (IMAGE_ORDINAL_FLAG != (pOrigThunk->u1.Ordinal & IMAGE_ORDINAL_FLAG))
+		{
+			// Look at the name of this imported function.
+			pByName = MakePtr(PIMAGE_IMPORT_BY_NAME,hmodule,pOrigThunk->u1.AddressOfData);
 
-      // Increment both tables, and continue...
-      pOrigThunk++;
-      pRealThunk++;
-    }
-  }
+			// We found it, so scoot...
+			if (    pByName->Name
+				&&  ('\0' != pByName->Name[0])
+				&&  (0 == _stricmp(szFunctionName,(char*)pByName->Name)))
+			{
+			bDoHook = true;
+			break;
+			}
 
-  // If we found something, then hook or unhook it, as appropriate...
-  if (true == bDoHook)
-  {
-    // I found a function to hook. Now I need to change
-    // the memory protection to writable before I overwrite
-    // the function pointer. Note that I'm now writing into
-    // the real thunk area!
-    VirtualQuery(pRealThunk,&mbi_thunk,sizeof(MEMORY_BASIC_INFORMATION));
-    if (FALSE == VirtualProtect(mbi_thunk.BaseAddress,mbi_thunk.RegionSize,PAGE_EXECUTE_READWRITE,&mbi_thunk.Protect))
-    {
-      return(false);
-    }
+			// Increment both tables, and continue...
+			pOrigThunk++;
+			pRealThunk++;
+		}
+	}
 
-    // Save the original address, if we're hooking...
-    if (_ehook == HOOK_ATTACH)
-    {
-      // This cast should make the compiler happy about the change in the word size...
-      pod.pOriginal = (PROC)(INT_PTR)pRealThunk->u1.Function;
-      OriginalLdrGetProcedureAddress = (LdrGetProcedureAddress_t)pod.pOriginal;
-    }
+	// If we found something, then hook or unhook it, as appropriate...
+	if (true == bDoHook)
+	{
+		// I found a function to hook. Now I need to change
+		// the memory protection to writable before I overwrite
+		// the function pointer. Note that I'm now writing into
+		// the real thunk area!
+		VirtualQuery(pRealThunk,&mbi_thunk,sizeof(MEMORY_BASIC_INFORMATION));
+		if (FALSE == VirtualProtect(mbi_thunk.BaseAddress,mbi_thunk.RegionSize,PAGE_EXECUTE_READWRITE,&mbi_thunk.Protect))
+		{
+			return(false);
+		}
 
-    // Microsoft has two different definitions of the
-    // PIMAGE_THUNK_DATA fields as they are moving to
-    // support Win64. The W2K RC2 Platform SDK is the
-    // latest header, so I'll use that one and force the
-    // Visual C++ 6 Service Pack 3 headers to deal with it.
+		// Save the original address, if we're hooking...
+		if (_ehook == HOOK_ATTACH)
+		{
+			// This cast should make the compiler happy about the change in the word size...
+			pod.pOriginal = (PROC)(INT_PTR)pRealThunk->u1.Function;
+			if (OriginalLdrGetProcedureAddressForCaller)
+			{
+				OriginalLdrGetProcedureAddressForCaller = (LdrGetProcedureAddressForCaller_t)pod.pOriginal;
+			}
+			else
+			{
+				OriginalLdrGetProcedureAddress = (LdrGetProcedureAddress_t)pod.pOriginal;
+			}
+		}
 
-    // Hook the new function if we're hooking, or the original function
-    // if we're closing...
-    if (_ehook == HOOK_ATTACH)
-    {
-      pTemp = (DWORD_PTR*)&pRealThunk->u1.Function;
-      *pTemp = (DWORD_PTR)LocalLdrGetProcedureAddress;
-    }
-    else
-    {
-      pTemp = (DWORD_PTR*)&pRealThunk->u1.Function;
-      *pTemp = (DWORD_PTR)(pod.pOriginal);
-    }
+		// Microsoft has two different definitions of the
+		// PIMAGE_THUNK_DATA fields as they are moving to
+		// support Win64. The W2K RC2 Platform SDK is the
+		// latest header, so I'll use that one and force the
+		// Visual C++ 6 Service Pack 3 headers to deal with it.
 
-    // Change the protection back to what it was before I
-    // overwrote the function pointer.
-    boolResult = VirtualProtect(mbi_thunk.BaseAddress,mbi_thunk.RegionSize,mbi_thunk.Protect,&dwOldProtect);
-    if (boolResult == FALSE)
-    {
-      // Okay, this isn't good, but we're not going to do
-      // anything about it, because presumably this isn't
-      // the end of the world...
-    }
-  }
+		// Hook the new function if we're hooking, or the original function
+		// if we're closing...
+		if (_ehook == HOOK_ATTACH)
+		{
+			pTemp = (DWORD_PTR*)&pRealThunk->u1.Function;
+			if (OriginalLdrGetProcedureAddressForCaller)
+			{
+				*pTemp = (DWORD_PTR)LocalLdrGetProcedureAddressForCaller;
+			}
+			else
+			{
+				*pTemp = (DWORD_PTR)LocalLdrGetProcedureAddress;
+			}
+		}
+		else
+		{
+			pTemp = (DWORD_PTR*)&pRealThunk->u1.Function;
+			*pTemp = (DWORD_PTR)(pod.pOriginal);
+		}
 
-  // All done...
-  return(true);
+		// Change the protection back to what it was before I
+		// overwrote the function pointer.
+		boolResult = VirtualProtect(mbi_thunk.BaseAddress,mbi_thunk.RegionSize,mbi_thunk.Protect,&dwOldProtect);
+		if (boolResult == FALSE)
+		{
+			// Okay, this isn't good, but we're not going to do
+			// anything about it, because presumably this isn't
+			// the end of the world...
+		}
+	}
+
+	// All done...
+	return(true);
 }
 
 /**
@@ -519,13 +574,15 @@ bool CTwHook::Hook
 */
 bool CTwHook::DSID_Is_Hooked(TW_UINT32 DSID)
 {
-  int count = min(MAX_NUM_DS, s_iHookCount);
-  for(int i=0; i<count; i++)
-  {
-    if(pod.HookedDSs[i] == DSID)
-      return true;
-  }
-  return false;
+	int count = min(MAX_NUM_DS,s_iHookCount);
+	for (int i=0; i<count; i++)
+	{
+		if (pod.HookedDSs[i] == DSID)
+		{
+			return (true);
+		}
+	}
+	return (false);
 }
 
 /**
@@ -540,8 +597,8 @@ bool CTwHook::DSID_Is_Hooked(TW_UINT32 DSID)
 */
 void CTwHook::Hook_Add_DSID(TW_UINT32 DSID)
 {
-  pod.HookedDSs[s_iHookCount] = DSID;
-  s_iHookCount++;
+	pod.HookedDSs[s_iHookCount] = DSID;
+	s_iHookCount++;
 }
 
 /**
@@ -579,7 +636,7 @@ bool CTwHook::Hook_Remove_DSID(TW_UINT32 DSID)
 * The undocumented LdrGetProcedureAddress...
 * @param[in] PHMODULE ModuleHandle we're using to get a function pointer
 * @param[in_opt] PANSI_STRING FunctionName of thing we're trying to find
-* @param[in_opt] WORD Oridinal, or the number of the things we're trying to find
+* @param[in_opt] WORD Ordinal, or the number of the things we're trying to find
 * @param[out] PVOID *FunctionAddress being sent back to the caller
 * @return DWORD
 */
@@ -587,7 +644,7 @@ DWORD NTAPI LocalLdrGetProcedureAddress
 (
   __in     HMODULE       ModuleHandle,
   __in_opt PANSI_STRING  FunctionName,
-  __in_opt WORD          Oridinal,
+  __in_opt WORD          Ordinal,
   __out    PVOID         *FunctionAddress
 )
 {
@@ -605,14 +662,60 @@ DWORD NTAPI LocalLdrGetProcedureAddress
   if (ModuleHandle == s_hmoduleTWAIN32)
   {
     // Get and store the original address in case we need it
-    (OriginalLdrGetProcedureAddress(ModuleHandle,FunctionName,Oridinal,(PVOID*)&TWAIN32_DSMEntry));
+    (OriginalLdrGetProcedureAddress(ModuleHandle,FunctionName,Ordinal,(PVOID*)&TWAIN32_DSMEntry));
     // Return the address to our own function
     *FunctionAddress = ::DSM_HookedEntry;
     return (ERROR_SUCCESS);
   }
 
   // Otherwise let the call continue unmolested...
-  return (OriginalLdrGetProcedureAddress(ModuleHandle,FunctionName,Oridinal,FunctionAddress));
+  return (OriginalLdrGetProcedureAddress(ModuleHandle,FunctionName,Ordinal,FunctionAddress));
+}
+
+
+
+/**
+* The undocumented LdrGetProcedureAddressForCaller...
+* @param[in] PHMODULE ModuleHandle we're using to get a function pointer
+* @param[in_opt] PANSI_STRING FunctionName of thing we're trying to find
+* @param[in_opt] WORD Ordinal, or the number of the things we're trying to find
+* @param[out] PVOID *FunctionAddress being sent back to the caller
+* @param[in] BOOL bValue
+* @param[in] PVOID *CallbackAddress
+* @return DWORD
+*/
+DWORD NTAPI LocalLdrGetProcedureAddressForCaller
+(
+  __in     HMODULE       ModuleHandle,
+  __in_opt PANSI_STRING  FunctionName,
+  __in_opt WORD          Ordinal,
+  __out    PVOID        *FunctionAddress,
+  __in     BOOL          bValue,
+  __in     PVOID        *CallbackAddress
+)
+{
+  // See if the caller is asking for TWAIN_32.DLL, and if so, then dive in
+  // and return our DSM_Entry.  This works because attempts to load the
+  // same DLL more than once just bump up the reference count.  Or put
+  // another way, if function A does a LoadLibrary("xyz") and then function
+  // B does a LoadLibrary("xzy") the HMODULE values returned will be found
+  // to be the same.
+  //
+  // We don't have to check the FunctionName or the Ordinal, there's only
+  // one possible return from TWAIN_32.DLL (thank you initial designers),
+  // and I haven't throught of a good security reason why I need to bother
+  // checking...
+  if (ModuleHandle == s_hmoduleTWAIN32)
+  {
+    // Get and store the original address in case we need it
+    (OriginalLdrGetProcedureAddressForCaller(ModuleHandle,FunctionName,Ordinal,(PVOID*)&TWAIN32_DSMEntry,bValue,CallbackAddress));
+    // Return the address to our own function
+    *FunctionAddress = ::DSM_HookedEntry;
+    return (ERROR_SUCCESS);
+  }
+
+  // Otherwise let the call continue unmolested...
+  return (OriginalLdrGetProcedureAddressForCaller(ModuleHandle,FunctionName,Ordinal,FunctionAddress,bValue,CallbackAddress));
 }
 
 

@@ -442,7 +442,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
 {
   TW_UINT16     rcDSM   = TWRC_SUCCESS;
   bool          bPrinted;
-  TW_CALLBACK  *ptwcallback;
+  TW_CALLBACK2 *ptwcallback2;
   TW_IDENTITY  *pAppId  = _pOrigin;
   TW_IDENTITY  *pDSId   = _pDest;
 
@@ -474,15 +474,15 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
     }
     else if (pod.m_ptwndsmapps->DsCallbackIsWaiting(pAppId,pDSId->Id))
     {
-      ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(pAppId,pDSId->Id);
-      ((TW_EVENT*)(_pData))->TWMessage = ptwcallback->Message;
+      ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(pAppId,pDSId->Id);
+      ((TW_EVENT*)(_pData))->TWMessage = ptwcallback2->Message;
       if( g_ptwndsmlog )
       {
         char szMsg[64];
-        StringFromMsg(szMsg,NCHARS(szMsg),ptwcallback->Message);
+        StringFromMsg(szMsg,NCHARS(szMsg),ptwcallback2->Message);
         kLOG((kLOGINFO,"%.32s retrieving DAT_EVENT / %s\n", pAppId->ProductName, szMsg));
       }
-      ptwcallback->Message = 0;
+      ptwcallback2->Message = 0;
       pod.m_ptwndsmapps->DsCallbackSetWaiting(pAppId,pDSId->Id,FALSE);
       rcDSM = TWRC_DSEVENT;
     }
@@ -637,6 +637,12 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         // DAT_CALLBACK can be either from an Application registering its Callback, 
         // or from a DS Invoking a request to send a message to the Application
         rcDSM = DSM_Callback(_pOrigin,_pDest,_MSG,(TW_CALLBACK*)_pData);
+        break;
+
+      case DAT_CALLBACK2:
+        // DAT_CALLBACK2 can be either from an Application registering its Callback, 
+        // or from a DS Invoking a request to send a message to the Application
+        rcDSM = DSM_Callback2(_pOrigin,_pDest,_MSG,(TW_CALLBACK2*)_pData);
         break;
 
       case DAT_NULL:
@@ -957,6 +963,7 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
 {
   TW_INT16      result;
   TW_CALLBACK  *ptwcallback;
+  TW_CALLBACK2 *ptwcallback2;
 
   // Init stuff...
   result = TWRC_SUCCESS;
@@ -980,8 +987,10 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
           return TWRC_FAILURE;
         }
 
-        ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pOrigin,_pDest->Id);
-        memcpy(ptwcallback,_pData,sizeof(*ptwcallback));
+        ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(_pOrigin,_pDest->Id);
+        ptwcallback2->CallBackProc = ((TW_CALLBACK*)_pData)->CallBackProc;
+        ptwcallback2->RefCon = ((TW_CALLBACK*)_pData)->RefCon;
+        ptwcallback2->Message = ((TW_CALLBACK*)_pData)->Message;
         pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
       }
       break;
@@ -1006,6 +1015,85 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
 
         ptwcallback = (TW_CALLBACK*)_pData;
         result = DSM_Null(_pDest,_pOrigin,ptwcallback->Message);
+      }
+      break;
+
+    default:
+      result = TWRC_FAILURE;
+      pod.m_ptwndsmapps->AppSetConditionCode(_pOrigin,TWCC_BADPROTOCOL);
+      break;
+  }
+
+  return result;
+}
+
+
+
+/*
+* We've received a callback.  MSG_REGISTER_CALLBACK are from
+* the Application and MSG_INVOKE_CALLBACK (Mac OSx only) 
+* are from the DS.
+* If Callbacks have not been registered by the App then when the 
+* DS Invokes a callback, make a note of it so the next time the 
+* application hits us with a Windows message for us to process, 
+* we can send it the callback message...
+*/
+TW_INT16 CTwnDsm::DSM_Callback2(TW_IDENTITY *_pOrigin,
+                               TW_IDENTITY *_pDest,
+                               TW_UINT16    _MSG,
+                               TW_CALLBACK2 *_pData)
+{
+  TW_INT16      result;
+  TW_CALLBACK2 *ptwcallback2;
+
+  // Init stuff...
+  result = TWRC_SUCCESS;
+
+  // Take action on the message...
+  switch (_MSG)
+  {
+    case MSG_REGISTER_CALLBACK:
+      {
+        // Origin is an App
+        // Check that the ids are valid...
+        if (!pod.m_ptwndsmapps->AppValidateIds(_pOrigin,_pDest))
+        {
+          pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
+          return TWRC_FAILURE;
+        }
+        if(0 == _pData)
+        {
+          kLOG((kLOGERR,"Invalid data"));
+          pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADVALUE);
+          return TWRC_FAILURE;
+        }
+
+        ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(_pOrigin,_pDest->Id);
+        memcpy(ptwcallback2,_pData,sizeof(*ptwcallback2));
+        pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
+      }
+      break;
+
+    case MSG_INVOKE_CALLBACK:
+      {
+        // For backwards capability only.  MSG_INVOKE_CALLBACK is deprecated - use DAT_NULL
+        // Origin is a DS
+        // Check that the ids are valid...
+        kLOG((kLOGINFO,"MSG_INVOKE_CALLBACK is deprecated - use DAT_NULL"));
+        if (!pod.m_ptwndsmapps->AppValidateIds(_pDest,_pOrigin))
+        {
+          pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
+          return TWRC_FAILURE;
+        }
+        if(0 == _pData)
+        {
+          kLOG((kLOGERR,"Invalid data"));
+          pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADVALUE);
+          return TWRC_FAILURE;
+        }
+
+        ptwcallback2 = (TW_CALLBACK2*)_pData;
+        result = DSM_Null(_pDest,_pOrigin,ptwcallback2->Message);
       }
       break;
 
@@ -2352,7 +2440,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
                            TW_IDENTITY *_pDsId,
                            TW_UINT16    _MSG)
 {
-  TW_CALLBACK  *ptwcallback;
+  TW_CALLBACK2 *ptwcallback2;
   TW_INT16      result    = TWRC_SUCCESS;
   TW_MEMREF     MemRef; 
   bool          bPrinted  = false;
@@ -2375,17 +2463,17 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
   }
 
   // Get the current callback...
-  ptwcallback = pod.m_ptwndsmapps->DsCallbackGet(_pAppId,_pDsId->Id);
+  ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(_pAppId,_pDsId->Id);
 
   // We have something to call...
-  if (   (0 != ptwcallback)
-    && (ptwcallback->CallBackProc))
+  if (   (0 != ptwcallback2)
+    && (ptwcallback2->CallBackProc))
   {
     // RefCon is returned back to the calling application in pData
     // Unfortunately RefCon is defined as TW_INT32
     // Application writers that want to store a pointer in RefCon
     // on 64bit will need to store an index to local storage.
-    MemRef = (TW_MEMREF)(TW_UINTPTR)ptwcallback->RefCon;
+    MemRef = (TW_MEMREF)ptwcallback2->RefCon;
 
     // Set flag to prevent Application from sending a new message 
     // before returning back from recieving this callback.
@@ -2402,7 +2490,8 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
       // Print the triplets to stdout for information purposes
       bPrinted = printTripletsInfo(NULL,&AppId,DG_CONTROL,DAT_NULL,_MSG,&MemRef);
 
-      result = ((DSMENTRYPROC)(ptwcallback->CallBackProc))(
+	  // Send a pointer to the data...
+      result = ((DSMENTRYPROC)(ptwcallback2->CallBackProc))(
           pod.m_ptwndsmapps->DsGetIdentity(&AppId,_pDsId->Id),
           &AppId,
           DG_CONTROL,
@@ -2426,13 +2515,13 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
   // a callback to a single app, and we are not going to lose MSG's
   else
   {
-    if(ptwcallback->Message!=0)
+    if(ptwcallback2->Message!=0)
     {
       char szMsg[64];
-      StringFromMsg(szMsg,NCHARS(szMsg),ptwcallback->Message);
+      StringFromMsg(szMsg,NCHARS(szMsg),ptwcallback2->Message);
       kLOG((kLOGERR,"%.32s NEVER retrieved DAT_EVENT / %s\n", _pAppId->ProductName, szMsg));
     }
-    ptwcallback->Message = _MSG;
+    ptwcallback2->Message = _MSG;
     pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,_pDsId->Id,TRUE);
     pod.m_ptwndsmapps->AppWakeup(_pAppId);
   }
