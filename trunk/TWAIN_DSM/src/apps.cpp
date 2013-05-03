@@ -47,7 +47,7 @@ typedef struct
   TW_HANDLE     pHandle;                /**< returned by LOADLIBRARY(...) */
   DSENTRYPROC   DS_Entry;               /**< function pointer to the DS_Entry function -- set by dlsym(...) */
   char          szPath[FILENAME_MAX];   /**< location of the DS */
-  TW_CALLBACK   twcallback;             /**< callback structure */
+  TW_CALLBACK2  twcallback2;            /**< callback structure (we're using callback2 because it's 32-bit and 64-bit safe) */
   TW_BOOL       bCallbackPending;       /**< True if an application is old style and a callback was supposed to be made to it */
   TW_BOOL       bDSProcessingMessage;   /**< True if the application is still waiting for the DS to return from processing a message */
   TW_BOOL       bAppProcessingCallback; /**< True if the application is still waiting for the DS to return from processing a message */
@@ -349,6 +349,11 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
+  // Initialize...
+  ii = 0;
+  memset(szDsm,0,sizeof(szDsm));
+
+  // Log the entry...
   kLOG((kLOGINFO,"Application: \"%0.32s\"", _pAppId->Manufacturer));
   kLOG((kLOGINFO,"             \"%0.32s\"", _pAppId->ProductFamily));
   kLOG((kLOGINFO,"             \"%0.32s\" version: %u.%u", _pAppId->ProductName, _pAppId->Version.MajorNum, _pAppId->Version.MinorNum));
@@ -821,12 +826,12 @@ char *CTwnDsmApps::DsGetPath(TW_IDENTITY *_pAppId,
 
 
 /**
-* Get a point to the TW_CALLBACK for the specified driver.
+* Get a point to the TW_CALLBACK2 for the specified driver.
 * This is optional for drivers on Windows.  On Linux it's the only
 * way to use DAT_NULL to let an Application know about messages
 * going from the Driver to the Application
 */
-TW_CALLBACK *CTwnDsmApps::DsCallbackGet(TW_IDENTITY *_pAppId,
+TW_CALLBACK2 *CTwnDsmApps::DsCallback2Get(TW_IDENTITY *_pAppId,
                                         TW_UINT32    _DsId)
 {
   // Return a pointer to the driver's TW_CALLBACK...
@@ -834,7 +839,7 @@ TW_CALLBACK *CTwnDsmApps::DsCallbackGet(TW_IDENTITY *_pAppId,
       &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return &m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].twcallback;
+    return &m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].twcallback2;
   }
   // Something is toasted, so return NULL...
   else
@@ -1213,8 +1218,13 @@ int CTwnDsmAppsImpl::scanDSDir(char        *_szAbsPath,
   //
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     char szABSFilename[FILENAME_MAX];
-
     DIR *pdir;
+
+	// Initialize...
+	pdir = 0;
+	memset(szABSFilename,0,sizeof(szABSFilename));
+
+	// Open the directory...
     if ((pdir=opendir(_szAbsPath)) == 0)
     {
       perror("opendir");
@@ -1477,9 +1487,13 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   }
 
   // The DS should not modify the Id even though the spec states
-  // that the id will not be assigned until DSM sends MSG_OPENDS to DS
+  // that the id will not be assigned until DSM sends MSG_OPENDS to DS, and
+  // by the way...don't do the copy of the src and dst are the same address...
   pDSInfo->Identity.Id = _DsId;
-  SSTRNCPY(pDSInfo->szPath, NCHARS(pDSInfo->szPath),_pPath,FILENAME_MAX);
+  if (pDSInfo->szPath != _pPath)
+  {
+      SSTRNCPY(pDSInfo->szPath, NCHARS(pDSInfo->szPath),_pPath,FILENAME_MAX);
+  }
 
   // We clear the library to avoid cluttering up the virtual address space, and
   // to prevent scary weirdness that can result from multiple drivers being

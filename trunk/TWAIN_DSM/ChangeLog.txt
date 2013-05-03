@@ -1,4 +1,9 @@
 
+2013-04-10 Eastman Kodak Company mlm@kodak.com
+
+    * hook.cpp, fixed to work with Windows 8
+    * update version number to 2.2.1
+
 2012-03-14 JFL Peripheral Solutions peterp@jflinc.com
 
     * dsm.cpp, Remove static forward declarations of DSM_Mem?? functions causing compiler
