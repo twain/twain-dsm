@@ -1433,22 +1433,29 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   {
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
       // The WIATwain.ds does not have an entry point 
-      if(0 == strstr(_pPath, "wiatwain.ds"))
+      if(0 != strstr(_pPath, "wiatwain.ds"))
       {
         kLOG((kLOGERR,"We're deliberately skipping this file: %s",_pPath));
       }
       else
       {
-        kLOG((kLOGINFO,"Could not find DS_Entry function in DS: %s",_pPath));
+        pDSInfo->DS_Entry = (DSENTRYPROC)GetProcAddress((HMODULE)pDSInfo->pHandle, MAKEINTRESOURCE(1));
+        
+        if (pDSInfo->DS_Entry == 0)
+        {
+          kLOG((kLOGINFO,"Could not find Entry 1 in DS: %s",_pPath));
+        }
       }
     #else
       kLOG((kLOGERR,"Could not find DS_Entry function in DS: %s",_pPath));
     #endif
-
-    UNLOADLIBRARY(pDSInfo->pHandle,false,0);
-    pDSInfo->pHandle = NULL;
-    AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-    return TWRC_FAILURE;
+    if (pDSInfo->DS_Entry == 0)
+    {
+      UNLOADLIBRARY(pDSInfo->pHandle,false,0);
+      pDSInfo->pHandle = NULL;
+      AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+      return TWRC_FAILURE;
+    }
   }
 
   // Report success and squirrel away the index...
@@ -1554,13 +1561,34 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 
     // Try to get the entry point...
     pDSInfo->DS_Entry = (DSENTRYPROC)DSM_LoadFunction(pDSInfo->pHandle,"DS_Entry");
+
     if (pDSInfo->DS_Entry == 0)
     {
-      kLOG((kLOGERR,"Could not find DSM_Entry function in DS: %s",_pPath));
-      UNLOADLIBRARY(pDSInfo->pHandle,hook,_DsId);
-      pDSInfo->pHandle = NULL;
-      AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-      return TWRC_FAILURE; 
+      #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+        // The WIATwain.ds does not have an entry point 
+        if(0 != strstr(_pPath, "wiatwain.ds"))
+        {
+          kLOG((kLOGERR,"We're deliberately skipping this file: %s",_pPath));
+        }
+        else
+        {
+          pDSInfo->DS_Entry = (DSENTRYPROC)GetProcAddress((HMODULE)pDSInfo->pHandle, MAKEINTRESOURCE(1));
+          
+          if (pDSInfo->DS_Entry == 0)
+          {
+            kLOG((kLOGINFO,"Could not find Entry 1 in DS: %s",_pPath));
+          }
+        }
+      #else
+        kLOG((kLOGERR,"Could not find DS_Entry function in DS: %s",_pPath));
+      #endif
+      if (pDSInfo->DS_Entry == 0)
+      {
+        UNLOADLIBRARY(pDSInfo->pHandle,false,0);
+        pDSInfo->pHandle = NULL;
+        AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+        return TWRC_FAILURE;
+      }
     }
   }
 
