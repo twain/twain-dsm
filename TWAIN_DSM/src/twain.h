@@ -12,14 +12,14 @@
   Fujitsu, Genoa Technology, Hewlett-Packard, Kofax Imaging Products, and
   Ricoh Corporation.  All rights reserved.
  
-  Copyright © 1998 TWAIN Working Group: Adobe Systems Incorporated, 
+  Copyright (C) 1998 TWAIN Working Group: Adobe Systems Incorporated, 
   Canon Information Systems, Eastman Kodak Company, 
   Fujitsu Computer Products of America, Genoa Technology, 
   Hewlett-Packard Company, Intel Corporation, Kofax Image Products, 
   JFL Peripheral Solutions Inc., Ricoh Corporation, and Xerox Corporation.  
   All rights reserved.
 
-  Copyright © 2000 TWAIN Working Group: Adobe Systems Incorporated, 
+  Copyright (C) 2000 TWAIN Working Group: Adobe Systems Incorporated, 
   Canon Information Systems, Digimarc Corporation, Eastman Kodak Company, 
   Fujitsu Computer Products of America, Hewlett-Packard Company, 
   JFL Peripheral Solutions Inc., Ricoh Corporation, and Xerox Corporation.  
@@ -84,6 +84,8 @@
                                  for 2.1 Specification JMW
     version 2.2  Nov 2010        Added new types and definitions required
                                  for 2.2 Specification MSM
+    version 2.3  Feb 2013        Added new types and definitions required
+                                 for 2.3 Specification MLM
 \* ======================================================================== */
 
 #ifndef TWAIN
@@ -92,7 +94,7 @@
 /****************************************************************************
  * TWAIN Version                                                            *
  ****************************************************************************/
-#define TWON_PROTOCOLMINOR   2        /* Changed for Version 2.2            */
+#define TWON_PROTOCOLMINOR   3        /* Changed for Version 2.3            */
 #define TWON_PROTOCOLMAJOR   2
 
 /****************************************************************************
@@ -186,12 +188,12 @@
     #pragma pack (push, before_twain)
     #pragma pack (2)
 #elif defined(TWH_CMP_GNU)
-   #pragma pack (push, before_twain)
-   #ifdef __APPLE__
-      //#pragma pack (4)
-   #else
-      #pragma pack (2)
-   #endif
+    #if defined(__APPLE__) /* cf: Mac version of TWAIN.h */
+        #pragma options align = power
+    #else
+        #pragma pack (push, before_twain)
+        #pragma pack (2)
+    #endif
 #elif defined(TWH_CMP_BORLAND)
     #pragma option -a2
 #endif
@@ -204,19 +206,34 @@
 /* String types. These include room for the strings and a NULL char,     *
  * or, on the Mac, a length byte followed by the string.                 *
  * TW_STR255 must hold less than 256 chars so length fits in first byte. */
-typedef char    TW_STR32[34],     FAR *pTW_STR32;
-typedef char    TW_STR64[66],     FAR *pTW_STR64;
-typedef char    TW_STR128[130],   FAR *pTW_STR128;
-typedef char    TW_STR255[256],   FAR *pTW_STR255;
+#if defined(__APPLE__)/* cf: Mac version of TWAIN.h */
+    typedef unsigned char TW_STR32[34],     FAR *pTW_STR32;
+    typedef unsigned char TW_STR64[66],     FAR *pTW_STR64;
+    typedef unsigned char TW_STR128[130],   FAR *pTW_STR128;
+    typedef unsigned char TW_STR255[256],   FAR *pTW_STR255;
+#else
+    typedef char          TW_STR32[34],     FAR *pTW_STR32;
+    typedef char          TW_STR64[66],     FAR *pTW_STR64;
+    typedef char          TW_STR128[130],   FAR *pTW_STR128;
+    typedef char          TW_STR255[256],   FAR *pTW_STR255;
+#endif
 
 /* Numeric types. */
-typedef char           TW_INT8,   FAR *pTW_INT8;
-typedef short          TW_INT16,  FAR *pTW_INT16; 
-typedef long           TW_INT32,  FAR *pTW_INT32;
-typedef unsigned char  TW_UINT8,  FAR *pTW_UINT8;
-typedef unsigned short TW_UINT16, FAR *pTW_UINT16;
-typedef unsigned long  TW_UINT32, FAR *pTW_UINT32;
-typedef unsigned short TW_BOOL,   FAR *pTW_BOOL; 
+typedef char           	  TW_INT8,          FAR *pTW_INT8;
+typedef short          	  TW_INT16,         FAR *pTW_INT16;
+#if defined(__APPLE__) /* cf: Mac version of TWAIN.h */
+    typedef int           TW_INT32,         FAR *pTW_INT32;
+#else
+    typedef long          TW_INT32,         FAR *pTW_INT32;
+#endif
+typedef unsigned char     TW_UINT8,         FAR *pTW_UINT8;
+typedef unsigned short    TW_UINT16,        FAR *pTW_UINT16;
+#if defined(__APPLE__) /* cf: Mac version of TWAIN.h */
+    typedef unsigned int  TW_UINT32,        FAR *pTW_UINT32;
+#else
+    typedef unsigned long TW_UINT32,        FAR *pTW_UINT32;
+#endif
+typedef unsigned short    TW_BOOL,          FAR *pTW_BOOL;
 
 
 /****************************************************************************
@@ -270,9 +287,13 @@ typedef struct {
 
 /* Used to register callbacks. */
 typedef struct  {
-    TW_MEMREF   CallBackProc;
-    TW_UINT32   RefCon;
-    TW_INT16    Message;
+    TW_MEMREF      CallBackProc;
+    #if defined(__APPLE__) /* cf: Mac version of TWAIN.h */
+        TW_MEMREF  RefCon;
+    #else
+        TW_UINT32  RefCon;
+    #endif
+    TW_INT16       Message;
 } TW_CALLBACK, FAR * pTW_CALLBACK;
 
 /* Used to register callbacks. */
@@ -360,7 +381,10 @@ typedef struct {
     TW_UINT16   InfoID;
     TW_UINT16   ItemType;
     TW_UINT16   NumItems;
-    TW_UINT16   ReturnCode;
+    union {
+        TW_UINT16   ReturnCode;
+        TW_UINT16   CondCode; // Deprecated, do not use
+    };
     TW_UINTPTR  Item;
 }TW_INFO, FAR* pTW_INFO;
 
@@ -409,17 +433,21 @@ typedef struct {
 
 /* Provides identification information about a TWAIN entity.*/
 typedef struct {
-   TW_UINT32  Id;
-   TW_VERSION Version;
-   TW_UINT16  ProtocolMajor;
-   TW_UINT16  ProtocolMinor;
-   TW_UINT32  SupportedGroups;
-   TW_STR32   Manufacturer;
-   TW_STR32   ProductFamily;
-   TW_STR32   ProductName;
+    #if defined(__APPLE__) /* cf: Mac version of TWAIN.h */
+        TW_MEMREF  Id;
+    #else
+        TW_UINT32  Id;
+    #endif
+    TW_VERSION 	   Version;
+    TW_UINT16  	   ProtocolMajor;
+    TW_UINT16  	   ProtocolMinor;
+    TW_UINT32  	   SupportedGroups;
+    TW_STR32   	   Manufacturer;
+    TW_STR32   	   ProductFamily;
+    TW_STR32   	   ProductName;
 } TW_IDENTITY, FAR * pTW_IDENTITY;
 
-/* Describes the “real” image data, that is, the complete image being transferred between the Source and application. */
+/* Describes the "real" image data, that is, the complete image being transferred between the Source and application. */
 typedef struct {
    TW_FIX32   XResolution;
    TW_FIX32   YResolution;
@@ -500,8 +528,14 @@ typedef struct {
 typedef struct {
    TW_UINT16 Count;
    union {
-      TW_UINT32 EOJ;
-      TW_UINT32 Reserved;
+       TW_UINT32 EOJ;
+       TW_UINT32 Reserved;
+       #if defined(__APPLE__) /* cf: Mac version of TWAIN.h */
+           union {
+               TW_UINT32 EOJ;
+               TW_UINT32 Reserved;
+           } TW_JOBCONTROL;
+       #endif
    };
 } TW_PENDINGXFERS, FAR *pTW_PENDINGXFERS;
 
@@ -527,7 +561,7 @@ typedef struct {
    TW_INT16  VRefNum;
 } TW_SETUPFILEXFER, FAR * pTW_SETUPFILEXFER;
 
-/* Provides the application information about the Source’s requirements and preferences regarding allocation of transfer buffer(s). */
+/* Provides the application information about the Source's requirements and preferences regarding allocation of transfer buffer(s). */
 typedef struct {
    TW_UINT32 MinBufSize;
    TW_UINT32 MaxBufSize;
@@ -931,6 +965,22 @@ typedef struct {
 #define TWPR_ENDORSERTOPAFTER       5
 #define TWPR_ENDORSERBOTTOMBEFORE   6
 #define TWPR_ENDORSERBOTTOMAFTER    7
+
+/* CAP_PRINTERFONTSTYLE Added 2.3 */
+#define TWPF_NORMAL              0
+#define TWPF_BOLD                1
+#define TWPF_ITALIC              2
+#define TWPF_LARGESIZE           3
+#define TWPF_SMALLSIZE           4
+
+/* CAP_PRINTERINDEXTRIGGER Added 2.3 */
+#define TWCT_PAGE                0
+#define TWCT_PATCH1              1
+#define TWCT_PATCH2              2
+#define TWCT_PATCH3              3
+#define TWCT_PATCH4              4
+#define TWCT_PATCHT              5
+#define TWCT_PATCH6              6
 
 /* CAP_POWERSUPPLY values */
 #define TWPS_EXTERNAL            0
@@ -1678,7 +1728,15 @@ typedef struct {
 #define CAP_PAPERHANDLING           0x1043
 #define CAP_INDICATORSMODE          0x1044
 #define CAP_PRINTERVERTICALOFFSET   0x1045
-#define CAP_POWERSAVETIME		0x1046
+#define CAP_POWERSAVETIME           0x1046
+#define CAP_PRINTERCHARROTATION	    0x1047
+#define CAP_PRINTERFONTSTYLE        0x1048
+#define CAP_PRINTERINDEXLEADCHAR    0x1049
+#define CAP_PRINTERINDEXMAXVALUE    0x104A
+#define CAP_PRINTERINDEXNUMDIGITS   0x104B
+#define CAP_PRINTERINDEXSTEP        0x104C
+#define CAP_PRINTERINDEXTRIGGER     0x104D
+#define CAP_PRINTERSTRINGPREVIEW    0x104E
 
 
 
@@ -1849,6 +1907,7 @@ typedef struct {
 #define TWEI_IMAGEMERGED            0x1247
 #define TWEI_MAGDATALENGTH          0x1248
 #define TWEI_PAPERCOUNT             0x1249
+#define TWEI_PRINTERTEXT            0x124A 
 
 #define TWEJ_NONE                   0x0000
 #define TWEJ_MIDSEPARATOR           0x0001
@@ -1920,6 +1979,9 @@ typedef struct {
 #define TWQC_RESET            0x0010
 #define TWQC_SETCONSTRAINT    0x0020
 #define TWQC_CONSTRAINABLE    0x0040
+#define TWQC_GETHELP          0x0100
+#define TWQC_GETLABEL         0x0200
+#define TWQC_GETLABELENUM     0x0400
 
 /****************************************************************************
  * Depreciated Items                                                        *
@@ -1936,7 +1998,7 @@ typedef struct {
 typedef BYTE TW_HUGE * HPBYTE;
 typedef void TW_HUGE * HPVOID;
 
-typedef unsigned char     TW_STR1024[1026],   FAR *pTW_STR1026;
+typedef unsigned char     TW_STR1024[1026],   FAR *pTW_STR1026, FAR *pTW_STR1024;
 typedef wchar_t           TW_UNI512[512],     FAR *pTW_UNI512;
 
 #define TWTY_STR1024          0x000d
@@ -2164,7 +2226,11 @@ typedef struct {
 #ifdef TWH_CMP_MSC
     #pragma pack (pop, before_twain)
 #elif defined(TWH_CMP_GNU)
-   #pragma pack (pop, before_twain)
+    #if defined(__APPLE__) /* cf: Mac version of TWAIN.h */
+        #pragma options align = reset
+    #else
+        #pragma pack (pop, before_twain)
+    #endif
 #elif defined(TWH_CMP_BORLAND)
     #pragma option –a.
 #endif

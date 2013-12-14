@@ -1,4 +1,9 @@
 
+2013-12-10 JFL Peripheral Solutions mihailm@jflinc.com
+
+    * update twain.h
+    * update version number to 2.3.0
+
 2013-04-10 Eastman Kodak Company mlm@kodak.com
 
     * hook.cpp, fixed to work with Windows 8
