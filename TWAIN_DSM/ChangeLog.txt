@@ -1,3 +1,8 @@
+2014-05-22 Kodak Alaris Inc. mlm@kodakalaris.com
+
+    * support for 64-bit Linux
+    * new binary baselines are Ubunutu 8.04 and openSUSE 11.1
+    * prep work for Mac OS X
 
 2013-12-10 JFL Peripheral Solutions mihailm@jflinc.com
 

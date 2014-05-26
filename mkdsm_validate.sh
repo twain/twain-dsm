@@ -29,8 +29,11 @@ export DOS2UNIX=dos2unix
 if ! which dos2unix &> /dev/null; then
 	export DOS2UNIX=fromdos
 	if ! which fromdos &> /dev/null; then
-		echo "  Please install 'dos2unix' or 'tofrodos'..."
-		exit 1
+		export DOS2UNIX="perl -pi -e 's/\r\n|\n|\r/\n/g'"
+		if ! which perl &> /dev/null; then
+			echo "  Please install 'dos2unix' or 'tofrodos'..."
+			exit 1
+		fi
 	fi
 fi
 
@@ -52,7 +55,7 @@ fi
 #
 # Stuff that Ubuntu needs...
 #
-if [ "$OSNAME" == "ubuntu" ] ;then
+if [ "$OSNAME" == "ubuntu" ]; then
 
 	# debhelper
 	echo "  ...checking for debhelper"
@@ -79,7 +82,7 @@ if [ "$OSNAME" == "ubuntu" ] ;then
 #
 # Stuff that SuSE needs...
 #
-elif [ "$OSNAME" = "suse" ] ;then
+elif [ "$OSNAME" == "suse" ]; then
 
 	# rpmbuild
 	echo "  ...checking for rpmbuild"
@@ -87,6 +90,18 @@ elif [ "$OSNAME" = "suse" ] ;then
 		echo "  Please install 'rpmbuild'..."
 		exit 1
 	fi
+
+
+#
+# Stuff that Mac OS X needs...
+#
+elif [ "$OSNAME" == "macosx" ]; then
+	# rpmbuild
+	echo "  ...checking for rpmbuild"
+#	if ! which rpmbuild &> /dev/null; then
+#		echo "  Please install 'rpmbuild'..."
+#		exit 1
+#	fi
 
 
 #

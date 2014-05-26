@@ -18,7 +18,7 @@ fi
 
 # Remove .svn from every level of the directory tree...
 echo "  ...removing .svn directories"
-rm -rf `find -name .svn`
+rm -rf `find . -name .svn`
 if ls -R | grep .svn; then
 	echo ".svn files still remain, please remove them manually..."
 	exit 1
@@ -26,7 +26,11 @@ fi
 
 # Remove everything but script files, pub and TWAIN_DSM from this directory...
 echo "  ...cleaning the linuxdsm directory"
-rm -rf `ls | grep -v .sh | grep -v pub | grep -v TWAIN_DSM`
+if [ "$1" == "keeprelease" ]; then
+	rm -rf `ls | grep -v .sh | grep -v pub | grep -v TWAIN_DSM | grep -v dsm_02`
+else
+	rm -rf `ls | grep -v .sh | grep -v pub | grep -v TWAIN_DSM`
+fi
 
 # Remove everything but .sln files and .vcproj files from visual_studio...
 echo "  ...cleaning the visual_studio directory"
@@ -46,6 +50,34 @@ echo "  ...cleaning the debian directory"
 pushd TWAIN_DSM/debian &> /dev/null
 rm -rf twaindsm
 popd &> /dev/null
+
+
+#
+# Stuff that Ubuntu does...
+#
+if [ "$OSNAME" == "ubuntu" ] ;then
+
+        # Cleaning /usr/local/lib/libtwaindsm.so*...
+        echo "  ...cleaning /usr/local/lib/libtwaindsm.so*"
+        rm -rf /usr/local/lib/libtwaindsm.so*
+
+        # Cleaning /usr/src/rpm/BUILD...
+        echo "  ...cleaning /usr/src/rpm/BUILD"
+        rm -rf /usr/src/rpm/BUILD/twaindsm*
+
+        # Cleaning /usr/src/rpm/SOURCES...
+        echo "  ...cleaning /usr/src/rpm/SOURCES"
+        rm -rf /usr/src/rpm/SOURCES/twaindsm*
+
+        # Cleaning /usr/src/rpm/RPMS...
+        echo "  ...cleaning /usr/src/rpm/RPMS"
+        rm -rf /usr/src/rpm/RPMS/twaindsm*
+
+        # Cleaning /usr/src/rpm/SRPMS...
+        echo "  ...cleaning /usr/src/rpm/SRPMS"
+        rm -rf /usr/src/rpm/SRPMS/twaindsm*
+
+fi
 
 
 #

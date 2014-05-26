@@ -1,8 +1,8 @@
-twaindsm (2.3.0-1) unstable; urgency=low
+twaindsm (2.3.1-1) unstable; urgency=low
 
-   * released with the 2.3 specification
+   * added support for 64-bit Linux
 
- -- TWAIN Working Group <twaindsm@twain.org>  Fri,  13 Dec 2013 23:59:40 -0500
+ -- TWAIN Working Group <twaindsm@twain.org>  Thu, 22 May 2014 12:38:53 -0400
 
 twaindsm (2.2.0-1) unstable; urgency=low
 

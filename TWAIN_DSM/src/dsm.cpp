@@ -472,9 +472,9 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
       pod.m_ptwndsmapps->AppSetConditionCode(0,TWCC_BADPROTOCOL);
       rcDSM = TWRC_FAILURE;
     }
-    else if (pod.m_ptwndsmapps->DsCallbackIsWaiting(pAppId,pDSId->Id))
+    else if (pod.m_ptwndsmapps->DsCallbackIsWaiting(pAppId,(TWID_T)pDSId->Id))
     {
-      ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(pAppId,pDSId->Id);
+      ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(pAppId,(TWID_T)pDSId->Id);
       ((TW_EVENT*)(_pData))->TWMessage = ptwcallback2->Message;
       if( g_ptwndsmlog )
       {
@@ -483,7 +483,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         kLOG((kLOGINFO,"%.32s retrieving DAT_EVENT / %s\n", pAppId->ProductName, szMsg));
       }
       ptwcallback2->Message = 0;
-      pod.m_ptwndsmapps->DsCallbackSetWaiting(pAppId,pDSId->Id,FALSE);
+      pod.m_ptwndsmapps->DsCallbackSetWaiting(pAppId,(TWID_T)pDSId->Id,FALSE);
       rcDSM = TWRC_DSEVENT;
     }
     // No callback, so fall on through...
@@ -516,7 +516,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
             }
 
             // Issue the command...
-            else if (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id))
+            else if (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,(TWID_T)pDSId->Id))
             {
               // Don't send a new message if the DS is still processing a previous message
               // or if the application has not returned back from recieving callback.
@@ -529,17 +529,17 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
 			  // inform developers of the new requirement...
 			  //
               if(((((pAppId->ProtocolMajor*10) + (pAppId->ProtocolMinor)) <= 201) || 
-                     !pod.m_ptwndsmapps->DsIsProcessingMessage(pAppId,pDSId->Id)     ) && 
+                     !pod.m_ptwndsmapps->DsIsProcessingMessage(pAppId,(TWID_T)pDSId->Id)     ) && 
                  ((((pAppId->ProtocolMajor*10) + (pAppId->ProtocolMinor)) <= 202) ||
-                     !pod.m_ptwndsmapps->DsIsAppProcessingCallback(pAppId,pDSId->Id) )    ) 
+                     !pod.m_ptwndsmapps->DsIsAppProcessingCallback(pAppId,(TWID_T)pDSId->Id) )    ) 
               {
-                pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,pDSId->Id,TRUE);
+                pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,(TWID_T)pDSId->Id,TRUE);
                 try
                 {
                   // Create a local copy of the AppIdentity
                   TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(pAppId);
 
-                  rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,pDSId->Id))(
+                  rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,(TWID_T)pDSId->Id))(
                                           &AppId,
                                           _DG,
                                           _DAT,
@@ -552,7 +552,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
                   pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_BUMMER);
                   kLOG((kLOGERR,"Exception caught while DS was processing message.  Returning Failure."));
                 }
-                pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,pDSId->Id,FALSE);
+                pod.m_ptwndsmapps->DsSetProcessingMessage(pAppId,(TWID_T)pDSId->Id,FALSE);
               }
               else
               {
@@ -576,7 +576,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
             {
 			  kLOG((kLOGERR,"Unable to find driver, check your AppId and DsId values..."));
               pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_OPERATIONERROR);
-              kLOG((kLOGERR,"DS_Entry is null...%ld",pAppId->Id));
+              kLOG((kLOGERR,"DS_Entry is null...%ld",(TWID_T)pAppId->Id));
               rcDSM = TWRC_FAILURE;
             }
         }
@@ -614,12 +614,12 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
         if (  0 != pDSId
           &&  (dsmState_Open == pod.m_ptwndsmapps->AppGetState(pAppId))
           &&  pod.m_ptwndsmapps->AppValidateIds(pAppId,pDSId)
-          &&  (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,pDSId->Id)))
+          &&  (0 != pod.m_ptwndsmapps->DsGetEntryProc(pAppId,(TWID_T)pDSId->Id)))
         {
           // Create a local copy of the AppIdentity
           TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(pAppId);
 
-          rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,pDSId->Id))(
+          rcDSM = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,(TWID_T)pDSId->Id))(
                                   &AppId,
                                   _DG,
                                   _DAT,
@@ -762,7 +762,7 @@ TW_INT16 CTwnDsm::DSM_Identity(TW_IDENTITY  *_pAppId,
   TW_INT16  result;
 
   // Validate...
-  if (0 == _pAppId || _pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp())
+  if (0 == _pAppId || (TWID_T)_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp())
   {
       kLOG((kLOGERR,"_pAppId is null"));
       pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
@@ -833,7 +833,7 @@ TW_INT16 CTwnDsm::DSM_TwunkIdentity(TW_IDENTITY  *_pAppId,
   TW_INT16  result = TWRC_SUCCESS;
 
   // Validate...
-  if (0 == _pAppId || _pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp())
+  if (0 == _pAppId || (TWID_T)_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp())
   {
     kLOG((kLOGERR,"_pAppId is null"));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
@@ -863,7 +863,7 @@ TW_INT16 CTwnDsm::DSM_TwunkIdentity(TW_IDENTITY  *_pAppId,
     return TWRC_FAILURE;
   }
 
-  SSTRCPY(_pTwunkId->dsPath, sizeof(_pTwunkId->dsPath),pod.m_ptwndsmapps->DsGetPath(_pAppId,_pTwunkId->identity.Id));
+  SSTRCPY((char*)_pTwunkId->dsPath, sizeof(_pTwunkId->dsPath),(char*)pod.m_ptwndsmapps->DsGetPath(_pAppId,(TWID_T)_pTwunkId->identity.Id));
 
   return result;
 }
@@ -987,11 +987,11 @@ TW_INT16 CTwnDsm::DSM_Callback(TW_IDENTITY *_pOrigin,
           return TWRC_FAILURE;
         }
 
-        ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(_pOrigin,_pDest->Id);
+        ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(_pOrigin,(TWID_T)_pDest->Id);
         ptwcallback2->CallBackProc = ((TW_CALLBACK*)_pData)->CallBackProc;
-        ptwcallback2->RefCon = ((TW_CALLBACK*)_pData)->RefCon;
+        ptwcallback2->RefCon = (TWID_T)((TW_CALLBACK*)_pData)->RefCon;
         ptwcallback2->Message = ((TW_CALLBACK*)_pData)->Message;
-        pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
+        pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,(TWID_T)_pDest->Id,FALSE);
       }
       break;
 
@@ -1068,9 +1068,9 @@ TW_INT16 CTwnDsm::DSM_Callback2(TW_IDENTITY *_pOrigin,
           return TWRC_FAILURE;
         }
 
-        ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(_pOrigin,_pDest->Id);
+        ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(_pOrigin,(TWID_T)_pDest->Id);
         memcpy(ptwcallback2,_pData,sizeof(*ptwcallback2));
-        pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,_pDest->Id,FALSE);
+        pod.m_ptwndsmapps->DsCallbackSetWaiting(_pOrigin,(TWID_T)_pDest->Id,FALSE);
       }
       break;
 
@@ -1130,10 +1130,10 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
       return TWRC_FAILURE;
   }
-  else if (   (_pAppId->Id < 1)
-           || (_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp()))
+  else if (   ((TWID_T)_pAppId->Id < 1)
+           || ((TWID_T)_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp()))
   {
-      kLOG((kLOGERR,"id is out of range...%d",_pAppId->Id));
+      kLOG((kLOGERR,"id is out of range...%d",(int)(TWID_T)_pAppId->Id));
       pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_MAXCONNECTIONS);
       return TWRC_FAILURE;
   }
@@ -1158,7 +1158,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   }
 
   // Do we need to find a source to open
-  if (0 == _pDsId->Id)
+  if (0 == (TWID_T)_pDsId->Id)
   {
     // Does the app know the name of the source it wants to open
     if (0 != _pDsId->ProductName[0])
@@ -1192,7 +1192,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   }
 
   // Load the driver...
-  result = pod.m_ptwndsmapps->LoadDS(_pAppId,_pDsId->Id);
+  result = pod.m_ptwndsmapps->LoadDS(_pAppId,(TWID_T)_pDsId->Id);
   if (result != TWRC_SUCCESS)
   {
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_NODS);
@@ -1200,7 +1200,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   }
 
   // open the ds
-  if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))
+  if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,(TWID_T)_pDsId->Id))
   {
     // If the DS reports support for DF_DS2, then send it our DAT_ENTRYPOINT
     // information.  Failure to handle this is treated like a failure to open...
@@ -1218,7 +1218,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       twentrypoint.DSM_MemFree      = DSM_MemFree;
       twentrypoint.DSM_MemLock      = DSM_MemLock;
       twentrypoint.DSM_MemUnlock    = DSM_MemUnlock;
-      result = pod.m_ptwndsmapps->DsGetEntryProc(&AppId,_pDsId->Id)(
+      result = pod.m_ptwndsmapps->DsGetEntryProc(&AppId,(TWID_T)_pDsId->Id)(
                                 &AppId,
                                 DG_CONTROL,
                                 DAT_ENTRYPOINT,
@@ -1237,7 +1237,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
     // push down our entrypoint info, so open the ds...
     else
     {
-      result = pod.m_ptwndsmapps->DsGetEntryProc(&AppId,_pDsId->Id)(
+      result = pod.m_ptwndsmapps->DsGetEntryProc(&AppId,(TWID_T)_pDsId->Id)(
                                 &AppId,
                                 DG_CONTROL,
                                 DAT_IDENTITY,
@@ -1252,7 +1252,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
         TW_STATUS  twstatus;
         // If the call to MSG_OPENDS fails, then we need to get the DAT_STATUS and squirrel
         // it away, because we're going to close this data source soon...
-        rcDSMStatus = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,_pDsId->Id))(
+        rcDSMStatus = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,(TWID_T)_pDsId->Id))(
 					              &AppId,
 					              DG_CONTROL,
 					              DAT_STATUS,
@@ -1298,12 +1298,12 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
           {
             iResult = fwrite
 			(
-				pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id),
+				pod.m_ptwndsmapps->DsGetPath(_pAppId,(TWID_T)_pDsId->Id),
                 1,
-                strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)),
+                strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,(TWID_T)_pDsId->Id)),
                 pfile
 			);
-			if (iResult < (int)strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)))
+			if (iResult < (int)strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,(TWID_T)_pDsId->Id)))
 			{
 				kLOG((kLOGERR,"fwrite defaultds failed..."));
 			}
@@ -1319,7 +1319,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
   // If we had an error, make sure we unload the ds...
   else
   {
-    pod.m_ptwndsmapps->UnloadDS(_pAppId,_pDsId->Id);
+    pod.m_ptwndsmapps->UnloadDS(_pAppId,(TWID_T)_pDsId->Id);
   }
 
   // All done...
@@ -1343,10 +1343,10 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
-  else if (   (_pAppId->Id < 1)
-           || (_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp()))
+  else if (   ((TWID_T)_pAppId->Id < 1)
+           || ((TWID_T)_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp()))
   {
-    kLOG((kLOGERR,"id out of range...%d",_pAppId->Id));
+    kLOG((kLOGERR,"id out of range...%d",(int)(TWID_T)_pAppId->Id));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
@@ -1370,12 +1370,12 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
   }
 
   // close the ds
-  if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,_pDsId->Id))
+  if (0 != pod.m_ptwndsmapps->DsGetEntryProc(_pAppId,(TWID_T)_pDsId->Id))
   {
     // Create a local copy of the AppIdentity
     TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(_pAppId);
 
-    result = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,_pDsId->Id))(
+    result = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,(TWID_T)_pDsId->Id))(
                              &AppId,
                              DG_CONTROL,
                              DAT_IDENTITY,
@@ -1389,7 +1389,7 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
     }
 
     // Cleanup...
-    pod.m_ptwndsmapps->UnloadDS(&AppId,_pDsId->Id);
+    pod.m_ptwndsmapps->UnloadDS(&AppId,(TWID_T)_pDsId->Id);
   }
 
   // All done...
@@ -1793,8 +1793,8 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
-  if (   (_pAppId->Id < 1)
-      || (_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp()))
+  if (   ((TWID_T)_pAppId->Id < 1)
+      || ((TWID_T)_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp()))
   {
     kLOG((kLOGERR,"_pAppId.Id is out of range"));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
@@ -1950,10 +1950,10 @@ TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
-  else if ( _pAppId->Id < 1
-         || _pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp() )
+  else if ( (TWID_T)_pAppId->Id < 1
+         || (TWID_T)_pAppId->Id >= pod.m_ptwndsmapps->AppGetNumApp() )
   {
-    kLOG((kLOGERR,"_pAppId.Id is out of range...%d",_pAppId->Id));
+    kLOG((kLOGERR,"_pAppId.Id is out of range...%d",(int)(TWID_T)_pAppId->Id));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
@@ -1970,15 +1970,15 @@ TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADDEST);
     return TWRC_FAILURE;
   }
-  else if (_pDsId->Id < 1
-        || _pDsId->Id >= MAX_NUM_DS)
+  else if ((TWID_T)_pDsId->Id < 1
+        || (TWID_T)_pDsId->Id >= MAX_NUM_DS)
   {
     kLOG((kLOGERR,"Id is out of range 0 - 49..."));
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
 
-  char     *szPath = pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id); // Get the path we're using...
+  char     *szPath = pod.m_ptwndsmapps->DsGetPath(_pAppId,(TWID_T)_pDsId->Id); // Get the path we're using...
 
   if(!szPath)
   {
@@ -2031,7 +2031,7 @@ TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
       if (pfile)
       {
         iResult = fwrite(szPath, 1, strlen(szPath), pfile);
-		if (iResult < (int)strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,_pDsId->Id)))
+		if (iResult < (int)strlen(pod.m_ptwndsmapps->DsGetPath(_pAppId,(TWID_T)_pDsId->Id)))
 		{
 			kLOG((kLOGERR,"fwrite defaultds failed..."));
 		}
@@ -2058,7 +2058,7 @@ TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
 TW_INT16 CTwnDsm::GetDSFromProductName(TW_IDENTITY *_pAppId,
                                        TW_IDENTITY *_pDsId)
 {
-  TW_UINT32 ii;
+  TWID_T ii;
 
   // Validate...
   if (   !pod.m_ptwndsmapps->AppValidateId(_pAppId)
@@ -2076,8 +2076,8 @@ TW_INT16 CTwnDsm::GetDSFromProductName(TW_IDENTITY *_pAppId,
   for (ii = 1; ii < MAX_NUM_DS; ++ii)
   {
     // Note that TW_STR32 type is NUL-filled, not NUL-terminated...
-    if (0 == strncmp(_pDsId->ProductName,
-                     pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii)->ProductName,
+    if (0 == strncmp((char*)_pDsId->ProductName,
+                     (char*)pod.m_ptwndsmapps->DsGetIdentity(_pAppId,ii)->ProductName,
                      sizeof(TW_STR32)))
     {
       // match found, set the index
@@ -2207,7 +2207,7 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
 
   // Something very bad may be happening, so don't let the
   // application get away with this...
-  if (0 != _pDsId->Id)
+  if (0 != (TWID_T)_pDsId->Id)
   {
     kLOG((kLOGINFO,"Please make sure your TW_IDENTITY.Id for your driver (the destination) is zeroed out before making this call..."));
     //pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
@@ -2365,7 +2365,7 @@ bool CTwnDsm::printTripletsInfo(const TW_IDENTITY *_pOrigin,
   }
 
   // Print out the orgin and Destination
-  kLOG((kLOGINFO,"%.32s -> %.32s",_pOrigin? _pOrigin->ProductName:"DSM", _pDest? _pDest->ProductName:"DSM"));
+  kLOG((kLOGINFO,"%.32s -> %.32s",_pOrigin? (char*)_pOrigin->ProductName:"DSM", _pDest? (char*)_pDest->ProductName:"DSM"));
   
   // Print them
   if(strlen(szData))
@@ -2463,7 +2463,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
   }
 
   // Get the current callback...
-  ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(_pAppId,_pDsId->Id);
+  ptwcallback2 = pod.m_ptwndsmapps->DsCallback2Get(_pAppId,(TWID_T)_pDsId->Id);
 
   // We have something to call...
   if (   (0 != ptwcallback2)
@@ -2477,7 +2477,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
 
     // Set flag to prevent Application from sending a new message 
     // before returning back from recieving this callback.
-    pod.m_ptwndsmapps->DsSetAppProcessingCallback(_pAppId,_pDsId->Id,TRUE);
+    pod.m_ptwndsmapps->DsSetAppProcessingCallback(_pAppId,(TWID_T)_pDsId->Id,TRUE);
 
     // We should have a try/catch around this...
     // Send a message from DS to the Application.
@@ -2488,11 +2488,11 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
       TW_IDENTITY AppId = *pod.m_ptwndsmapps->AppGetIdentity(_pAppId);
 
       // Print the triplets to stdout for information purposes
-      bPrinted = printTripletsInfo(NULL,&AppId,DG_CONTROL,DAT_NULL,_MSG,&MemRef);
+      bPrinted = printTripletsInfo(NULL,&AppId,DG_CONTROL,DAT_NULL,_MSG,MemRef);
 
 	  // Send a pointer to the data...
       result = ((DSMENTRYPROC)(ptwcallback2->CallBackProc))(
-          pod.m_ptwndsmapps->DsGetIdentity(&AppId,_pDsId->Id),
+          pod.m_ptwndsmapps->DsGetIdentity(&AppId,(TWID_T)_pDsId->Id),
           &AppId,
           DG_CONTROL,
           DAT_NULL,
@@ -2506,7 +2506,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
       result = TWRC_FAILURE;
     }
 
-    pod.m_ptwndsmapps->DsSetAppProcessingCallback(_pAppId,_pDsId->Id,FALSE);
+    pod.m_ptwndsmapps->DsSetAppProcessingCallback(_pAppId,(TWID_T)_pDsId->Id,FALSE);
   }
 
   // Application has not registered a callback. As a result, the msg will
@@ -2522,14 +2522,14 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
       kLOG((kLOGERR,"%.32s NEVER retrieved DAT_EVENT / %s\n", _pAppId->ProductName, szMsg));
     }
     ptwcallback2->Message = _MSG;
-    pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,_pDsId->Id,TRUE);
+    pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,(TWID_T)_pDsId->Id,TRUE);
     pod.m_ptwndsmapps->AppWakeup(_pAppId);
   }
 
   // Log how it went...
   if (bPrinted)
   {
-    printResults(DG_CONTROL,DAT_NULL,_MSG,&MemRef,result);
+    printResults(DG_CONTROL,DAT_NULL,_MSG,MemRef,result);
   }
 
   return result;

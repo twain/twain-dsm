@@ -88,7 +88,7 @@ class CAppList
 {
 private:
   APP_INFO *m_pList;            /**< pointer to dynamicaly allocated array */
-  TW_UINT32 m_count;            /**< number of elements of the array */
+  TWID_T    m_count;            /**< number of elements of the array */
 
 public:
 
@@ -118,7 +118,7 @@ public:
 * Get number of allocated App slots (Last valid App ID +1)
 * @return number of allocated App slots (Last valid App ID +1)
 */
-  TW_UINT32 size(){return m_count;}
+  TWID_T size(){return m_count;}
 
 /**
 * Get reference to element of the array.
@@ -126,7 +126,7 @@ public:
 * @param[in] AppId is Application ID/array element index
 * @return reference to the array element
 */
-  APP_INFO& operator[](TW_UINT32 AppId)
+  APP_INFO& operator[](TWID_T AppId)
   {	
     if(AppId>=m_count)
     {
@@ -150,7 +150,7 @@ public:
 * @param[in] AppId is Application ID/array element index
 * @return true on success
 */
-  bool Erase(TW_UINT32 AppId)
+  bool Erase(TWID_T AppId)
   {
     if((AppId==0) || (AppId>=m_count))
     {
@@ -160,7 +160,7 @@ public:
     if(AppId==(m_count-1))
     {
       m_count--;
-      for(TW_UINT32 i=m_count-1; i>0;i--)
+      for(TWID_T i=m_count-1; i>0;i--)
       {
         if(m_pList[i].identity.Id)
         {
@@ -252,7 +252,7 @@ class CTwnDsmAppsImpl
     */
     TW_INT16 LoadDS(TW_IDENTITY *_pAppId,
                     char        *_pPath,
-                    TW_UINT32    _DsId,
+                    TWID_T       _DsId,
                     bool         _boolKeepOpen);
 
     /**
@@ -307,7 +307,7 @@ CTwnDsmApps::~CTwnDsmApps()
     // close them. The application should close any open DSs and then Close
     // the DSM which should take care of this. But just in case, we will 
     // clean up any DS left open.
-    for (TW_UINT32 i = 1; i < m_ptwndsmappsimpl->m_AppInfo.size(); i++)
+    for (TWID_T i = 1; i < m_ptwndsmappsimpl->m_AppInfo.size(); i++)
     {
       if( m_ptwndsmappsimpl->m_AppInfo[i].identity.Id 
        && dsmState_Open != m_ptwndsmappsimpl->m_AppInfo[i].CurrentState )
@@ -338,7 +338,7 @@ CTwnDsmApps::~CTwnDsmApps()
 TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
                               TW_MEMREF    _MemRef)
 {
-  TW_UINT32 ii;
+  TWID_T ii;
   char szDsm[FILENAME_MAX];
 
   // Validate...
@@ -365,7 +365,7 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
   // is already open...
   for (ii = 1; ii < m_ptwndsmappsimpl->m_AppInfo.size(); ii++)
   {
-    if ( !strncmp(m_ptwndsmappsimpl->m_AppInfo[ii].identity.ProductName,_pAppId->ProductName,sizeof(TW_STR32))
+    if ( !strncmp((char*)m_ptwndsmappsimpl->m_AppInfo[ii].identity.ProductName,(char*)_pAppId->ProductName,sizeof(TW_STR32))
       && m_ptwndsmappsimpl->m_AppInfo[ii].hwnd == (HWND)(_MemRef?*(HWND*)_MemRef:0) )
     {
       kLOG((kLOGERR,"A successful MSG_OPENDSM was already done for %s...",_pAppId->ProductName));
@@ -385,7 +385,7 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
   }
   // The application ID is equal to array index it resides in.
   // We just let the 0-index stay empty...
-  _pAppId->Id = ii;
+  _pAppId->Id = (TWIDDEST_T)ii;
   _pAppId->SupportedGroups |= DF_DSM2;
   m_ptwndsmappsimpl->m_AppInfo[ii].identity = *_pAppId;
   m_ptwndsmappsimpl->m_AppInfo[ii].hwnd     = (HWND)(_MemRef?*(HWND*)_MemRef:0);
@@ -444,10 +444,10 @@ TW_UINT16 CTwnDsmApps::RemoveApp(TW_IDENTITY *_pAppId)
   TW_USERINTERFACE twuserinterface;
 
   // Validate...
-  if (   (_pAppId->Id ==0)
-      || (_pAppId->Id > m_ptwndsmappsimpl->m_AppInfo.size()))
+  if (   ((TWID_T)_pAppId->Id ==0)
+      || ((TWID_T)_pAppId->Id > m_ptwndsmappsimpl->m_AppInfo.size()))
   {
-    kLOG((kLOGERR,"_id is out of range...%d",_pAppId->Id));
+    kLOG((kLOGERR,"_id is out of range...%d",(int)(TWID_T)_pAppId->Id));
     AppSetConditionCode(0,TWCC_BADVALUE);
     return TWRC_FAILURE;
   }
@@ -458,25 +458,25 @@ TW_UINT16 CTwnDsmApps::RemoveApp(TW_IDENTITY *_pAppId)
   // monitor is on fire.  The notion of a failure message during
   // a close is annoying.  But there might be a good reason for
   // this I'm not aware of...
-  if (dsmState_Open != m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].CurrentState)
+  if (dsmState_Open != m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].CurrentState)
   {
-    kLOG((kLOGINFO,"%0.32s not open.",_pAppId->ProductName));
+    kLOG((kLOGINFO,"%0.32s not open.",(char*)_pAppId->ProductName));
     AppSetConditionCode(0,TWCC_SEQERROR);
     return TWRC_FAILURE;
   }
 
   // Get rid of our list of drivers...
-  if (m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList)
+  if (m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList)
   {
     // Check all the driver slots, if we find an open slot, shotgun it
     // with the sequence of close out commands and shut it down.  This
     // really isn't something we should have to do, but it makes us
     // more robust...
     for (nIndex = 1;
-         nIndex < m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->NumFiles;
+         nIndex < m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->NumFiles;
          nIndex++)
     {
-      pDSInfo = &m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[nIndex];
+      pDSInfo = &m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[nIndex];
       if (pDSInfo->DS_Entry)
       {
         kLOG((kLOGERR,"MSG_CLOSEDSM called with drivers still open."));
@@ -495,11 +495,11 @@ TW_UINT16 CTwnDsmApps::RemoveApp(TW_IDENTITY *_pAppId)
     }
 
     // Okay, we can blow away the memory now...
-    free(m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList);
-    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList = NULL;
+    free(m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList);
+    m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList = NULL;
   }
   //Free AppInfo for this App
-  m_ptwndsmappsimpl->m_AppInfo.Erase(_pAppId->Id);
+  m_ptwndsmappsimpl->m_AppInfo.Erase((TWID_T)_pAppId->Id);
 
 
   // All done...
@@ -519,9 +519,9 @@ TW_BOOL CTwnDsmApps::AppValidateId(TW_IDENTITY *_pAppId)
     kLOG((kLOGERR,"_pAppId is null..."));
     return false;
   }
-  else if (_pAppId->Id >= m_ptwndsmappsimpl->m_AppInfo.size())
+  else if ((TWID_T)_pAppId->Id >= m_ptwndsmappsimpl->m_AppInfo.size())
   {
-    kLOG((kLOGERR,"invalid App ID...%d",_pAppId->Id));
+    kLOG((kLOGERR,"invalid App ID...%d",(int)(TWID_T)_pAppId->Id));
     return false;
   }
   return true;
@@ -545,17 +545,17 @@ TW_BOOL CTwnDsmApps::AppValidateIds(TW_IDENTITY *_pAppId, TW_IDENTITY *_pDSId)
       kLOG((kLOGERR,"_pDSId is null..."));
       return false;
     }
-    else if (_pDSId->Id >= MAX_NUM_DS)
+    else if ((TWID_T)_pDSId->Id >= MAX_NUM_DS)
     {
-      kLOG((kLOGERR,"invalid DS ID...%d",_pDSId->Id));
+      kLOG((kLOGERR,"invalid DS ID...%d",(int)(TWID_T)_pDSId->Id));
       return false;
     }
-    else if (!m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList)
+    else if (!m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList)
     {
       kLOG((kLOGERR,"List of DS for app is invalid"));
       return false;
     }
-    else if (_pDSId->Id > m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->NumFiles)
+    else if ((TWID_T)_pDSId->Id > m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->NumFiles)
     {
       kLOG((kLOGERR,"The DS ID for app is not valid"));
       return false;
@@ -573,7 +573,7 @@ TW_IDENTITY *CTwnDsmApps::AppGetIdentity(TW_IDENTITY *_pAppId)
 {
   if (AppValidateId(_pAppId))
   {
-    return &m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].identity;
+    return &m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].identity;
   }
   kLOG((kLOGERR,"bad _pAppId..."));
   return NULL;
@@ -597,8 +597,8 @@ TW_UINT16 CTwnDsmApps::AppGetConditionCode(TW_IDENTITY *_pAppId)
   // Return the application specific value...
   if (AppValidateId(_pAppId))
   {
-    conditioncode = m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].ConditionCode;
-    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].ConditionCode = TWCC_SUCCESS;
+    conditioncode = m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].ConditionCode;
+    m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].ConditionCode = TWCC_SUCCESS;
     m_ptwndsmappsimpl->pod.m_conditioncode = TWCC_SUCCESS;
     return conditioncode;
   }
@@ -636,8 +636,8 @@ void CTwnDsmAppsImpl::AppSetConditionCode(TW_IDENTITY *_pAppId,
 {
   // We have no application identity to work with...
   if (   (0 == _pAppId)
-      || (0 == _pAppId->Id)
-      || (0 == m_AppInfo[_pAppId->Id].identity.Id))
+      || (0 == (TWID_T)_pAppId->Id)
+      || (0 == m_AppInfo[(TWID_T)_pAppId->Id].identity.Id))
   {
     pod.m_conditioncode = _ConditionCode;
   }
@@ -645,7 +645,7 @@ void CTwnDsmAppsImpl::AppSetConditionCode(TW_IDENTITY *_pAppId,
   // This is where we normally expect to be...
   else
   {
-    m_AppInfo[_pAppId->Id].ConditionCode = _ConditionCode;
+    m_AppInfo[(TWID_T)_pAppId->Id].ConditionCode = _ConditionCode;
   }
 
   // Make a note of this in the log...
@@ -664,7 +664,7 @@ DSM_State CTwnDsmApps::AppGetState()
   // Initialize to PreSession and update it if we find an application that is further along.
   DSM_State CurrentState = dsmState_PreSession;
 
-  for (TW_UINT32 AppID = 1; AppID<m_ptwndsmappsimpl->m_AppInfo.size(); AppID++)
+  for (TWID_T AppID = 1; AppID<m_ptwndsmappsimpl->m_AppInfo.size(); AppID++)
   {
     if(m_ptwndsmappsimpl->m_AppInfo[AppID].CurrentState > CurrentState)
     {
@@ -686,7 +686,7 @@ DSM_State CTwnDsmApps::AppGetState(TW_IDENTITY *_pAppId)
   // Return the application specific state...
   if (AppValidateId(_pAppId))
   {
-    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].CurrentState;
+    return m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].CurrentState;
   }
   // Otherwise we must be in state 2.  Good luck ever getting state 1
   // out of the DSM...  :)
@@ -700,7 +700,7 @@ DSM_State CTwnDsmApps::AppGetState(TW_IDENTITY *_pAppId)
 * Get number of allocated App slots (Last valid App ID +1)
 * @return number of allocated App slots (Last valid App ID +1)
 */
-TW_UINT32 CTwnDsmApps::AppGetNumApp()
+TWID_T CTwnDsmApps::AppGetNumApp()
 {
   return m_ptwndsmappsimpl->m_AppInfo.size();
 }
@@ -716,7 +716,7 @@ void *CTwnDsmApps::AppHwnd(TW_IDENTITY *_pAppId)
   // Return the hwnd...
   if (AppValidateId(_pAppId))
   {
-    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].hwnd;
+    return m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].hwnd;
   }
   // Otherwise return a null...
   else
@@ -733,13 +733,13 @@ void *CTwnDsmApps::AppHwnd(TW_IDENTITY *_pAppId)
 * keep the identity for each one we find.  This just tells us how
 * many we found...
 */
-TW_UINT32 CTwnDsmApps::AppGetNumDs(TW_IDENTITY *_pAppId)
+TWID_T CTwnDsmApps::AppGetNumDs(TW_IDENTITY *_pAppId)
 {
   // Return the number of drivers we found...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList)
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList)
   {
-    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->NumFiles;
+    return m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->NumFiles;
   }
   // Not a lot of choice, the value has to be zero...
   else
@@ -757,14 +757,14 @@ TW_UINT32 CTwnDsmApps::AppGetNumDs(TW_IDENTITY *_pAppId)
 * many we found...
 */
 TW_IDENTITY *CTwnDsmApps::DsGetIdentity(TW_IDENTITY *_pAppId,
-                                        TW_UINT32    _DsId)
+                                        TWID_T       _DsId)
 {
   // Return a pointer to the driver's identity...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return &m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].Identity;
+    return &m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].Identity;
   }
   // Something is toasted, so return NULL...
   else
@@ -781,14 +781,14 @@ TW_IDENTITY *CTwnDsmApps::DsGetIdentity(TW_IDENTITY *_pAppId,
 * Every driver has to have one of these...
 */
 DSENTRYPROC CTwnDsmApps::DsGetEntryProc(TW_IDENTITY *_pAppId,
-                                        TW_UINT32    _DsId)
+                                        TWID_T       _DsId)
 {
   // Return a pointer to the driver's identity...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].DS_Entry;
+    return m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].DS_Entry;
   }
   // Something is toasted, so return NULL...
   else
@@ -806,14 +806,14 @@ DSENTRYPROC CTwnDsmApps::DsGetEntryProc(TW_IDENTITY *_pAppId,
 * is not guaranteed to be unique, though it should be...
 */
 char *CTwnDsmApps::DsGetPath(TW_IDENTITY *_pAppId,
-                             TW_UINT32    _DsId)
+                             TWID_T       _DsId)
 {
   // Return a pointer to the driver's file path and name...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].szPath;
+    return m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].szPath;
   }
   // Something is toasted, so return NULL...
   else
@@ -832,14 +832,14 @@ char *CTwnDsmApps::DsGetPath(TW_IDENTITY *_pAppId,
 * going from the Driver to the Application
 */
 TW_CALLBACK2 *CTwnDsmApps::DsCallback2Get(TW_IDENTITY *_pAppId,
-                                        TW_UINT32    _DsId)
+                                          TWID_T       _DsId)
 {
   // Return a pointer to the driver's TW_CALLBACK...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return &m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].twcallback2;
+    return &m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].twcallback2;
   }
   // Something is toasted, so return NULL...
   else
@@ -857,14 +857,14 @@ TW_CALLBACK2 *CTwnDsmApps::DsCallback2Get(TW_IDENTITY *_pAppId,
 * application...
 */
 TW_BOOL CTwnDsmApps::DsCallbackIsWaiting(TW_IDENTITY *_pAppId,
-                                         TW_UINT32    _DsId)
+                                         TWID_T       _DsId)
 {
   // Check the waiting flag...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bCallbackPending;
+    return m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].bCallbackPending;
   }
   // Something is toasted, so return FALSE...
   else
@@ -881,15 +881,15 @@ TW_BOOL CTwnDsmApps::DsCallbackIsWaiting(TW_IDENTITY *_pAppId,
 * This is how we know when we have something for the Application...
 */
 void CTwnDsmApps::DsCallbackSetWaiting(TW_IDENTITY *_pAppId,
-                                       TW_UINT32    _DsId,
+                                       TWID_T       _DsId,
                                        TW_BOOL      _Waiting)
 {
   // Set the waiting flag...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bCallbackPending = _Waiting;
+    m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].bCallbackPending = _Waiting;
   }
   // Something is toasted, so whine about it...
   else
@@ -906,14 +906,14 @@ void CTwnDsmApps::DsCallbackSetWaiting(TW_IDENTITY *_pAppId,
 * when they have not finished the current
 */
 TW_BOOL CTwnDsmApps::DsIsProcessingMessage(TW_IDENTITY *_pAppId,
-                                         TW_UINT32    _DsId)
+                                           TWID_T       _DsId)
 {
   // Check the waiting flag...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bDSProcessingMessage;
+    return m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].bDSProcessingMessage;
   }
   // Something is toasted, so return FALSE...
   else
@@ -930,15 +930,15 @@ TW_BOOL CTwnDsmApps::DsIsProcessingMessage(TW_IDENTITY *_pAppId,
 * This is how we know the DS is not done processing the previous message
 */
 void CTwnDsmApps::DsSetProcessingMessage(TW_IDENTITY *_pAppId,
-                                         TW_UINT32    _DsId,
+                                         TWID_T       _DsId,
                                          TW_BOOL      _Processing)
 {
   // Set the processing flag...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bDSProcessingMessage = _Processing;
+    m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].bDSProcessingMessage = _Processing;
   }
   // Something is toasted, so whine about it...
   else
@@ -954,14 +954,14 @@ void CTwnDsmApps::DsSetProcessingMessage(TW_IDENTITY *_pAppId,
 * message before it returns from recieving the last callback.
 */
 TW_BOOL CTwnDsmApps::DsIsAppProcessingCallback(TW_IDENTITY *_pAppId,
-                                             TW_UINT32    _DsId)
+                                               TWID_T       _DsId)
 {
   // Check the waiting flag...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    return m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bAppProcessingCallback;
+    return m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].bAppProcessingCallback;
   }
   // Something is toasted, so return FALSE...
   else
@@ -977,15 +977,15 @@ TW_BOOL CTwnDsmApps::DsIsAppProcessingCallback(TW_IDENTITY *_pAppId,
 * This is how we know the App is not done processing the previous callback
 */
 void CTwnDsmApps::DsSetAppProcessingCallback(TW_IDENTITY *_pAppId,
-                                           TW_UINT32    _DsId,
+                                           TWID_T       _DsId,
                                            TW_BOOL      _Processing)
 {
   // Set the processing flag...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].bAppProcessingCallback = _Processing;
+    m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].bAppProcessingCallback = _Processing;
   }
   // Something is toasted, so whine about it...
   else
@@ -1092,9 +1092,9 @@ const char *CTwnDsmAppsImpl::StringFromCC(const TW_UINT16 cc)
   }
 
   static TW_STR32 hex;
-  SSNPRINTF(hex, NCHARS(hex), 32, "TWCC 0x%04x", cc);
+  SSNPRINTF((char*)hex, NCHARS(hex), 32, "TWCC 0x%04x", cc);
 
-  return hex;
+  return (char*)hex;
 }
 
 
@@ -1154,10 +1154,10 @@ int CTwnDsmAppsImpl::scanDSDir(char        *_szAbsPath,
         {
           if (TWRC_SUCCESS == LoadDS(_pAppId,
                                      szABSFilename,
-                                     m_AppInfo[_pAppId->Id].pDSList->NumFiles+1,
+                                     m_AppInfo[(TWID_T)_pAppId->Id].pDSList->NumFiles+1,
                                      false))
           {
-            m_AppInfo[_pAppId->Id].pDSList->NumFiles++;
+            m_AppInfo[(TWID_T)_pAppId->Id].pDSList->NumFiles++;
           }
         }
       
@@ -1217,66 +1217,125 @@ int CTwnDsmAppsImpl::scanDSDir(char        *_szAbsPath,
   // Take care of g++...
   //
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
-    char szABSFilename[FILENAME_MAX];
-    DIR *pdir;
+    #if (TWNDSM_OS == TWNDSM_OS_MACOSX)
 
-	// Initialize...
-	pdir = 0;
-	memset(szABSFilename,0,sizeof(szABSFilename));
+      char szABSFilename[FILENAME_MAX];
+      DIR *pdir;
 
-	// Open the directory...
-    if ((pdir=opendir(_szAbsPath)) == 0)
-    {
-      perror("opendir");
-      return EXIT_FAILURE;
-    }
+      // Initialize...
+      pdir = 0;
+      memset(szABSFilename,0,sizeof(szABSFilename));
 
-    struct dirent *pfile; 
-    while(errno=0, ((pfile=readdir(pdir)) != 0))
-    { 
-      if ( (strcmp(".", pfile->d_name) == 0)
-       || (strcmp("..", pfile->d_name) == 0) )
+      // Open the directory...
+      if ((pdir=opendir(_szAbsPath)) == 0)
       {
-        continue;
+        perror("opendir");
+        return EXIT_FAILURE;
       }
 
-      if (SNPRINTF(szABSFilename,FILENAME_MAX,"%s/%s",_szAbsPath,pfile->d_name) < 0)
-      {
-        continue;
-      }
-
-      struct stat st;
-      if (lstat(szABSFilename, &st) < 0)
-      {
-        perror("lstat");
-        continue;
-      }
-
-      if (S_ISDIR(st.st_mode))
-      {
-        scanDSDir(szABSFilename,_pAppId);
-      }
-      else if (S_ISREG(st.st_mode) && (0 != strstr(pfile->d_name, ".ds")))
-      {
-        if (TWRC_SUCCESS == LoadDS(_pAppId,
-                                   szABSFilename,
-                                   m_AppInfo[_pAppId->Id].pDSList->NumFiles+1,
-                                   false))
+      struct dirent *pfile; 
+      while(errno=0, ((pfile=readdir(pdir)) != 0))
+      { 
+        if ( (strcmp(".", pfile->d_name) == 0)
+         || (strcmp("..", pfile->d_name) == 0) )
         {
-          m_AppInfo[_pAppId->Id].pDSList->NumFiles++;
+          continue;
         }
-      }
-    } 
+
+        if (SNPRINTF(szABSFilename,FILENAME_MAX,"%s/%s",_szAbsPath,pfile->d_name) < 0)
+        {
+          continue;
+        }
+
+        struct stat st;
+        if (lstat(szABSFilename, &st) < 0)
+        {
+          perror("lstat");
+          continue;
+        }
+
+        if (S_ISDIR(st.st_mode) && (0 != strstr(pfile->d_name, ".ds")))
+        {
+          if (TWRC_SUCCESS == LoadDS(_pAppId,
+                                     szABSFilename,
+                                     m_AppInfo[(TWID_T)_pAppId->Id].pDSList->NumFiles+1,
+                                     false))
+          {
+            m_AppInfo[(TWID_T)_pAppId->Id].pDSList->NumFiles++;
+          }
+        }
+      } 
   
-    if (0 != errno)
-    {
-      perror("readdir");
-    }
+      if (0 != errno)
+      {
+        perror("readdir");
+      }
 
-    closedir(pdir); 
-    return EXIT_SUCCESS;
+      closedir(pdir); 
+      return EXIT_SUCCESS;
 
+    #else
 
+      char szABSFilename[FILENAME_MAX];
+      DIR *pdir;
+
+      // Initialize...
+      pdir = 0;
+      memset(szABSFilename,0,sizeof(szABSFilename));
+
+      // Open the directory...
+      if ((pdir=opendir(_szAbsPath)) == 0)
+      {
+        perror("opendir");
+        return EXIT_FAILURE;
+      }
+
+      struct dirent *pfile; 
+      while(errno=0, ((pfile=readdir(pdir)) != 0))
+      { 
+        if ( (strcmp(".", pfile->d_name) == 0)
+         || (strcmp("..", pfile->d_name) == 0) )
+        {
+          continue;
+        }
+
+        if (SNPRINTF(szABSFilename,FILENAME_MAX,"%s/%s",_szAbsPath,pfile->d_name) < 0)
+        {
+          continue;
+        }
+
+        struct stat st;
+        if (lstat(szABSFilename, &st) < 0)
+        {
+          perror("lstat");
+          continue;
+        }
+
+        if (S_ISDIR(st.st_mode))
+        {
+          scanDSDir(szABSFilename,_pAppId);
+        }
+        else if (S_ISREG(st.st_mode) && (0 != strstr(pfile->d_name, ".ds")))
+        {
+          if (TWRC_SUCCESS == LoadDS(_pAppId,
+                                     szABSFilename,
+                                     m_AppInfo[(TWID_T)_pAppId->Id].pDSList->NumFiles+1,
+                                     false))
+          {
+            m_AppInfo[(TWID_T)_pAppId->Id].pDSList->NumFiles++;
+          }
+        }
+      } 
+  
+      if (0 != errno)
+      {
+        perror("readdir");
+      }
+
+      closedir(pdir); 
+      return EXIT_SUCCESS;
+
+    #endif
 
   //
   // meh!
@@ -1293,11 +1352,11 @@ int CTwnDsmAppsImpl::scanDSDir(char        *_szAbsPath,
 * This is the interface function that's called by CTwnDsm
 */
 TW_INT16 CTwnDsmApps::LoadDS(TW_IDENTITY  *_pAppId,
-                             TW_UINT32     _DsId)
+                             TWID_T        _DsId)
 {
   // Load the specified driver...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
@@ -1306,7 +1365,7 @@ TW_INT16 CTwnDsmApps::LoadDS(TW_IDENTITY  *_pAppId,
       char      szPrevWorkDir[FILENAME_MAX];
       char      szWorkDir[FILENAME_MAX];
 
-      SSTRCPY(szWorkDir, NCHARS(szWorkDir), m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].szPath);
+      SSTRCPY(szWorkDir, NCHARS(szWorkDir), m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].szPath);
       // strip filename from path
       size_t x = strlen(szWorkDir);
       while(x > 0)
@@ -1325,7 +1384,7 @@ TW_INT16 CTwnDsmApps::LoadDS(TW_IDENTITY  *_pAppId,
     #endif
 
     TW_INT16 result = m_ptwndsmappsimpl->LoadDS(_pAppId,
-                                     m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].szPath,
+                                     m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].szPath,
                                      _DsId,
                                      true);
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
@@ -1355,12 +1414,12 @@ TW_INT16 CTwnDsmApps::LoadDS(TW_IDENTITY  *_pAppId,
 */
 TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
                                  char        *_pPath,
-                                 TW_UINT32    _DsId,
+                                 TWID_T       _DsId,
                                  bool         _boolKeepOpen)
 {
   TW_INT16  result = TWRC_SUCCESS;
   DS_INFO  *pDSInfo;
-  bool hook;
+  //bool hook;
 
   // Validate...
   if ( 0 == _pPath )
@@ -1379,7 +1438,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   }
 
   // Initialize stuff...
-  pDSInfo = &m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId];
+  pDSInfo = &m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId];
 
   // Only log DS details when processing a MSG_OPENDS message
   if(_boolKeepOpen)
@@ -1393,11 +1452,11 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // Only hook this driver if we've been asked to keep the driver
   // open (meaning we're processing a MSG_OPENDS) and if we see
   // that the driver is 1.x...(by checking the absence of DF_DS2)
-  hook = _boolKeepOpen && !(pDSInfo->Identity.SupportedGroups & DF_DS2);
+  //hook = _boolKeepOpen && !(pDSInfo->Identity.SupportedGroups & DF_DS2);
 
   // Try to load the driver...  We load the driver again if we are keeping
   // it open.  This LoadLibrary is always closed so we dont hook this time.
-  pDSInfo->pHandle = LOADLIBRARY(_pPath,false,0);
+  pDSInfo->pHandle = (TW_HANDLE)LOADLIBRARY(_pPath,false,0);
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     if (0 == pDSInfo->pHandle)
     {
@@ -1460,7 +1519,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 
   // Report success and squirrel away the index...
   kLOG((kLOGINFO,"Loaded library: %s",_pPath));
-  pDSInfo->Identity.Id = _DsId;
+  pDSInfo->Identity.Id = (TWIDDEST_T)_DsId;
 
   // Get the source to fill in the identity structure
   // This operation should never fail on any DS
@@ -1496,7 +1555,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // The DS should not modify the Id even though the spec states
   // that the id will not be assigned until DSM sends MSG_OPENDS to DS, and
   // by the way...don't do the copy of the src and dst are the same address...
-  pDSInfo->Identity.Id = _DsId;
+  pDSInfo->Identity.Id = (TWIDDEST_T)_DsId;
   if (pDSInfo->szPath != _pPath)
   {
       SSTRNCPY(pDSInfo->szPath, NCHARS(pDSInfo->szPath),_pPath,FILENAME_MAX);
@@ -1530,7 +1589,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // driver a consistent look.
   if (_boolKeepOpen == true)
   {
-    pDSInfo->pHandle = LOADLIBRARY(_pPath,hook,_DsId);
+    pDSInfo->pHandle = (TW_HANDLE)LOADLIBRARY(_pPath,hook,_DsId);
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     if (0 == pDSInfo->pHandle)
     {
@@ -1561,7 +1620,6 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 
     // Try to get the entry point...
     pDSInfo->DS_Entry = (DSENTRYPROC)DSM_LoadFunction(pDSInfo->pHandle,"DS_Entry");
-
     if (pDSInfo->DS_Entry == 0)
     {
       #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
@@ -1605,13 +1663,13 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 * place -- so there)...
 */
 void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
-                           TW_UINT32     _DsId)
+                           TWID_T        _DsId)
 {
   // Unload the specified driver...
   if (    AppValidateId(_pAppId)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS)
-      &&  m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].pHandle)
+      &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].pHandle)
   {
     // Unload the library...
 #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
@@ -1619,7 +1677,7 @@ void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
 #else
     int retval = 
 #endif
-    UNLOADLIBRARY(m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].pHandle,true,_DsId);
+    UNLOADLIBRARY(m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].pHandle,true,_DsId);
 
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
       if(0 == retval)
@@ -1633,8 +1691,8 @@ void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
       }
     #endif
 
-    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].DS_Entry = 0;
-    m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].pDSList->DSInfo[_DsId].pHandle = 0;
+    m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].DS_Entry = 0;
+    m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].pHandle = 0;
   }
 }
 
@@ -1651,11 +1709,11 @@ void CTwnDsmApps::AppWakeup(TW_IDENTITY *_pAppId)
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
   BOOL boolResult;
     if (   AppValidateId(_pAppId)
-        && m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].hwnd)
+        && m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].hwnd)
     {
       // Force the parent to process a message.  WM_NULL is
       // safe, because it's a no-op...
-      boolResult = ::PostMessage(m_ptwndsmappsimpl->m_AppInfo[_pAppId->Id].hwnd,WM_NULL,(WPARAM)0,(LPARAM)0);
+      boolResult = ::PostMessage(m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].hwnd,WM_NULL,(WPARAM)0,(LPARAM)0);
       if (!boolResult)
       {
         kLOG((kLOGERR,"PostMessage failed..."));
@@ -1666,7 +1724,8 @@ void CTwnDsmApps::AppWakeup(TW_IDENTITY *_pAppId)
     // We don't support this path on this platform, use
     // callbacks instead...
     // Make the compiler happy...
-    _pAppId = _pAppId;
+    void *unused = _pAppId;
+    unused = 0;
   #else
     #error Sorry, we do not recognize this system...
   #endif
