@@ -253,6 +253,10 @@
 */
 #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
 
+  // Define TW_IDENTITY.Id
+  #define TWID_T TW_UINT32
+  #define TWIDDEST_T TW_UINT32
+
   // For 64-bit systems we work the same as on Linux/MacOSX...
   #if TWNDSM_OS_64BIT
     #define LOADLIBRARY(lib,hook,DSID) LoadLibrary(lib)
@@ -265,13 +269,13 @@
     (
       const char* const _lib,
       const bool _hook,
-      const TW_UINT32 _DSID
+      const TWID_T _DSID
     );
     BOOL UninstallTwain32DllHooks
     (
       const HMODULE _hmodule,
       const bool _unhook,
-      const TW_UINT32 _DSID
+      const TWID_T _DSID
     );
     #define LOADLIBRARY(lib,hook,DSID) InstallTwain32DllHooks(lib,hook,DSID)
     #define UNLOADLIBRARY(hmodule,unhook,DSID) UninstallTwain32DllHooks((HMODULE)hmodule,unhook,DSID)
@@ -317,12 +321,30 @@
   #define GETTHREADID gettid
   #define FOPEN(pf,name,mode) pf = fopen(name,mode)
   #ifndef kTWAIN_DS_DIR
-    #define kTWAIN_DS_DIR "/usr/local/lib/twain"
+    #if (TWNDSM_OS == TWNDSM_OS_MACOSX)
+      #define kTWAIN_DS_DIR "/Library/Image Capture/TWAIN Data Sources"
+    #else
+      #define kTWAIN_DS_DIR "/usr/local/lib/twain"
+    #endif
   #endif
   typedef unsigned int UINT;
   typedef void* HINSTANCE;
   typedef void* HWND;
   #define DSMENTRY FAR PASCAL TW_UINT16
+
+  #if (TWNDSM_OS == TWNDSM_OS_MACOSX)
+    #if TWNDSM_OS_64BIT
+      #define TWID_T unsigned long long
+      #define TWIDDEST_T TW_MEMREF
+    #else
+      #define TWID_T unsigned long
+      #define TWIDDEST_T TW_MEMREF
+    #endif
+  #else
+    #define TWID_T TW_UINT32
+    #define TWIDDEST_T TW_UINT32
+  #endif
+
 
   #if !defined(TRUE)
     #define FALSE   0
@@ -383,6 +405,33 @@
       va_end(valist);
       return result;
   }
+
+
+/**
+* These functions are insecure, but everybody has them, so we
+* don't need an else/error section like we use everywhere else...
+*/
+#elif __APPLE__
+  #define SSTRCPY(d,z,s) strlcpy(d,s,z)
+  #define SSTRCAT(d,z,s) strcat(d,s)
+  #define SSTRNCPY(d,z,s,m) strncpy(d,s,m)
+  #define SGETENV(d,z,n) strcpy(d,getenv(n)?getenv(n):"")
+  inline int SSNPRINTF(char *d, const size_t, const size_t c, const char* const f,...)
+  {
+      int result;
+      va_list valist;
+      va_start(valist,f);
+      #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+        result = _vsnprintf(d,c,f,valist);
+      #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+        result = vsnprintf(d,c,f,valist);
+      #else
+        #error Sorry, we do not recognize this system...
+      #endif
+      va_end(valist);
+      return result;
+  }
+
 
 /**
 * These functions are insecure, but everybody has them, so we
@@ -590,7 +639,7 @@ class CTwnDsmApps
     * @return a valid TWRC_xxxx return code
     */
     TW_INT16 LoadDS(TW_IDENTITY *_pAppId,
-                    TW_UINT32   _DsId);
+                    TWID_T      _DsId);
 
     /**
     * Unloads a DS and frees all its resources...
@@ -598,7 +647,7 @@ class CTwnDsmApps
     * @param[in] _DsId the source index
     */
     void UnloadDS(TW_IDENTITY *_pAppId,
-                  TW_UINT32   _DsId);
+                  TWID_T      _DsId);
 
     /**
     * Validate that an id is in range...
@@ -667,7 +716,7 @@ class CTwnDsmApps
     * @param[in] _pAppId id of app
     * @return DSM_State of the application
     */
-    TW_UINT32 AppGetNumDs(TW_IDENTITY *_pAppId);
+    TWID_T AppGetNumDs(TW_IDENTITY *_pAppId);
 
     /**
     * Poke the application to wake it up when sending a
@@ -683,7 +732,7 @@ class CTwnDsmApps
     * @return pointer to drivers identity or NULL
     */
     TW_IDENTITY *DsGetIdentity(TW_IDENTITY *_pAppId,
-                               TW_UINT32   _DsId);
+                               TWID_T       _DsId);
 
     /**
     * Get a pointer to the DS_Entry function of the specified driver...
@@ -692,7 +741,7 @@ class CTwnDsmApps
     * @return pointer to DS_Entry for this driver or NULL
     */
     DSENTRYPROC  DsGetEntryProc(TW_IDENTITY *_pAppId,
-                                TW_UINT32   _DsId);
+                                TWID_T       _DsId);
 
     /**
     * Get a pointer to the driver file path and name, which is guaranteed to
@@ -703,7 +752,7 @@ class CTwnDsmApps
     * @return pointer to file path and name for this driver or NULL
     */
     char *DsGetPath(TW_IDENTITY *_pAppId,
-                    TW_UINT32   _DsId);
+                    TWID_T       _DsId);
 
     /**
     * Get a pointer to TW_CALLBACK structure for the specified driver...
@@ -713,7 +762,7 @@ class CTwnDsmApps
     * @return pointer to the callback structure for this driver or NULL
     */
     TW_CALLBACK2 *DsCallback2Get(TW_IDENTITY *_pAppId,
-                                TW_UINT32   _DsId);
+                                 TWID_T       _DsId);
 
     /**
     * Test if the driver has a callback pending for attention...
@@ -722,7 +771,7 @@ class CTwnDsmApps
     * @return TRUE if the driver needs its callback called
     */
     TW_BOOL DsCallbackIsWaiting(TW_IDENTITY *_pAppId,
-                                TW_UINT32   _DsId);
+                                TWID_T       _DsId);
 
     /**
     * Set the callback flag for the driver to TRUE if the callback
@@ -733,7 +782,7 @@ class CTwnDsmApps
     * @param[in] _Waiting the new state for the waiting flag
     */
     void DsCallbackSetWaiting(TW_IDENTITY *_pAppId,
-                              TW_UINT32   _DsId,
+                              TWID_T       _DsId,
                               TW_BOOL     _Waiting);
 
     /**
@@ -743,7 +792,7 @@ class CTwnDsmApps
     * @return TRUE if the DS has not finished processing message
     */
     TW_BOOL DsIsProcessingMessage(TW_IDENTITY *_pAppId,
-                                  TW_UINT32    _DsId);
+                                  TWID_T       _DsId);
 
     /**
     * Set the ProcessingMessage flag.
@@ -753,7 +802,7 @@ class CTwnDsmApps
     * @param[in] _Processing the new state for the processing flag
     */
     void DsSetProcessingMessage(TW_IDENTITY *_pAppId,
-                                TW_UINT32    _DsId,
+                                TWID_T       _DsId,
                                 TW_BOOL      _Processing);
 
     /**
@@ -763,7 +812,7 @@ class CTwnDsmApps
     * @return TRUE if the App has not finished processing callback
     */
     TW_BOOL DsIsAppProcessingCallback(TW_IDENTITY *_pAppId,
-                                      TW_UINT32    _DsId);
+                                      TWID_T       _DsId);
 
     /**
     * Set the AppProcessingCallback flag.
@@ -773,14 +822,14 @@ class CTwnDsmApps
     * @param[in] _Processing the new state for the processing flag
     */
     void DsSetAppProcessingCallback(TW_IDENTITY *_pAppId,
-                                    TW_UINT32    _DsId,
+                                    TWID_T       _DsId,
                                     TW_BOOL      _Processing);
 
     /**
     * Get number of allocated App slots (Last valid App ID +1)
     * @return number of allocated App slots (Last valid App ID +1)
     */
-    TW_UINT32 AppGetNumApp();
+    TWID_T AppGetNumApp();
 
   private:
 
@@ -1195,7 +1244,7 @@ class CTwnDsm
             /**
             * The next id to test for GetFirst/GetNext...
             */
-            TW_UINT32 m_nextDsId;
+            TWID_T m_nextDsId;
 
             /**
             * The DS ID we end up with from SelectDlgProc.  This is only
