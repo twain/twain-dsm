@@ -11,7 +11,7 @@ echo "Build the DSM..."
 
 # Init stuff...
 VERSION=`printf "%02d.%02d.%02d.00" "${DSMMAJOR}" "${DSMMINOR}" "${DSMBUILD}"`
-SIGNER="Kodak Alaris Inc."
+SIGNER=`cat signer`
 SCRIPTDIR=$( cd $(dirname "${BASH_SOURCE}"); pwd )
 BLDDIR="${SCRIPTDIR}/TWAIN_DSM/build/Release"
 TMPDIR="/private/tmp/twaindsm"
@@ -48,15 +48,34 @@ chmod -R 755 "${PKGDIR}/Library"
 
 # Sign our binary...
 echo "sign the binary..."
-codesign -f -s "${SIGNER}" "${PKGDIR}/Library/Frameworks/TWAINDSM.Framework/Versions/A/TWAINDSM"
+if [ "${SIGNER}" == "" ]; then
+	echo "**************************************************"
+	echo "* signer file not found, nothing will be signed. *"
+	echo "* If you want to sign the DSM and the installer, *"
+	echo "* then put the certificate name in a file  named *"
+	echo "* signer. This  certificate will  have  to be in *"
+	echo "* your keychain.                                 *"
+	echo "**************************************************"
+else
+	echo "signer: ${SIGNER}"
+	codesign -f -s "${SIGNER}" "${PKGDIR}/Library/Frameworks/TWAINDSM.Framework/Versions/A/TWAINDSM"
+fi
 
 # Build the package
-pkgbuild\
-   --identifier com.twain.dsm.pkg\
-   --version "${VERSION}"\
-   --sign "${SIGNER}"\
-   --root "${PKGDIR}"\
-   "${DSTDIR}/twaindsm-${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}.pkg"
+if [ "${SIGNER}" == "" ]; then
+	pkgbuild\
+	   --identifier com.twain.dsm.pkg\
+	   --version "${VERSION}"\
+	   --root "${PKGDIR}"\
+	   "${DSTDIR}/twaindsm-${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}.pkg"
+else
+	pkgbuild\
+	   --identifier com.twain.dsm.pkg\
+	   --version "${VERSION}"\
+	   --sign "${SIGNER}"\
+	   --root "${PKGDIR}"\
+	   "${DSTDIR}/twaindsm-${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}.pkg"
+fi
 if [ "$?" != "0" ]; then
 	echo "pkgbuild failed..."
 	exit 1
