@@ -13,7 +13,7 @@
 #
 # History:
 #
-# 2.0 mlm 22-May-2014
+# 2.0 mlm 27-Oct-2017
 # Linux 64-bit and Mac OS X...
 #
 # 1.0 mlm 12-Sep-2009
@@ -30,9 +30,9 @@
 # files like changelog or twaindsm.spec...
 #
 export DSMMAJOR=2
-export DSMMINOR=3
-export DSMBUILD=1
-export DSMREASON="added support for 64-bit Linux"
+export DSMMINOR=4
+export DSMBUILD=0
+export DSMREASON="macOS support and Linux 64-bit fix"
 
 # Don't touch these lines...
 export DSMBUILDER="good"
@@ -41,7 +41,7 @@ export DSMDIRRPM=`printf "dsm_%02d%02d%02d" ${DSMMAJOR} ${DSMMINOR} ${DSMBUILD}`
 export DSMEMAIL="TWAIN Working Group <twaindsm@twain.org>"
 
 # Say hi...
-/bin/echo "mkdsm v1.0 22-May-2014 [TWAIN DSM Build and Release Tool]"
+/bin/echo "mkdsm v2.0 27-Oct-2017 [TWAIN DSM Build and Release Tool]"
 /bin/echo ""
 
 # Make sure we're root...
@@ -207,8 +207,17 @@ if ! ./mkdsm_editlogs.sh ;then
 	exit 1
 fi
 
-# Build the DSM
-if ! ./mkdsm_build.sh ;then
+# Build the DSM for macos...
+if [ "${OSNAME}" == "macosx" ]; then
+	if ! ./mkdsm_macos.sh ;then
+		${ECHO} "  mkdsm_macos.sh failed..."
+		${ECHO} ""
+		${ECHO} "mkdsm failed..."
+		exit 1
+	fi
+
+# Build the DSM for linux...
+elif ! ./mkdsm_build.sh ;then
 	${ECHO} "  mkdsm_build.sh failed..."
 	${ECHO} ""
 	${ECHO} "mkdsm failed..."

@@ -1,3 +1,9 @@
+twaindsm (2.4.0-1) unstable; urgency=low
+
+   * macOS support and Linux 64-bit fix
+
+ -- TWAIN Working Group <twaindsm@twain.org>  Fri, 27 Oct 2017 13:02:43 -0400
+
 twaindsm (2.3.1-1) unstable; urgency=low
 
    * added support for 64-bit Linux

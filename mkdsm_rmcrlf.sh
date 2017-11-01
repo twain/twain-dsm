@@ -12,6 +12,19 @@ if [ "${DSMBUILDER}" != "good" ] ;then
         exit 1
 fi
 
+# We validated this, but on macOS, we're not getting
+# the value of DOS2UNIX, soooooo... :(
+export DOS2UNIX=dos2unix
+if ! which dos2unix &> /dev/null; then
+        export DOS2UNIX=fromdos
+        if ! which fromdos &> /dev/null; then
+                export DOS2UNIX="perl -pi -e 's/\r\n|\n|\r/\n/g'"
+                if ! which perl &> /dev/null; then
+                        echo "  Please install 'dos2unix' or 'tofrodos'..."
+                        exit 1
+                fi
+        fi
+fi
 
 # TWAIN_DSM
 ${ECHO} " ...fixing files in TWAIN_DSM"

@@ -56,6 +56,32 @@ typedef struct
 
 
 /**
+* We have to manage the horror we created for ourselves when we
+* defined TW_INT32/TW_UINT32 to be long instead of int.  We can
+* use the union with any data source on 64-bit Linux and not
+* worry about memory problems.  We can then examine the data and
+* decide if we can handle it.  Old data sources must be ignored.
+* Anyone who needs to use an old data source has to use the
+* libtwaindsm.so.2.3.1 DSM.
+*/
+typedef struct {
+    long           Id;
+    TW_VERSION 	   Version;
+    TW_UINT16  	   ProtocolMajor;
+    TW_UINT16  	   ProtocolMinor;
+    long  	       SupportedGroups;
+    TW_STR32   	   Manufacturer;
+    TW_STR32   	   ProductFamily;
+    TW_STR32   	   ProductName;
+} TW_IDENTITY_LINUX64;
+typedef union {
+    TW_IDENTITY          twidentity;
+    TW_IDENTITY_LINUX64  twidentitylinux64;
+} TW_IDENTITY_LINUX64SAFE;
+
+
+
+/**
 * Structure to hold a list of Data Sources.
 */
 typedef struct
@@ -1419,7 +1445,8 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 {
   TW_INT16  result = TWRC_SUCCESS;
   DS_INFO  *pDSInfo;
-  //bool hook;
+  bool hook;
+  TW_IDENTITY_LINUX64SAFE twidentitylinux64safe;
 
   // Validate...
   if ( 0 == _pPath )
@@ -1452,7 +1479,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // Only hook this driver if we've been asked to keep the driver
   // open (meaning we're processing a MSG_OPENDS) and if we see
   // that the driver is 1.x...(by checking the absence of DF_DS2)
-  //hook = _boolKeepOpen && !(pDSInfo->Identity.SupportedGroups & DF_DS2);
+  hook = _boolKeepOpen && !(pDSInfo->Identity.SupportedGroups & DF_DS2);
 
   // Try to load the driver...  We load the driver again if we are keeping
   // it open.  This LoadLibrary is always closed so we dont hook this time.
@@ -1510,7 +1537,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
     #endif
     if (pDSInfo->DS_Entry == 0)
     {
-      UNLOADLIBRARY(pDSInfo->pHandle,false,0);
+      (void)UNLOADLIBRARY(pDSInfo->pHandle,false,0);
       pDSInfo->pHandle = NULL;
       AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
       return TWRC_FAILURE;
@@ -1527,10 +1554,12 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // older DSM.  This is the only way a driver can tell if
   // it's being talked to directly by the DSM instead of
   // by the application (with the DSM as a passthru)...
-  result = pDSInfo->DS_Entry(NULL,DG_CONTROL,DAT_IDENTITY,MSG_GET,(TW_MEMREF)&pDSInfo->Identity);
+  memset(&twidentitylinux64safe, 0, sizeof(twidentitylinux64safe));
+  twidentitylinux64safe.twidentity.Id = (TWIDDEST_T)_DsId;
+  result = pDSInfo->DS_Entry(NULL,DG_CONTROL,DAT_IDENTITY,MSG_GET,(TW_MEMREF)&twidentitylinux64safe);
   if (result != TWRC_SUCCESS)
   {
-    UNLOADLIBRARY(pDSInfo->pHandle,false,0);
+    (void)UNLOADLIBRARY(pDSInfo->pHandle,false,0);
     pDSInfo->pHandle = NULL;
     pDSInfo->DS_Entry = NULL;
     kLOG((kLOGINFO,"DG_CONTROL,DAT_IDENTITY,MSG_GET failed"));
@@ -1538,13 +1567,60 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
+  // We're going to do a sanity check on the data if we
+  // are running on Linux as a 64-bit process.  This is
+  // because we messed up the definition of TW_INT32 and
+  // TW_UINT32, making them 64-bit values (based on long)
+  // rather than 32-bit values (based on int).  Starting
+  // with TWAIN 2.4 this is fixed, but we have to be able
+  // to handle old drivers.  These will be in trouble
+  // because their Id and SupportedGroups will be 64-bit,
+  // shifting data in the structure.
+  //
+  // This is a heuristic, meaning that it's possible to
+  // get it wrong.  Add as many checks as possible.  All
+  // TWAIN drivers must support DG_CONTROL and DG_IMAGE,
+  // and we're going to validate a whole mess of protocol
+  // versions...
+  #if (TWNDSM_OS == TWNDSM_OS_LINUX) && (TWNDSM_OS_64BIT == 1)
+	  if (    (twidentitylinux64safe.twidentity.SupportedGroups & (DG_CONTROL | DG_IMAGE))
+		  &&  (((twidentitylinux64safe.twidentity.ProtocolMajor >= 3) && (twidentitylinux64safe.twidentity.ProtocolMinor <= 9))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 2) && (twidentitylinux64safe.twidentity.ProtocolMinor >= 4) && (twidentitylinux64safe.twidentity.ProtocolMinor <= 9))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 1) && (twidentitylinux64safe.twidentity.ProtocolMinor == 5))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 1) && (twidentitylinux64safe.twidentity.ProtocolMinor == 6))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 1) && (twidentitylinux64safe.twidentity.ProtocolMinor == 7))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 1) && (twidentitylinux64safe.twidentity.ProtocolMinor == 8))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 1) && (twidentitylinux64safe.twidentity.ProtocolMinor == 9))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 1) && (twidentitylinux64safe.twidentity.ProtocolMinor == 91))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 2) && (twidentitylinux64safe.twidentity.ProtocolMinor == 0))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 2) && (twidentitylinux64safe.twidentity.ProtocolMinor == 1))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 2) && (twidentitylinux64safe.twidentity.ProtocolMinor == 2))
+		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 2) && (twidentitylinux64safe.twidentity.ProtocolMinor == 3))))
+	  {
+		  // We're good, keep going...
+	  }
+	  else
+	  {
+		(void)UNLOADLIBRARY(pDSInfo->pHandle,false,0);
+		pDSInfo->pHandle = NULL;
+		pDSInfo->DS_Entry = NULL;
+		kLOG((kLOGINFO,"DG_CONTROL,DAT_IDENTITY,MSG_GET failed (rejected as old 64-bit TW_INT32/TW_UINT32)"));
+		AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
+		return TWRC_FAILURE;
+	  }
+  #endif
+
+  // Okay, we can keep this TW_IDENTITY, so copy it over,
+  // but be careful to use the TW_IDENTITY size...
+  memcpy(&pDSInfo->Identity, &twidentitylinux64safe.twidentity, sizeof(pDSInfo->Identity));
+
   // Compare the supported groups.  Note that the & is correct
   // because we are comparing bits...
   // we do not want to compare DG_CONTROL because is it supported by all
   if ( !(  (_pAppId->SupportedGroups & DG_MASK & ~DG_CONTROL)              // app supports
          & (pDSInfo->Identity.SupportedGroups & DG_MASK & ~DG_CONTROL) ) ) // source supports
   {
-    UNLOADLIBRARY(pDSInfo->pHandle,false,0);
+    (void)UNLOADLIBRARY(pDSInfo->pHandle,false,0);
     pDSInfo->pHandle = NULL;
     pDSInfo->DS_Entry = NULL;
     kLOG((kLOGINFO,"The SupportedGroups do not match."));
@@ -1564,7 +1640,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // We clear the library to avoid cluttering up the virtual address space, and
   // to prevent scary weirdness that can result from multiple drivers being
   // loaded (if the application wants to load multiple drivers, that's its risk).
-  UNLOADLIBRARY(pDSInfo->pHandle,false,0);
+  (void)UNLOADLIBRARY(pDSInfo->pHandle,false,0);
   pDSInfo->pHandle = NULL;
   pDSInfo->DS_Entry = NULL;
 
@@ -1642,7 +1718,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
       #endif
       if (pDSInfo->DS_Entry == 0)
       {
-        UNLOADLIBRARY(pDSInfo->pHandle,false,0);
+        (void)UNLOADLIBRARY(pDSInfo->pHandle,false,0);
         pDSInfo->pHandle = NULL;
         AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
         return TWRC_FAILURE;
@@ -1665,6 +1741,8 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
                            TWID_T        _DsId)
 {
+  int retval = 0;
+
   // Unload the specified driver...
   if (    AppValidateId(_pAppId)
       &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
@@ -1672,13 +1750,9 @@ void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
       &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].pHandle)
   {
     // Unload the library...
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
-    BOOL retval = 
-#else
-    int retval = 
-#endif
-    UNLOADLIBRARY(m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].pHandle,true,_DsId);
+    retval = UNLOADLIBRARY(m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].pHandle,true,_DsId);
 
+	// Log if something bad happens...
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
       if(0 == retval)
       {

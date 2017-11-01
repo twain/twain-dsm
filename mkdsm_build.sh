@@ -90,7 +90,7 @@ if [ "$OSNAME" == "ubuntu" ] ;then
 
 		# Cleanup...
 		echo ""
-		echo "  ...cleanupe"
+		echo "  ...cleanup"
 		./mkdsm_clean.sh keeprelease		
 
 	        # Copy TWAIN_DSM to the target directory...

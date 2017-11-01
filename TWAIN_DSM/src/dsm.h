@@ -1,7 +1,7 @@
 /***************************************************************************
  * TWAIN Data Source Manager version 2.1
  * Manages image acquisition data sources used by a machine. 
- * Copyright © 2007 TWAIN Working Group:  
+ * Copyright Â© 2007 TWAIN Working Group:
  * Adobe Systems Incorporated,AnyDoc Software Inc., Eastman Kodak Company, 
  * Fujitsu Computer Products of America, JFL Peripheral Solutions Inc., 
  * Ricoh Corporation, and Xerox Corporation.
@@ -310,9 +310,15 @@
   #define DllExport
   #define NCHARS(s) sizeof(s)/sizeof(s[0])
   #define PATH_SEPERATOR '/'
+#if (TWNDSM_OS == TWNDSM_OS_MACOSX)
+  #define LOADLIBRARY(lib,hook,DSID) \
+    CFBundleCreate(0, CFURLCreateWithFileSystemPath(0, CFStringCreateWithCStringNoCopy(0, _pPath, kCFStringEncodingUTF8, 0), kCFURLPOSIXPathStyle, TRUE))
+  #define UNLOADLIBRARY(lib,unhook,DSID) 0; CFRelease((CFBundleRef)(lib))
+#else
   #define LOADLIBRARY(lib,hook,DSID) dlopen(lib, RTLD_LAZY)
-  #define LOADFUNCTION(lib, func) dlsym(lib, func)
   #define UNLOADLIBRARY(lib,unhook,DSID) dlclose(lib)
+#endif
+  #define LOADFUNCTION(lib, func) dlsym(lib, func)
   #define READ read
   #define CLOSE close
   #define SNPRINTF snprintf

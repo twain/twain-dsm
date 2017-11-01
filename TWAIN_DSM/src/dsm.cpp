@@ -82,6 +82,14 @@ CTwnDsmLog *g_ptwndsmlog    = 0; /**< The logging object, only access through ma
 *
 * Many languages still need translations...
 */
+/*
+* we need this because xcode insists on complaining about content
+* inside of visual studio's code block
+*/
+#if (TWNDSM_OS == TWNDSM_OS_MACOSX)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wall"
+#endif
 #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
 typedef struct
 {
@@ -219,6 +227,9 @@ static TwLocalize s_twlocalize[] =
     // We don't have anything for here...
 #else
     #error Sorry, we do not recognize this system...
+#endif
+#if (TWNDSM_OS == TWNDSM_OS_MACOSX)
+#pragma clang diagnostic pop
 #endif
 
 #if TWNDSM_OS_64BIT
@@ -495,8 +506,11 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
   switch (_DAT)
     {
       case DAT_IDENTITY:
-        // If the pDSId is 0 then the message is intended for us...
-        if (pDSId == 0)
+        // If the pDSId is 0 then the message is intended for us.  We're
+        // going to force the matter if _MSG is MSG_CLOSEDS, otherwise
+        // we send the MSG_CLOSEDS to the driver, but never process it
+        // ourselves, which seems like a terrible idea...
+        if ((pDSId == 0) || (_MSG == MSG_CLOSEDS))
         {
           rcDSM = DSM_Identity(pAppId,_MSG,(TW_IDENTITY*)_pData);
           break;
@@ -574,7 +588,7 @@ TW_UINT16 CTwnDsm::DSM_Entry(TW_IDENTITY  *_pOrigin,
             // For some reason we have no pointer to the dsentry function...
             else
             {
-			  kLOG((kLOGERR,"Unable to find driver, check your AppId and DsId values..."));
+              kLOG((kLOGERR,"Unable to find driver, check your AppId and DsId values..."));
               pod.m_ptwndsmapps->AppSetConditionCode(pAppId,TWCC_OPERATIONERROR);
               kLOG((kLOGERR,"DS_Entry is null...%ld",(TWID_T)pAppId->Id));
               rcDSM = TWRC_FAILURE;
@@ -3744,8 +3758,18 @@ TW_HANDLE PASCAL DSM_MemAllocate (TW_UINT32 _bytes)
       return (TW_HANDLE)NULL;
   }
   return handle;
+  
+  // MacOS
+  #elif (TWNDSM_OS == TWNDSM_OS_MACOSX)
+    handle = (TW_HANDLE)NewHandleClear(_bytes);
+  if (0 == handle)
+  {
+      kLOG((kLOGERR,"DSM_MemAllocate failed to allocate %ld bytes...",_bytes));
+      return (TW_HANDLE)NULL;
+  }
+  return handle;
 
-  // Linux/Mac
+  // Linux
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     handle = (TW_HANDLE)calloc(_bytes,1);
   if (0 == handle)
@@ -3779,6 +3803,10 @@ void PASCAL DSM_MemFree (TW_HANDLE _handle)
   // Windows...
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     ::GlobalFree(_handle);
+    
+  // MacOS
+  #elif (TWNDSM_OS == TWNDSM_OS_MACOSX)
+    DisposeHandle((Handle)_handle);
 
   // Linux...
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
@@ -3810,6 +3838,10 @@ TW_MEMREF PASCAL DSM_MemLock (TW_HANDLE _handle)
   // this is a no-op for a GPTR, what they hey...
   #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
     return (TW_MEMREF)::GlobalLock(_handle);
+
+  // MacOS
+  #elif (TWNDSM_OS == TWNDSM_OS_MACOSX)
+    return _handle ? *_handle : 0;
 
   // Linux...
   #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
@@ -3857,6 +3889,10 @@ void PASCAL DSM_MemUnlock (TW_HANDLE _handle)
 void* DSM_LoadFunction(void* _pHandle, const char* _pszSymbol)
 {
   void* pRet = 0;
+#if (TWNDSM_OS == TWNDSM_OS_MACOSX)
+  pRet = CFBundleGetFunctionPointerForName((CFBundleRef)_pHandle,
+					   CFStringCreateWithCStringNoCopy(0, _pszSymbol, kCFStringEncodingUTF8, 0));
+#else
 
   #if (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
     dlerror();    /* Clear any existing error */
@@ -3874,6 +3910,6 @@ void* DSM_LoadFunction(void* _pHandle, const char* _pszSymbol)
     pRet = 0;
   }
 #endif
-
+#endif
   return pRet;
 }

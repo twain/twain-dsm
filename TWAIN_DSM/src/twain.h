@@ -86,6 +86,9 @@
                                  for 2.2 Specification MSM
     version 2.3  Feb 2013        Added new types and definitions required
                                  for 2.3 Specification MLM
+    version 2.3a Apr 2015        Errata fixes to TWCY_ANDORRA and TWCY_CUBA
+    version 2.4  Aug 2015        Added new types and definitions required
+                                 for 2.4 Specification MLM 
 \* ======================================================================== */
 
 #ifndef TWAIN
@@ -94,7 +97,7 @@
 /****************************************************************************
  * TWAIN Version                                                            *
  ****************************************************************************/
-#define TWON_PROTOCOLMINOR   3        /* Changed for Version 2.3            */
+#define TWON_PROTOCOLMINOR   4        /* Changed for Version 2.4            */
 #define TWON_PROTOCOLMAJOR   2
 
 /****************************************************************************
@@ -221,18 +224,10 @@
 /* Numeric types. */
 typedef char           	  TW_INT8,          FAR *pTW_INT8;
 typedef short          	  TW_INT16,         FAR *pTW_INT16;
-#if defined(__APPLE__) /* cf: Mac version of TWAIN.h */
-    typedef int           TW_INT32,         FAR *pTW_INT32;
-#else
-    typedef long          TW_INT32,         FAR *pTW_INT32;
-#endif
+typedef int				  TW_INT32,         FAR *pTW_INT32;
 typedef unsigned char     TW_UINT8,         FAR *pTW_UINT8;
 typedef unsigned short    TW_UINT16,        FAR *pTW_UINT16;
-#if defined(__APPLE__) /* cf: Mac version of TWAIN.h */
-    typedef unsigned int  TW_UINT32,        FAR *pTW_UINT32;
-#else
-    typedef unsigned long TW_UINT32,        FAR *pTW_UINT32;
-#endif
+typedef unsigned int      TW_UINT32,        FAR *pTW_UINT32;
 typedef unsigned short    TW_BOOL,          FAR *pTW_BOOL;
 
 
@@ -501,6 +496,13 @@ typedef struct {
    TW_MEMORY   HuffmanAC[2];
 } TW_JPEGCOMPRESSION, FAR * pTW_JPEGCOMPRESSION;
 
+/* Collects scanning metrics after returning to state 4 */
+typedef struct {
+   TW_UINT32   	SizeOf;
+   TW_UINT32    ImageCount;
+   TW_UINT32    SheetCount; 
+} TW_METRICS, FAR * pTW_METRICS;
+
 /* Stores a single value (item) which describes a capability. */
 typedef struct {
    TW_UINT16  ItemType;
@@ -583,6 +585,15 @@ typedef struct {
    TW_UINT32    Size;
    TW_HANDLE    UTF8string;
 } TW_STATUSUTF8, FAR * pTW_STATUSUTF8;
+
+typedef struct {
+   TW_UINT32    SizeOf;
+   TW_UINT16    CommunicationManager;
+   TW_HANDLE    Send;
+   TW_UINT32    SendSize;
+   TW_HANDLE    Receive;
+   TW_UINT32    ReceiveSize;
+} TW_TWAINDIRECT, FAR * pTW_TWAINDIRECT;
 
 /* This structure is used to handle the user interface coordination between an application and a Source. */
 typedef struct {
@@ -730,11 +741,6 @@ typedef struct {
 #define TWCS_TOP                 1
 #define TWCS_BOTTOM              2
 
-/* CAP_CLEARBUFFERS values */
-#define TWCB_AUTO                0
-#define TWCB_CLEAR               1
-#define TWCB_NOCLEAR             2
-
 /* CAP_DEVICEEVENT values */
 #define TWDE_CUSTOMEVENTS           0x8000      
 #define TWDE_CHECKAUTOMATICCAPTURE  0
@@ -797,6 +803,7 @@ typedef struct {
 #define TWFF_DEJAVU             14
 #define TWFF_PDFA               15
 #define TWFF_PDFA2              16
+#define TWFF_PDFRASTER          17
 
 /* ICAP_FLASHUSED2 values */
 #define TWFL_NONE                0
@@ -1133,7 +1140,7 @@ typedef struct {
 #define TWCY_AFGHANISTAN   1001
 #define TWCY_ALGERIA        213
 #define TWCY_AMERICANSAMOA  684
-#define TWCY_ANDORRA        033
+#define TWCY_ANDORRA         33
 #define TWCY_ANGOLA        1002
 #define TWCY_ANGUILLA      8090
 #define TWCY_ANTIGUA       8091
@@ -1175,8 +1182,8 @@ typedef struct {
 #define TWCY_COMOROS       1010
 #define TWCY_CONGO         1011
 #define TWCY_COOKIS        1012
-#define TWCY_COSTARICA     506
-#define TWCY_CUBA           005
+#define TWCY_COSTARICA      506
+#define TWCY_CUBA             5
 #define TWCY_CYPRUS         357
 #define TWCY_CZECHOSLOVAKIA  42
 #define TWCY_DENMARK         45
@@ -1216,7 +1223,7 @@ typedef struct {
 #define TWCY_GUYANA         592
 #define TWCY_HAITI          509
 #define TWCY_HONDURAS       504
-#define TWCY_HONGKONG      852
+#define TWCY_HONGKONG       852
 #define TWCY_HUNGARY         36
 #define TWCY_ICELAND        354
 #define TWCY_INDIA           91
@@ -1226,7 +1233,7 @@ typedef struct {
 #define TWCY_IRELAND        353
 #define TWCY_ISRAEL         972
 #define TWCY_ITALY           39
-#define TWCY_IVORYCOAST    225
+#define TWCY_IVORYCOAST     225
 #define TWCY_JAMAICA       8010
 #define TWCY_JAPAN           81
 #define TWCY_JORDAN         962
@@ -1297,7 +1304,7 @@ typedef struct {
 #define TWCY_SINGAPORE       65
 #define TWCY_SOLOMONIS     1036
 #define TWCY_SOMALI        1037
-#define TWCY_SOUTHAFRICA    27
+#define TWCY_SOUTHAFRICA     27
 #define TWCY_SPAIN           34
 #define TWCY_SRILANKA        94
 #define TWCY_STHELENA      1032
@@ -1358,17 +1365,17 @@ typedef struct {
 #define TWCY_MACEDONIA      389
 #define TWCY_MAYOTTEIS      269
 #define TWCY_MOLDOVA        373
-#define TWCY_MYANMAR        95
+#define TWCY_MYANMAR         95
 #define TWCY_NORTHKOREA     850
 #define TWCY_PUERTORICO     787
-#define TWCY_RUSSIA         7
+#define TWCY_RUSSIA           7
 #define TWCY_SERBIA         381
 #define TWCY_SLOVAKIA       421
 #define TWCY_SLOVENIA       386
-#define TWCY_SOUTHKOREA     82
+#define TWCY_SOUTHKOREA      82
 #define TWCY_UKRAINE        380
 #define TWCY_USVIRGINIS     340
-#define TWCY_VIETNAM        84
+#define TWCY_VIETNAM         84
 
 /****************************************************************************
  * Language Constants                                                       *
@@ -1548,6 +1555,8 @@ typedef struct {
 #define DAT_CALLBACK        0x0010
 #define DAT_STATUSUTF8      0x0011
 #define DAT_CALLBACK2       0x0012
+#define DAT_METRICS         0x0013
+#define DAT_TWAINDIRECT     0x0014
 
 /* Data Argument Types for the DG_IMAGE Data Group. */
 #define DAT_IMAGEINFO       0x0101
@@ -1647,6 +1656,9 @@ typedef struct {
 /* used with DAT_CAPABILITY */
 #define MSG_RESETALL          0x0A01
 
+/* used with DAT_TWAINDIRECT */
+#define MSG_SETTASK           0x0B01
+
 /****************************************************************************
  * Capabilities                                                             *
  ****************************************************************************/
@@ -1691,7 +1703,6 @@ typedef struct {
 #define CAP_AUTOMATICCAPTURE        0x101a
 #define CAP_TIMEBEFOREFIRSTCAPTURE  0x101b
 #define CAP_TIMEBETWEENCAPTURES     0x101c
-#define CAP_CLEARBUFFERS            0x101d
 #define CAP_MAXBATCHBUFFERS         0x101e
 #define CAP_DEVICETIMEDATE          0x101f
 #define CAP_POWERSUPPLY             0x1020
@@ -1737,6 +1748,7 @@ typedef struct {
 #define CAP_PRINTERINDEXSTEP        0x104C
 #define CAP_PRINTERINDEXTRIGGER     0x104D
 #define CAP_PRINTERSTRINGPREVIEW    0x104E
+#define CAP_SHEETCOUNT              0x104F
 
 
 
@@ -1907,7 +1919,8 @@ typedef struct {
 #define TWEI_IMAGEMERGED            0x1247
 #define TWEI_MAGDATALENGTH          0x1248
 #define TWEI_PAPERCOUNT             0x1249
-#define TWEI_PRINTERTEXT            0x124A 
+#define TWEI_PRINTERTEXT            0x124A
+#define TWEI_TWAINDIRECTMETADATA    0x124B
 
 #define TWEJ_NONE                   0x0000
 #define TWEJ_MIDSEPARATOR           0x0001
@@ -1994,7 +2007,6 @@ typedef struct {
         #define TW_HUGE
 #endif
 
-
 typedef BYTE TW_HUGE * HPBYTE;
 typedef void TW_HUGE * HPVOID;
 
@@ -2009,6 +2021,7 @@ typedef wchar_t           TW_UNI512[512],     FAR *pTW_UNI512;
 #define DAT_TWUNKIDENTITY     0x000b
 #define DAT_SETUPFILEXFER2    0x0301
 
+#define CAP_CLEARBUFFERS          0x101d
 #define CAP_SUPPORTEDCAPSEXT      0x100c
 #define CAP_FILESYSTEM            //0x????
 #define CAP_PAGEMULTIPLEACQUIRE   0x1023
@@ -2020,6 +2033,8 @@ typedef wchar_t           TW_UNI512[512],     FAR *pTW_UNI512;
 #define MSG_CHECKSTATUS       0x0201
 
 #define MSG_INVOKE_CALLBACK   0x0903    /* Mac Only, deprecated - use DAT_NULL and MSG_xxx instead */
+
+#define TWQC_CONSTRAINABLE    0x0040
 
 #define TWSX_FILE2            3
 
@@ -2042,13 +2057,16 @@ typedef wchar_t           TW_UNI512[512],     FAR *pTW_UNI512;
 #define TWSS_B6          TWSS_ISOB6
 #define TWSS_B5LETTER    TWSS_JISB5
 
-
 /* ACAP_AUDIOFILEFORMAT values (AF_ means audio format).  Added 1.8 */
 #define TWAF_WAV      0
 #define TWAF_AIFF     1
 #define TWAF_AU       3
 #define TWAF_SND      4
 
+/* CAP_CLEARBUFFERS values */
+#define TWCB_AUTO                0
+#define TWCB_CLEAR               1
+#define TWCB_NOCLEAR             2
 
 /* DAT_SETUPFILEXFER2. Sets up DS to application data transfer via a file. Added 1.9 */
 typedef struct {
@@ -2081,13 +2099,10 @@ typedef struct
 /* Provides DS_Entry results over thunk link. */
 typedef struct
 {
-    TW_UINT16   returnCode;   
+    TW_UINT16   returnCode;
     TW_UINT16   conditionCode;
-    TW_INT32    pDataSize;    
-    //  TW_MEMREF   pData;    
-                              
-                              
-                              
+    TW_INT32    pDataSize;
+    //  TW_MEMREF   pData;                     
 } TW_TWUNKDSENTRYRETURN, FAR * pTW_TWUNKDSENTRYRETURN;
 
 typedef struct

@@ -17,10 +17,12 @@ fi
 #
 
 # cmake
-echo "  ...checking for cmake"
-if ! which cmake &> /dev/null; then
-	echo "  Please install 'cmake'..."
-	exit 1
+echo "  ...checking for cmake (linux only)"
+if [ "$OSNAME" != "macosx" ] ;then
+	if ! which cmake &> /dev/null; then
+		echo "  Please install 'cmake'..."
+		exit 1
+	fi
 fi
 
 # dos2unix/fromdos
@@ -36,6 +38,7 @@ if ! which dos2unix &> /dev/null; then
 		fi
 	fi
 fi
+echo "  ...using ${DOS2UNIX}"
 
 # g++
 echo "  ...checking for g++"
@@ -96,12 +99,12 @@ elif [ "$OSNAME" == "suse" ]; then
 # Stuff that Mac OS X needs...
 #
 elif [ "$OSNAME" == "macosx" ]; then
-	# rpmbuild
-	echo "  ...checking for rpmbuild"
-#	if ! which rpmbuild &> /dev/null; then
-#		echo "  Please install 'rpmbuild'..."
-#		exit 1
-#	fi
+	# xcodebuild
+	echo "  ...checking for xcodebuild"
+	if ! which xcodebuild &> /dev/null; then
+		echo "  Please install 'xcode'..."
+		exit 1
+	fi
 
 
 #
