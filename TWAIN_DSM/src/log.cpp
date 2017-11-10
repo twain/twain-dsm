@@ -245,9 +245,9 @@ void CTwnDsmLog::Log(const int         _doassert,
                       #if (TWNDSM_CMP_VERSION >= 1400)
                         TWNDSM_MAX_MSG,
                       #endif
-                      "[%02d%02d%02d%03d %-8s %4d %5d %p] %.*s",
-                      st.wHour,st.wMinute,st.wSecond,st.wMilliseconds,
-                      file,_line,
+                      "[%02d%02d%02d%03d %-8s %4d %5u %p] %.*s",
+					  (int)st.wHour, (int)st.wMinute, (int)st.wSecond,(int)st.wMilliseconds,
+                      file, (int)_line,
                       nError,
                       (void*)(UINT_PTR)GETTHREADID(),
                       m_ptwndsmlogimpl->pod.m_nIndent*2, "            ");

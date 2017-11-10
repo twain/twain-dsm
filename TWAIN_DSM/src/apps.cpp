@@ -1388,6 +1388,7 @@ TW_INT16 CTwnDsmApps::LoadDS(TW_IDENTITY  *_pAppId,
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
       // Make the DS directory the current directoy while we load the DS so that any DLLs that
       // are loaded with the DS can be found.
+	  char		*szResult;
       char      szPrevWorkDir[FILENAME_MAX];
       char      szWorkDir[FILENAME_MAX];
 
@@ -1405,7 +1406,11 @@ TW_INT16 CTwnDsmApps::LoadDS(TW_IDENTITY  *_pAppId,
       }
       /* Save the current working directory: */
       memset( szPrevWorkDir, 0, NCHARS(szPrevWorkDir) );
-      _getcwd( szPrevWorkDir, NCHARS(szPrevWorkDir) );
+	  szResult = _getcwd( szPrevWorkDir, NCHARS(szPrevWorkDir) );
+	  if (!szResult)
+	  {
+		  kLOG((kLOGERR, "_getcwd failed..."));
+	  }
       (void)_chdir( szWorkDir );
     #endif
 
@@ -1583,7 +1588,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // and we're going to validate a whole mess of protocol
   // versions...
   #if (TWNDSM_OS == TWNDSM_OS_LINUX) && (TWNDSM_OS_64BIT == 1)
-	  if (    (twidentitylinux64safe.twidentity.SupportedGroups & (DG_CONTROL | DG_IMAGE))
+	  if (    ((twidentitylinux64safe.twidentity.SupportedGroups & (DG_CONTROL | DG_IMAGE)) == (DG_CONTROL | DG_IMAGE))
 		  &&  (((twidentitylinux64safe.twidentity.ProtocolMajor >= 3) && (twidentitylinux64safe.twidentity.ProtocolMinor <= 9))
 		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 2) && (twidentitylinux64safe.twidentity.ProtocolMinor >= 4) && (twidentitylinux64safe.twidentity.ProtocolMinor <= 9))
 		  ||   ((twidentitylinux64safe.twidentity.ProtocolMajor == 1) && (twidentitylinux64safe.twidentity.ProtocolMinor == 5))

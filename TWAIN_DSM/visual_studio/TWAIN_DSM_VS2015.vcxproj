@@ -22,6 +22,7 @@
     <ProjectGuid>{5F73EBC7-6A0E-4CBF-A37C-CB167E4CC379}</ProjectGuid>
     <RootNamespace>TWAINDSM</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -87,6 +88,18 @@
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>TWAINDSM</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>TWAINDSM</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetName>TWAINDSM</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>TWAINDSM</TargetName>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
       <Message>create pub folders if do not exist</Message>
@@ -116,16 +129,12 @@
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <ImportLibrary>$(OutDir)TWAIN_DSM.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)TWAINDSM.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Message>Copy $(TargetFileName) to system32 and twain.h to pub directory</Message>
-      <Command>mkdir "$(ProjectDir)\..\pub"
-mkdir "$(ProjectDir)\..\pub\include"
-mkdir "$(ProjectDir)\..\pub\include\twain"
-copy "$(ProjectDir)\..\src\twain.h" "$(ProjectDir)\..\pub\include\twain"
-</Command>
+      <Message>Copy twain.h to pub directory</Message>
+      <Command>$(ProjectDir)PostBuildEvent.bat $(ProjectDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -163,16 +172,12 @@ copy "$(ProjectDir)\..\src\twain.h" "$(ProjectDir)\..\pub\include\twain"
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
-      <ImportLibrary>$(OutDir)TWAIN_DSMx64.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)TWAINDSM.lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Message>Copy $(TargetFileName) to system64 and twain.h to pub directory</Message>
-      <Command>mkdir "$(ProjectDir)\..\pub"
-mkdir "$(ProjectDir)\..\pub\include"
-mkdir "$(ProjectDir)\..\pub\include\twain"
-copy "$(ProjectDir)\..\src\twain.h" "$(ProjectDir)\..\pub\include\twain"
-</Command>
+      <Message>Copy twain.h to pub directory</Message>
+      <Command>$(ProjectDir)PostBuildEvent.bat $(ProjectDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -204,15 +209,8 @@ copy "$(ProjectDir)\..\src\twain.h" "$(ProjectDir)\..\pub\include\twain"
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Message>Copy $(TargetFileName) and twain.h to pub directory</Message>
-      <Command>mkdir "$(ProjectDir)\..\pub"
-mkdir "$(ProjectDir)\..\pub\include"
-mkdir "$(ProjectDir)\..\pub\bin"
-mkdir "$(ProjectDir)\..\pub\bin\twain32"
-mkdir "$(ProjectDir)\..\pub\include\twain"
-copy "$(TargetPath)" "$(ProjectDir)\..\pub\bin\twain32"
-copy "$(ProjectDir)\..\src\twain.h" "$(ProjectDir)\..\pub\include\twain"
-</Command>
+      <Message>Copy twain.h to pub directory</Message>
+      <Command>$(ProjectDir)PostBuildEvent.bat $(ProjectDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -246,19 +244,12 @@ copy "$(ProjectDir)\..\src\twain.h" "$(ProjectDir)\..\pub\include\twain"
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
-      <ImportLibrary>$(OutDir)TWAIN_DSMx64.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)TWAINDSM.lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Message>Copy $(TargetFileName) and twain.h to pub directory</Message>
-      <Command>mkdir "$(ProjectDir)\..\pub"
-mkdir "$(ProjectDir)\..\pub\include"
-mkdir "$(ProjectDir)\..\pub\bin"
-mkdir "$(ProjectDir)\..\pub\bin\twain64"
-mkdir "$(ProjectDir)\..\pub\include\twain"
-copy "$(TargetPath)" "$(ProjectDir)\..\pub\bin\twain64"
-copy "$(ProjectDir)\..\src\twain.h" "$(ProjectDir)\..\pub\include\twain"
-</Command>
+      <Message>Copy twain.h to pub directory</Message>
+      <Command>$(ProjectDir)PostBuildEvent.bat $(ProjectDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

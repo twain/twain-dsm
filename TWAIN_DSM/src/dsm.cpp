@@ -1263,7 +1263,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       {
         kLOG((kLOGINFO,"MSG_OPENDS failed..."));
         TW_UINT16  rcDSMStatus;
-        TW_STATUS  twstatus;
+		TW_STATUS  twstatus = { 0 };
         // If the call to MSG_OPENDS fails, then we need to get the DAT_STATUS and squirrel
         // it away, because we're going to close this data source soon...
         rcDSMStatus = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,(TWID_T)_pDsId->Id))(
@@ -2454,7 +2454,7 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
                            TW_IDENTITY *_pDsId,
                            TW_UINT16    _MSG)
 {
-  TW_CALLBACK2 *ptwcallback2;
+  TW_CALLBACK2 *ptwcallback2 = 0;
   TW_INT16      result    = TWRC_SUCCESS;
   TW_MEMREF     MemRef; 
   bool          bPrinted  = false;
@@ -2529,15 +2529,18 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
   // a callback to a single app, and we are not going to lose MSG's
   else
   {
-    if(ptwcallback2->Message!=0)
-    {
-      char szMsg[64];
-      StringFromMsg(szMsg,NCHARS(szMsg),ptwcallback2->Message);
-      kLOG((kLOGERR,"%.32s NEVER retrieved DAT_EVENT / %s\n", _pAppId->ProductName, szMsg));
-    }
-    ptwcallback2->Message = _MSG;
-    pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,(TWID_T)_pDsId->Id,TRUE);
-    pod.m_ptwndsmapps->AppWakeup(_pAppId);
+	  if (ptwcallback2)
+	  {
+		  if (ptwcallback2->Message != 0)
+		  {
+				char szMsg[64];
+				StringFromMsg(szMsg, NCHARS(szMsg), ptwcallback2->Message);
+				kLOG((kLOGERR, "%.32s NEVER retrieved DAT_EVENT / %s\n", _pAppId->ProductName, szMsg));
+		  }
+		  ptwcallback2->Message = _MSG;
+	  }
+	  pod.m_ptwndsmapps->DsCallbackSetWaiting(_pAppId,(TWID_T)_pDsId->Id,TRUE);
+      pod.m_ptwndsmapps->AppWakeup(_pAppId);
   }
 
   // Log how it went...

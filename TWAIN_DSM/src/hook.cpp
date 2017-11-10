@@ -310,6 +310,7 @@ bool CTwHook::Hook
 	EHOOK _ehook
 )
 {
+	UINT						uResult;
 	BOOL                        boolResult;
 	PIMAGE_IMPORT_DESCRIPTOR    pImportDesc;
 	PIMAGE_THUNK_DATA           pOrigThunk;
@@ -345,7 +346,11 @@ bool CTwHook::Hook
 		// with TWAIN_32.DLL, it's going to go ka-boom.  If this
 		// is a problem, then go back to using ::LoadLibrary()...
 		memset(szTwain32,0,sizeof(szTwain32));
-		::GetWindowsDirectory(szTwain32,sizeof(szTwain32)-1);
+		uResult = ::GetWindowsDirectory(szTwain32,sizeof(szTwain32)-1);
+		if (!uResult)
+		{
+			return(false);
+		}
 		SSTRCAT(szTwain32,sizeof(szTwain32)-1,"\\TWAIN_32.DLL");
 		s_hmoduleTWAIN32 = ::LoadLibraryEx(szTwain32,NULL,DONT_RESOLVE_DLL_REFERENCES);
 		if (0 == s_hmoduleTWAIN32)
@@ -414,7 +419,8 @@ bool CTwHook::Hook
 	pDOSHeader = (PIMAGE_DOS_HEADER)hmodule;
 
 	// Is this the MZ header?
-	if (   (TRUE == IsBadReadPtr(pDOSHeader,sizeof(IMAGE_DOS_HEADER)))
+	if (   !pDOSHeader
+		|| (TRUE == IsBadReadPtr(pDOSHeader,sizeof(IMAGE_DOS_HEADER)))
 		|| (IMAGE_DOS_SIGNATURE != pDOSHeader->e_magic))
 	{
 		return (false);
