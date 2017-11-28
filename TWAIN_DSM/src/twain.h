@@ -89,6 +89,11 @@
     version 2.3a Apr 2015        Errata fixes to TWCY_ANDORRA and TWCY_CUBA
     version 2.4  Aug 2015        Added new types and definitions required
                                  for 2.4 Specification MLM 
+    version 2.4a June 2016       Added TW_INT32 and TW_UINT32 fixes for Linux,
+                                 (I just added this comment today)
+    version 2.4b March 2017      Missing changeset from 2.3 verion (2013/06/20)
+
+ 
 \* ======================================================================== */
 
 #ifndef TWAIN
@@ -222,12 +227,20 @@
 #endif
 
 /* Numeric types. */
-typedef char           	  TW_INT8,          FAR *pTW_INT8;
-typedef short          	  TW_INT16,         FAR *pTW_INT16;
-typedef int				  TW_INT32,         FAR *pTW_INT32;
+typedef char              TW_INT8,          FAR *pTW_INT8;
+typedef short             TW_INT16,         FAR *pTW_INT16;
+#if defined(_WIN32)
+    typedef long          TW_INT32,         FAR *pTW_INT32;
+#else
+    typedef int           TW_INT32,         FAR *pTW_INT32;
+#endif
 typedef unsigned char     TW_UINT8,         FAR *pTW_UINT8;
 typedef unsigned short    TW_UINT16,        FAR *pTW_UINT16;
-typedef unsigned int      TW_UINT32,        FAR *pTW_UINT32;
+#if defined(_WIN32)
+    typedef unsigned long TW_UINT32,        FAR *pTW_UINT32;
+#else
+    typedef unsigned int  TW_UINT32,        FAR *pTW_UINT32;
+#endif
 typedef unsigned short    TW_BOOL,          FAR *pTW_BOOL;
 
 
