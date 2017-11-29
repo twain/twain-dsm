@@ -2004,7 +2004,6 @@ typedef struct {
 #define TWQC_GETCURRENT       0x0008
 #define TWQC_RESET            0x0010
 #define TWQC_SETCONSTRAINT    0x0020
-#define TWQC_CONSTRAINABLE    0x0040
 #define TWQC_GETHELP          0x0100
 #define TWQC_GETLABEL         0x0200
 #define TWQC_GETLABELENUM     0x0400
