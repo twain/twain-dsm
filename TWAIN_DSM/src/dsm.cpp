@@ -3902,7 +3902,7 @@ void* DSM_LoadFunction(void* _pHandle, const char* _pszSymbol)
   #endif
 
   // Try to get the entry point...
-  pRet = LOADFUNCTION(_pHandle, _pszSymbol);
+  pRet = (void*)LOADFUNCTION(_pHandle, _pszSymbol);
 
 #if (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
   char* psz_error = 0;
