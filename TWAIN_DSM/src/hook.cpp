@@ -80,6 +80,7 @@
 *    WinME, but hopefully nobody is still using that)...
 */
 
+#include <algorithm>
 #include "dsm.h"
 
 
@@ -125,14 +126,14 @@ typedef struct _ANSI_STRING {
 * typedefs of our hooked functions, so we can cast them nice when we make
 * our calls...
 */
-typedef NTSYSAPI DWORD (NTAPI *LdrGetProcedureAddress_t)
+typedef NTAPI DWORD (NTAPI *LdrGetProcedureAddress_t)
 (
   __in     HMODULE       ModuleHandle,
   __in_opt PANSI_STRING  FunctionName,
   __in_opt WORD          Oridinal,
   __out    PVOID        *FunctionAddress
 );
-typedef NTSYSAPI DWORD (NTAPI *LdrGetProcedureAddressForCaller_t)
+typedef NTAPI DWORD (NTAPI *LdrGetProcedureAddressForCaller_t)
 (
   __in     HMODULE       ModuleHandle,
   __in_opt PANSI_STRING  FunctionName,
@@ -580,7 +581,7 @@ bool CTwHook::Hook
 */
 bool CTwHook::DSID_Is_Hooked(TW_UINT32 DSID)
 {
-	int count = min(MAX_NUM_DS,s_iHookCount);
+	int count = std::min(MAX_NUM_DS,s_iHookCount);
 	for (int i=0; i<count; i++)
 	{
 		if (pod.HookedDSs[i] == DSID)
@@ -614,7 +615,7 @@ void CTwHook::Hook_Add_DSID(TW_UINT32 DSID)
 */
 bool CTwHook::Hook_Remove_DSID(TW_UINT32 DSID)
 {
-  int count = min(MAX_NUM_DS, s_iHookCount);
+  int count = std::min(MAX_NUM_DS, s_iHookCount);
 
   for(int i=0; i<count; i++)
   {
@@ -670,7 +671,7 @@ DWORD NTAPI LocalLdrGetProcedureAddress
     // Get and store the original address in case we need it
     (OriginalLdrGetProcedureAddress(ModuleHandle,FunctionName,Ordinal,(PVOID*)&TWAIN32_DSMEntry));
     // Return the address to our own function
-    *FunctionAddress = ::DSM_HookedEntry;
+    *FunctionAddress = (void*) ::DSM_HookedEntry;
     return (ERROR_SUCCESS);
   }
 
@@ -716,7 +717,7 @@ DWORD NTAPI LocalLdrGetProcedureAddressForCaller
     // Get and store the original address in case we need it
     (OriginalLdrGetProcedureAddressForCaller(ModuleHandle,FunctionName,Ordinal,(PVOID*)&TWAIN32_DSMEntry,bValue,CallbackAddress));
     // Return the address to our own function
-    *FunctionAddress = ::DSM_HookedEntry;
+    *FunctionAddress = (void*) ::DSM_HookedEntry;
     return (ERROR_SUCCESS);
   }
 

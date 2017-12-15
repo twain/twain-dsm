@@ -189,14 +189,14 @@ void CTwnDsmLog::Log(const int         _doassert,
   const char *file = NULL;
 
   // Grab the system error, this can be really useful...
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     nError = GetLastError();
   if (nError == 0)
   {
     // Yeah, yeah...this is dumb, but I like a clean prefast log...  :)
     nError = 0;
   }
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     nError = errno;
   #else
     #error Sorry, we do not recognize this system...
@@ -216,7 +216,7 @@ void CTwnDsmLog::Log(const int         _doassert,
 
   // Trim the filename down to just the filename, no path...
   file = 0;
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     // Only look for this on Windows...
     file = strrchr(_file,'\\');
   #endif
@@ -237,7 +237,7 @@ void CTwnDsmLog::Log(const int         _doassert,
   }
   
   // Build the message header...
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     SYSTEMTIME st;
     GetLocalTime(&st);
     nChars = SNPRINTF(m_ptwndsmlogimpl->pod.m_message,
@@ -251,7 +251,7 @@ void CTwnDsmLog::Log(const int         _doassert,
                       nError,
                       (void*)(UINT_PTR)GETTHREADID(),
                       m_ptwndsmlogimpl->pod.m_nIndent*2, "            ");
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     timeval tv;
     tm tm;
     gettimeofday(&tv,NULL);
@@ -277,11 +277,11 @@ void CTwnDsmLog::Log(const int         _doassert,
   // Finally, tack on the user portion of the message...
   va_list valist;
   va_start(valist,_format);
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP) && (TWNDSM_CMP_VERSION >= 1400)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS) && (TWNDSM_CMP_VERSION >= 1400)
     _vsnprintf_s(message,nChars,nChars,_format,valist);
-  #elif (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     _vsnprintf(message,nChars,_format,valist);
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     vsnprintf(message,nChars,_format,valist);
   #else
     #error Sorry, we do not recognize this system...
