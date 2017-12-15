@@ -90,7 +90,7 @@ CTwnDsmLog *g_ptwndsmlog    = 0; /**< The logging object, only access through ma
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wall"
 #endif
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+#if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
 typedef struct
 {
   TW_INT16  Language;     /**< Language */
@@ -223,7 +223,7 @@ static TwLocalize s_twlocalize[] =
       {TWLG_VIETNAMESE,         VIETNAMESE_CHARSET, MAKELANGID(LANG_VIETNAMESE,SUBLANG_NEUTRAL),                "","","",""},
       {-1, 0, 0, 0, 0, 0, 0} // must be last...
 };
-#elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+#elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     // We don't have anything for here...
 #else
     #error Sorry, we do not recognize this system...
@@ -1293,9 +1293,9 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
        && _pAppId->ProtocolMinor == 0 )
      || _pAppId->ProtocolMajor < 2 ) 
     {
-      #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+      #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
         // skip...
-      #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+      #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
 		int iResult;
         FILE *pfile;
         char *szHome;
@@ -1412,7 +1412,7 @@ TW_INT16 CTwnDsm::CloseDS(TW_IDENTITY *_pAppId,
 
 
 
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+#if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
 /**
 * DllMain is only needed for Windows, and it's only needed to collect
 * our instance handle, which is also our module handle.  Don't ever
@@ -1450,7 +1450,7 @@ BOOL WINAPI DllMain(HINSTANCE _hmodule,
   }
   return(TRUE);
 }
-#elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+#elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     // Nothing for us to do...
 #else
     #error Sorry, we do not recognize this system...
@@ -1458,7 +1458,7 @@ BOOL WINAPI DllMain(HINSTANCE _hmodule,
 
 
 
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+#if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
 /**
 * We support a selection dialog on Windows.  I wish we didn't, it's
 * more trouble than it's worth, but it's part of that legacy thing.
@@ -1483,7 +1483,7 @@ BOOL CALLBACK SelectDlgProc(HWND   _hWnd,
     return TRUE;
   }
 }
-#elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+#elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
   // We don't have one of these...
 #else
   #error Sorry, we do not recognize this system...
@@ -1491,7 +1491,7 @@ BOOL CALLBACK SelectDlgProc(HWND   _hWnd,
 
 
 
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+#if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
 /**
 * We support a selection dialog on Windows.  This function is
 * part of our CTwnDsm class, so we don't have to have a lot
@@ -1783,7 +1783,7 @@ BOOL CTwnDsm::SelectDlgProc(HWND hWnd,
   }
   return FALSE;
 }
-#elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+#elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
   // We don't have anything to do on Linux...
 #else
   #error Sorry, we do not recognize this system...
@@ -1832,7 +1832,7 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
   _pDsId->Id = 0;
 
   // Windows...
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
 
       HKEY      hKey;
       long      status;
@@ -1937,7 +1937,7 @@ TW_INT16 CTwnDsm::DSM_SelectDS(TW_IDENTITY *_pAppId,
       return result;
 
   // We don't support the user selection box on linux...
-  #elif  (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif  (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
 
     pod.m_ptwndsmapps->AppSetConditionCode(_pAppId,TWCC_BADPROTOCOL);
     return TWRC_FAILURE;
@@ -2002,7 +2002,7 @@ TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
   }
 
   // Windows... save default source to Registry  
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     HKEY      hKey;
     long      status = ERROR_SUCCESS;
 
@@ -2031,7 +2031,7 @@ TW_INT16 CTwnDsm::DSM_SetDefaultDS(TW_IDENTITY *_pAppId,
     }
 
   // Linux looks in the user's directory...
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     int iResult;
     FILE *pfile;
     char *szHome;
@@ -2234,7 +2234,7 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
   memset(pod.m_DefaultDSPath,0,sizeof(pod.m_DefaultDSPath));
 
   // Windows uses the registry...
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     HKEY hKey;
     if (RegOpenKeyEx(HKEY_CURRENT_USER,
                      TWNDSM_DS_REG_LOC,
@@ -2252,7 +2252,7 @@ TW_INT16 CTwnDsm::GetMatchingDefault(TW_IDENTITY *_pAppId,
     }
 
   // Linux looks in the user's directory...
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     int iResult;
     FILE *pfile;
     char *szHome;
@@ -3753,7 +3753,7 @@ TW_HANDLE PASCAL DSM_MemAllocate (TW_UINT32 _bytes)
   }
 
   // Windows...
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     handle = (TW_HANDLE)::GlobalAlloc(GPTR,_bytes);
   if (0 == handle)
   {
@@ -3773,7 +3773,7 @@ TW_HANDLE PASCAL DSM_MemAllocate (TW_UINT32 _bytes)
   return handle;
 
   // Linux
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     handle = (TW_HANDLE)calloc(_bytes,1);
   if (0 == handle)
   {
@@ -3804,7 +3804,7 @@ void PASCAL DSM_MemFree (TW_HANDLE _handle)
   }
 
   // Windows...
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     ::GlobalFree(_handle);
     
   // MacOS
@@ -3812,7 +3812,7 @@ void PASCAL DSM_MemFree (TW_HANDLE _handle)
     DisposeHandle((Handle)_handle);
 
   // Linux...
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     free(_handle);
 
   // Oops...
@@ -3839,7 +3839,7 @@ TW_MEMREF PASCAL DSM_MemLock (TW_HANDLE _handle)
   // lock, since we allocated with GPTR, but I'm nervous
   // that we might get a GHND sent to us.  And since
   // this is a no-op for a GPTR, what they hey...
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     return (TW_MEMREF)::GlobalLock(_handle);
 
   // MacOS
@@ -3847,7 +3847,7 @@ TW_MEMREF PASCAL DSM_MemLock (TW_HANDLE _handle)
     return _handle ? *_handle : 0;
 
   // Linux...
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     return (TW_MEMREF)_handle;
 
   // Oops...
@@ -3873,11 +3873,11 @@ void PASCAL DSM_MemUnlock (TW_HANDLE _handle)
   }
 
   // Windows...
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     ::GlobalUnlock(_handle);
 
   // Linux...
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
 
   // Oops...
   #else
@@ -3897,14 +3897,14 @@ void* DSM_LoadFunction(void* _pHandle, const char* _pszSymbol)
 					   CFStringCreateWithCStringNoCopy(0, _pszSymbol, kCFStringEncodingUTF8, 0));
 #else
 
-  #if (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #if (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     dlerror();    /* Clear any existing error */
   #endif
 
   // Try to get the entry point...
   pRet = LOADFUNCTION(_pHandle, _pszSymbol);
 
-#if (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+#if (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
   char* psz_error = 0;
 
   if((psz_error = dlerror()) != NULL)

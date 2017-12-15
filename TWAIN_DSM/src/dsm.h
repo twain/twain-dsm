@@ -97,7 +97,9 @@
   #if defined(__GNUC__)
     #define TWNDSM_CMP              TWNDSM_CMP_GNUGPP
     #define TWNDSM_CMP_VERSION      __GNUC__
-    #if defined(__APPLE__)
+    #if defined(_WIN32)
+      #define TWNDSM_OS             TWNDSM_OS_WINDOWS
+    #elif defined(__APPLE__)
       #define TWNDSM_OS             TWNDSM_OS_MACOSX
     #else
       #define TWNDSM_OS             TWNDSM_OS_LINUX
@@ -130,7 +132,7 @@
 /**
 *  Pull in the system specific headers...
 */
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+#if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
   #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
   #endif
@@ -138,7 +140,7 @@
   #include <direct.h>
   #include <share.h>
 
-#elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+#elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
   #include <dirent.h>
   #include <dlfcn.h>
   #include <unistd.h>
@@ -251,7 +253,7 @@
 * @def kTWAIN_DS_DIR
 * The path to where TWAIN Data Sources are stored on the system
 */
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+#if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
 
   // Define TW_IDENTITY.Id
   #define TWID_T TW_UINT32
@@ -306,7 +308,7 @@
     #endif
   #endif
 
-#elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+#elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
   #define DllExport
   #define NCHARS(s) sizeof(s)/sizeof(s[0])
   #define PATH_SEPERATOR '/'
@@ -397,7 +399,7 @@
 * @param[in] n the source string
 * 
 */
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP) && (TWNDSM_CMP_VERSION >= 1400)
+#if (TWNDSM_OS == TWNDSM_OS_WINDOWS) && (TWNDSM_CMP_VERSION >= 1400)
   #define SSTRCPY(d,z,s) strncpy_s(d,z,s,_TRUNCATE)
   #define SSTRCAT(d,z,s) strncat_s(d,z,s,_TRUNCATE)
   #define SSTRNCPY(d,z,s,m) strncpy_s(d,z,s,m)
@@ -427,9 +429,9 @@
       int result;
       va_list valist;
       va_start(valist,f);
-      #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+      #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
         result = _vsnprintf(d,c,f,valist);
-      #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+      #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
         result = vsnprintf(d,c,f,valist);
       #else
         #error Sorry, we do not recognize this system...
@@ -453,9 +455,9 @@
       int result;
       va_list valist;
       va_start(valist,f);
-      #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+      #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
         result = _vsnprintf(d,c,f,valist);
-      #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+      #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
         result = vsnprintf(d,c,f,valist);
       #else
         #error Sorry, we do not recognize this system...
@@ -504,9 +506,9 @@
 * option, and this is the only way to track a problem!!!
 * @see kLOG
 */
-#if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+#if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
   #define kPANIC(msg) ::MessageBox(NULL,msg,"TWAIN Data Source Manager",MB_OK);
-#elif  (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+#elif  (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
   #define kPANIC(msg) fprintf(stderr,"TWAIN Data Source Manager: %s\r\n",msg);
 #else
   #error Sorry, we do not recognize this system...
@@ -894,7 +896,7 @@ class CTwnDsm
                             TW_UINT16    _MSG,
                             TW_MEMREF    _pData);
 
-        #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+        #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
         /**
         * Selection dialog, for apps that don't want to do GetFirst
         * GetNext.  This is only public because of the way that
@@ -909,7 +911,7 @@ class CTwnDsm
                                         UINT _Message,
                                         WPARAM _wParam,
                                         LPARAM _lParam);
-        #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+        #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
             // We don't have one of these...
         #else
             #error Sorry, we do not recognize this system...

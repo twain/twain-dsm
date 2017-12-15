@@ -424,11 +424,11 @@ TW_UINT16 CTwnDsmApps::AddApp(TW_IDENTITY *_pAppId,
   }
 
   // Work out the full path to our drivers (if needed)...
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     (void)::GetWindowsDirectory(szDsm,sizeof(szDsm));
     SSTRCAT(szDsm,sizeof(szDsm),"\\");
     SSTRCAT(szDsm,sizeof(szDsm),kTWAIN_DS_DIR);
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     SSTRCPY(szDsm,sizeof(szDsm),kTWAIN_DS_DIR);
   #else
     #error Sorry, we do not recognize this system...
@@ -1147,7 +1147,7 @@ int CTwnDsmAppsImpl::scanDSDir(char        *_szAbsPath,
   //
   // Take care of VC++...
   //
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     WIN32_FIND_DATA   FileData;             // Data structure describes the file found
     HANDLE            hSearch;              // Search handle returned by FindFirstFile
     char              szABSFilename[FILENAME_MAX];
@@ -1242,7 +1242,7 @@ int CTwnDsmAppsImpl::scanDSDir(char        *_szAbsPath,
   //
   // Take care of g++...
   //
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     #if (TWNDSM_OS == TWNDSM_OS_MACOSX)
 
       char szABSFilename[FILENAME_MAX];
@@ -1385,7 +1385,7 @@ TW_INT16 CTwnDsmApps::LoadDS(TW_IDENTITY  *_pAppId,
       &&  m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList
       &&  (_DsId < MAX_NUM_DS))
   {
-    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
       // Make the DS directory the current directoy while we load the DS so that any DLLs that
       // are loaded with the DS can be found.
 	  char		*szResult;
@@ -1418,7 +1418,7 @@ TW_INT16 CTwnDsmApps::LoadDS(TW_IDENTITY  *_pAppId,
                                      m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].szPath,
                                      _DsId,
                                      true);
-    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
       if(0!=strlen(szPrevWorkDir))
       {
         (void)_chdir( szPrevWorkDir );
@@ -1489,14 +1489,14 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // Try to load the driver...  We load the driver again if we are keeping
   // it open.  This LoadLibrary is always closed so we dont hook this time.
   pDSInfo->pHandle = (TW_HANDLE)LOADLIBRARY(_pPath,false,0);
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     if (0 == pDSInfo->pHandle)
     {
       kLOG((kLOGERR,"Could not load library: %s",_pPath));
       AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
       return TWRC_FAILURE;
     }
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     if (0 == pDSInfo->pHandle)
     {
       // This is a bit skanky, and not the sort of thing I really want
@@ -1522,7 +1522,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 
   if (pDSInfo->DS_Entry == 0)
   {
-    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
       // The WIATwain.ds does not have an entry point 
       if(0 != strstr(_pPath, "wiatwain.ds"))
       {
@@ -1671,14 +1671,14 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   if (_boolKeepOpen == true)
   {
     pDSInfo->pHandle = (TW_HANDLE)LOADLIBRARY(_pPath,hook,_DsId);
-    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
     if (0 == pDSInfo->pHandle)
     {
       kLOG((kLOGERR,"Could not load library: %s",_pPath));
       AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
       return TWRC_FAILURE;
     }
-    #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+    #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     if (0 == pDSInfo->pHandle)
     {
       // This is a bit skanky, and not the sort of thing I really want
@@ -1703,7 +1703,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
     pDSInfo->DS_Entry = (DSENTRYPROC)DSM_LoadFunction(pDSInfo->pHandle,"DS_Entry");
     if (pDSInfo->DS_Entry == 0)
     {
-      #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+      #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
         // The WIATwain.ds does not have an entry point 
         if(0 != strstr(_pPath, "wiatwain.ds"))
         {
@@ -1758,7 +1758,7 @@ void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
     retval = UNLOADLIBRARY(m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId].pHandle,true,_DsId);
 
 	// Log if something bad happens...
-    #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+    #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
       if(0 == retval)
       {
         kLOG((kLOGERR,"failed to unload datasource"));
@@ -1785,7 +1785,7 @@ void CTwnDsmApps::UnloadDS(TW_IDENTITY  *_pAppId,
 */
 void CTwnDsmApps::AppWakeup(TW_IDENTITY *_pAppId)
 {
-  #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
+  #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
   BOOL boolResult;
     if (   AppValidateId(_pAppId)
         && m_ptwndsmappsimpl->m_AppInfo[(TWID_T)_pAppId->Id].hwnd)
@@ -1798,7 +1798,7 @@ void CTwnDsmApps::AppWakeup(TW_IDENTITY *_pAppId)
         kLOG((kLOGERR,"PostMessage failed..."));
       }
     }
-  #elif (TWNDSM_CMP == TWNDSM_CMP_GNUGPP)
+  #elif (TWNDSM_OS == TWNDSM_OS_LINUX) || (TWNDSM_OS == TWNDSM_OS_MACOSX)
     kLOG((kLOGERR,"We shouldn't be here in AppWakeup..."));
     // We don't support this path on this platform, use
     // callbacks instead...
