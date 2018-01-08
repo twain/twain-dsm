@@ -1,0 +1,20 @@
+Format: 1.7
+Date: Tue,  2 Jan 2018 16:13:52 -0500
+Source: twaindsm
+Binary: twaindsm
+Architecture: source amd64
+Version: 2.4.1-1
+Distribution: unstable
+Urgency: low
+Maintainer: TWAIN Working Group <twaindsm@twain.org>
+Changed-By: TWAIN Working Group <twaindsm@twain.org>
+Description: 
+ twaindsm   - TWAIN Data Source Manager
+Changes: 
+ twaindsm (2.4.1-1) unstable; urgency=low
+ .
+    * check for architecture support on macOS
+Files: 
+ dc3f331235ddb0de5f4b0a6a2ac24d78 284 libdevel optional twaindsm_2.4.1-1.dsc
+ 88a4275cadbb9219a389fbc140e942c4 690151 libdevel optional twaindsm_2.4.1-1.tar.gz
+ 0119591edb3c7dbe1a5ce17456dd3e70 54544 libdevel optional twaindsm_2.4.1-1_amd64.deb
