@@ -1469,6 +1469,66 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
     return TWRC_FAILURE;
   }
 
+  // For Linux we only support the native architecture, so if
+  // a 32-bit process tries to run on an x86_64 system we expect
+  // it to fail.  However, we can't rule out that somebody
+  // might try to make this work.  So we'll check the file...
+  #if (TWNDSM_OS == TWNDSM_OS_LINUX)
+    bool blSuccess = false;
+	char szData[2048] = { 0 };
+	snprintf(szData, sizeof(szData), "file \"%s\"", _pPath);
+	FILE *pf = popen(szData, "r");
+	if (pf)
+	{
+      szData[0] = 0;
+      size_t sizet = fread(szData, 1, sizeof(szData), pf);
+	  szData[sizet] = 0;
+      #if (TWNDSM_OS_64BIT == 1)
+	    blSuccess = (strstr(szData, "x86-64") != 0);
+      #else
+	    blSuccess = (strstr(szData, "Intel 80386") != 0);
+      #endif
+	  pclose(pf);
+	  pf = 0;
+	}
+	if (!blSuccess)
+	{
+	  kLOG((kLOGINFO, "driver doesn't support architecture: %s", _pPath));
+      AppSetConditionCode(_pAppId, TWCC_OPERATIONERROR);
+      return TWRC_FAILURE;
+    }
+  #endif
+
+  // Mac has universal binaries which may or may not have what we
+  // need.  For instance, we can't load an image that only has
+  // i386 content if we're running in an x86_64 process.  So we're
+  // using file(1) to filter content...
+  #if (TWNDSM_OS == TWNDSM_OS_MACOSX)
+    bool blSuccess = false;
+	char szData[2048] = { 0 };
+	snprintf(szData, sizeof(szData), "file \"%s/Contents/MacOS/$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' '%s/Contents/Info.plist')\"", _pPath, _pPath);
+	FILE *pf = popen(szData, "r");
+	if (pf)
+	{
+      szData[0] = 0;
+      size_t sizet = fread(szData, 1, sizeof(szData), pf);
+	  szData[sizet] = 0;
+      #if (TWNDSM_OS_64BIT == 1)
+	    blSuccess = (strstr(szData, "x86_64") != 0);
+      #else
+	    blSuccess = (strstr(szData, "i386") != 0);
+      #endif
+	  pclose(pf);
+	  pf = 0;
+	}
+	if (!blSuccess)
+	{
+	  kLOG((kLOGINFO, "driver doesn't support architecture: %s", _pPath));
+      AppSetConditionCode(_pAppId, TWCC_OPERATIONERROR);
+      return TWRC_FAILURE;
+    }
+  #endif
+
   // Initialize stuff...
   pDSInfo = &m_AppInfo[(TWID_T)_pAppId->Id].pDSList->DSInfo[_DsId];
 

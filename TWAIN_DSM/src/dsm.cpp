@@ -1263,7 +1263,7 @@ TW_INT16 CTwnDsm::OpenDS(TW_IDENTITY *_pAppId,
       {
         kLOG((kLOGINFO,"MSG_OPENDS failed..."));
         TW_UINT16  rcDSMStatus;
-		TW_STATUS  twstatus = { 0 };
+		TW_STATUS  twstatus = { 0, { 0 } };
         // If the call to MSG_OPENDS fails, then we need to get the DAT_STATUS and squirrel
         // it away, because we're going to close this data source soon...
         rcDSMStatus = (pod.m_ptwndsmapps->DsGetEntryProc(&AppId,(TWID_T)_pDsId->Id))(

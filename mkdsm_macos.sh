@@ -20,6 +20,10 @@ DSTDIR="${TMPDIR}/dst"
 DMGDIR="${TMPDIR}/dmg"
 DESKTOPDIR="${HOME}/Desktop"
 
+# Fix the version
+/usr/libexec/PlistBuddy -c "Set CFBundleVersion ${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}" "TWAIN_DSM/Info.plist"
+/usr/libexec/PlistBuddy -c "Set CFBundleShortVersionString ${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}" "TWAIN_DSM/Info.plist"
+
 # Get the folders ready...
 rm -rf "${TMPDIR}" >/dev/null 2>&1
 rm "${DESKTOPDIR}/twaindsm-${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}.dmg.gz" >/dev/null 2>&1

@@ -31,8 +31,8 @@
 #
 export DSMMAJOR=2
 export DSMMINOR=4
-export DSMBUILD=0
-export DSMREASON="macOS support and Linux 64-bit fix"
+export DSMBUILD=1
+export DSMREASON="fix signing and version for macOS"
 
 # Don't touch these lines...
 export DSMBUILDER="good"
@@ -126,6 +126,32 @@ if ! chmod u+rx mkdsm_*.sh ;then
 	exit 1
 fi
 
+# Figure out what we're using to change from CRLF to LF...
+export DOS2UNIX=dos2unix
+if ! which dos2unix &> /dev/null; then
+        export DOS2UNIX=fromdos
+        if ! which fromdos &> /dev/null; then
+                export DOS2UNIX="perl -pi -e 's/\r\n|\n|\r/\n/g'"
+                if ! which perl &> /dev/null; then
+                        echo "  Please install 'dos2unix' or 'tofrodos'..."
+                        exit 1
+                fi
+        fi
+fi
+
+# Repair files in our topmost folder, we need this because
+# git likes to 'fix' our files for us...
+if [ "${OSNAME}" == "ubuntu" ] ;then
+        ${DOS2UNIX} -p mkdsm_*.sh
+elif [ "$OSNAME" == "suse" ] ;then
+        ${DOS2UNIX} -q -k -o mkdsm_*.sh
+elif [ "$OSNAME" == "macosx" ] ;then
+        ${DOS2UNIX} mkdsm_*.sh
+else
+        ${ECHO} "unsupported os: ${OSNAME}"
+        exit 1
+fi
+
 # Clean...
 if [ "$1" == "clean" ] ;then
 
@@ -145,13 +171,20 @@ fi
 
 # Ask for confirmation...
 ANSWER="N"
-if [ -e TWAIN_DSM/twaindsm.spec ] ;then
-	TMPVERSION=`grep "Version: " TWAIN_DSM/twaindsm.spec | sed 's/Version: //'`
-	${ECHO} "Current DEB: ${BOLD}${TMPVERSION}${NORM}"
-fi
-if [ -e TWAIN_DSM/debian/changelog ] ;then
-	TMPVERSION=`head -n1 TWAIN_DSM/debian/changelog | sed 's/twaindsm (//'| sed 's/-1.*//'`
-	${ECHO} "Current RPM: ${BOLD}${TMPVERSION}${NORM}"
+if [ "${OSNAME}" == "macosx" ]; then
+	if [ -e TWAIN_DSM/Info.plist ] ;then
+		TMPVERSION=`/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' 'TWAIN_DSM/Info.plist'`
+		${ECHO} "Current Mac: ${BOLD}${TMPVERSION}${NORM}"
+	fi
+else
+	if [ -e TWAIN_DSM/twaindsm.spec ] ;then
+		TMPVERSION=`grep "Version: " TWAIN_DSM/twaindsm.spec | sed 's/Version: //'`
+		${ECHO} "Current DEB: ${BOLD}${TMPVERSION}${NORM}"
+	fi
+	if [ -e TWAIN_DSM/debian/changelog ] ;then
+		TMPVERSION=`head -n1 TWAIN_DSM/debian/changelog | sed 's/twaindsm (//'| sed 's/-1.*//'`
+		${ECHO} "Current RPM: ${BOLD}${TMPVERSION}${NORM}"
+	fi
 fi
 ${ECHO} "New Version: ${BOLD}${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}${NORM}"
 ${ECHO} "New Reason:  ${BOLD}${DSMREASON}${NORM}"

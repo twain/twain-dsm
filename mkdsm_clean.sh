@@ -25,11 +25,11 @@ if ls -R | grep .svn; then
 fi
 
 # Remove everything but script files, pub and TWAIN_DSM from this directory...
-echo "  ...cleaning the linuxdsm directory"
+echo "  ...cleaning our topmost directory"
 if [ "$1" == "keeprelease" ]; then
-	rm -rf `ls | grep -v .sh | grep -v pub | grep -v signer | grep -v TWAIN_DSM | grep -v dsm_02`
+	rm -rf `ls | grep -v .git | grep -v .sh | grep -v pub | grep -v signer | grep -v TWAIN_DSM | grep -v dsm_02`
 else
-	rm -rf `ls | grep -v .sh | grep -v pub | grep -v signer | grep -v TWAIN_DSM`
+	rm -rf `ls | grep -v .git | grep -v .sh | grep -v pub | grep -v signer | grep -v TWAIN_DSM`
 fi
 
 # Remove everything but .sln files and .vcproj files from visual_studio...
