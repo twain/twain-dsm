@@ -1,6 +1,6 @@
 Summary: TWAIN Data Source Manager
 Name: twaindsm
-Version: 2.3.1
+Version: 2.4.2
 Release: 1
 Vendor: TWAIN Working Group
 License: LGPL
@@ -44,6 +44,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/*
 
 %changelog
+* Wed Jan 17 2018 TWAIN Working Group <twaindsm@twain.org>
+- use _pAppId for DAT_IDENTITY/MSG_GET for Linux and Mac
 * Thu May 22 2014 TWAIN Working Group <twaindsm@twain.org>
 - added support for 64-bit Linux
 * Mon Mar  5 2012 TWAIN Working Group <twaindsm@twain.org>

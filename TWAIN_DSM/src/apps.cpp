@@ -1452,6 +1452,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   DS_INFO  *pDSInfo;
   bool hook;
   TW_IDENTITY_LINUX64SAFE twidentitylinux64safe;
+  char szUseAppid[8];
 
   // Validate...
   if ( 0 == _pPath )
@@ -1583,51 +1584,97 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   if (pDSInfo->DS_Entry == 0)
   {
     #if (TWNDSM_CMP == TWNDSM_CMP_VISUALCPP)
-      // The WIATwain.ds does not have an entry point 
-      if(0 != strstr(_pPath, "wiatwain.ds"))
-      {
-        kLOG((kLOGERR,"We're deliberately skipping this file: %s",_pPath));
-      }
-      else
-      {
-        pDSInfo->DS_Entry = (DSENTRYPROC)GetProcAddress((HMODULE)pDSInfo->pHandle, MAKEINTRESOURCE(1));
-        
-        if (pDSInfo->DS_Entry == 0)
-        {
-          kLOG((kLOGINFO,"Could not find Entry 1 in DS: %s",_pPath));
-        }
-      }
+	  // The WIATwain.ds does not have an entry point 
+	  if (0 != strstr(_pPath, "wiatwain.ds"))
+	  {
+		  kLOG((kLOGERR, "We're deliberately skipping this file: %s", _pPath));
+	  }
+	  else
+	  {
+		  pDSInfo->DS_Entry = (DSENTRYPROC)GetProcAddress((HMODULE)pDSInfo->pHandle, MAKEINTRESOURCE(1));
+
+		  if (pDSInfo->DS_Entry == 0)
+		  {
+			  kLOG((kLOGINFO, "Could not find Entry 1 in DS: %s", _pPath));
+		  }
+	  }
     #else
-      kLOG((kLOGERR,"Could not find DS_Entry function in DS: %s",_pPath));
+	  kLOG((kLOGERR, "Could not find DS_Entry function in DS: %s", _pPath));
     #endif
-    if (pDSInfo->DS_Entry == 0)
-    {
-      (void)UNLOADLIBRARY(pDSInfo->pHandle,false,0);
-      pDSInfo->pHandle = NULL;
-      AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
-      return TWRC_FAILURE;
-    }
+	  if (pDSInfo->DS_Entry == 0)
+	  {
+		  (void)UNLOADLIBRARY(pDSInfo->pHandle, false, 0);
+		  pDSInfo->pHandle = NULL;
+		  AppSetConditionCode(_pAppId, TWCC_OPERATIONERROR);
+		  return TWRC_FAILURE;
+	  }
+  }
+
+  // Allllrighty then!  So the original TWAIN_32.DLL passes in
+  // a value of NULL for the origin.  This is not documented
+  // anywhere in the TWAIN Spec.  It was decided to maintain this
+  // behavior in TWAINDSM.DLL.  All fine and well for Window and
+  // Linux.  But Mac had it's own DSM, and it didn't pass in a
+  // NULL.  So now we have a conundrum.
+  //
+  // I'm adding an event variable so that an application can
+  // override stuff, but the default behavior is going to be:
+  // Windows - NULL
+  // Linux   - _pAppId
+  // Mac     - _pAppId
+  memset(&szUseAppid, 0, sizeof(szUseAppid));
+  SGETENV(szUseAppid, NCHARS(szUseAppid), "TWAINDSM_USEAPPID");
+  // No data received, set the default based on the platform...
+  if (szUseAppid[0] != 0)
+  {
+    #if (TWNDSM_OS == TWNDSM_OS_WINDOWS)
+	  szUseAppid[0] = '0'; // Windows is NULL	
+    #elif (TWNDSM_OS == TWNDSM_OS_LINUX)
+	  szUseAppid[0] = '1'; // Linux is _pAppId
+    #elif (TWNDSM_OS == TWNDSM_OS_MACOSX)
+	  szUseAppid[0] = '1'; // Linux is _pAppId
+    #else
+	  Unsupported...
+    #endif
+  }
+  // Otherwise, force the value to be '0' or '1'...
+  else if (szUseAppid[0] != '0')
+  {
+	  szUseAppid[0] = '1';
   }
 
   // Report success and squirrel away the index...
-  kLOG((kLOGINFO,"Loaded library: %s",_pPath));
+  kLOG((kLOGINFO, "Loaded library: %s (TWAINDSM_USEAPPID:%c)", _pPath, szUseAppid[0]));
   pDSInfo->Identity.Id = (TWIDDEST_T)_DsId;
 
   // Get the source to fill in the identity structure
   // This operation should never fail on any DS
+  //
   // We need the NULL to be backwards compatible with the
   // older DSM.  This is the only way a driver can tell if
   // it's being talked to directly by the DSM instead of
-  // by the application (with the DSM as a passthru)...
+  // by the application (with the DSM as a passthru).
+  //
+  // Okay, this is where we make the actual call.  I left
+  // the original comments in place...
   memset(&twidentitylinux64safe, 0, sizeof(twidentitylinux64safe));
   twidentitylinux64safe.twidentity.Id = (TWIDDEST_T)_DsId;
-  result = pDSInfo->DS_Entry(NULL,DG_CONTROL,DAT_IDENTITY,MSG_GET,(TW_MEMREF)&twidentitylinux64safe);
+  if (szUseAppid[0] == '1')
+  {
+	// this is what the spec calls for
+	result = pDSInfo->DS_Entry(_pAppId, DG_CONTROL, DAT_IDENTITY, MSG_GET, (TW_MEMREF)&twidentitylinux64safe);
+  }
+  else
+  {
+	// this is out of spec, but we need it for Windows
+	result = pDSInfo->DS_Entry(NULL, DG_CONTROL, DAT_IDENTITY, MSG_GET, (TW_MEMREF)&twidentitylinux64safe);
+  }
   if (result != TWRC_SUCCESS)
   {
     (void)UNLOADLIBRARY(pDSInfo->pHandle,false,0);
     pDSInfo->pHandle = NULL;
     pDSInfo->DS_Entry = NULL;
-    kLOG((kLOGINFO,"DG_CONTROL,DAT_IDENTITY,MSG_GET failed"));
+	kLOG((kLOGINFO, "DG_CONTROL,DAT_IDENTITY,MSG_GET failed"));
     AppSetConditionCode(_pAppId,TWCC_OPERATIONERROR);
     return TWRC_FAILURE;
   }

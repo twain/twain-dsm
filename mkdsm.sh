@@ -31,8 +31,8 @@
 #
 export DSMMAJOR=2
 export DSMMINOR=4
-export DSMBUILD=1
-export DSMREASON="fix signing and version for macOS"
+export DSMBUILD=2
+export DSMREASON="use _pAppId for DAT_IDENTITY/MSG_GET for Linux and Mac"
 
 # Don't touch these lines...
 export DSMBUILDER="good"
