@@ -2455,9 +2455,9 @@ TW_INT16 CTwnDsm::DSM_Null(TW_IDENTITY *_pAppId,
                            TW_UINT16    _MSG)
 {
   TW_CALLBACK2 *ptwcallback2 = 0;
-  TW_INT16      result    = TWRC_SUCCESS;
-  TW_MEMREF     MemRef; 
-  bool          bPrinted  = false;
+  TW_INT16      result = TWRC_SUCCESS;
+  TW_MEMREF     MemRef = 0; 
+  bool          bPrinted = false;
 
   // Validate...
   if ( !pod.m_ptwndsmapps->AppValidateIds(_pAppId,_pDsId) )
