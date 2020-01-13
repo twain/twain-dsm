@@ -1,17 +1,26 @@
 @echo off
 set ProjectDir=%1
+set Pub=%ProjectDir%\..\pub
+set OutDir=%ProjectDir%%2
+set Dest=%3
 
 ::
-:: Create the folder if we don't have it...
+:: Create the folders if we don't have them...
 ::
-if not exist "%ProjectDir%..\pub\include\twain" (
-	mkdir "%ProjectDir%..\pub"
-	mkdir "%ProjectDir%..\pub\include"
-	mkdir "%ProjectDir%\..\pub\include\twain"
-)
+mkdir "%Pub%\include\twain" > NUL 2>&1
+mkdir "%Pub%\bin\twain32" > NUL 2>&1
+mkdir "%Pub%\bin\twain64" > NUL 2>&1
 
 ::
 :: Copy the header file...
 ::
-echo copy "twain.h" to "..\pub\include\twain"
-xcopy "%ProjectDir%..\src\twain.h" "%ProjectDir%..\pub\include\twain" /r /y /q
+echo copy "%ProjectDir%\..\src\twain.h" to "%Pub%\include\twain"
+xcopy "%ProjectDir%\..\src\twain.h" "%Pub%\include\twain" /r /y /q
+
+::
+:: Copy the binary...
+::
+if exist "%OutDir%twaindsm.dll" (
+	echo copy "%OutDir%\twaindsm.dll" to "%Pub%\bin\%Dest%"
+	xcopy "%OutDir%twaindsm.dll" "%Pub%\bin\%Dest%" /r /y /q
+)

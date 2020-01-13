@@ -39,6 +39,9 @@ Use the TWAINDSM merge module with installations of TWAIN applications and
 data sources to distribute the TWAINDSM.dll. The 64bit merge module, 
 TWAINDSM64.msm, contains both the 32bit and 64bit versions of the DSM.
 
+On Visual Studio 2017 and later you'll have to install the "Microsoft Visual
+Studio Installer Projects", to be able to build the merge modules.
+
 
 
 [Linux] 

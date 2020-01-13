@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2047
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TWAINDSM32", "TWAINDSM2017_32.vdproj", "{E076D3A0-BB1C-4FA5-BA9A-88E334646E63}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TWAINDSM64", "TWAINDSM2017_64.vdproj", "{81521B40-5790-49A2-A948-577467990A4E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|Default = Release|Default
+		Description = TWAIN DSM Merge Modual installers for 32 and 64 bit
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E076D3A0-BB1C-4FA5-BA9A-88E334646E63}.Release|Default.ActiveCfg = Release
+		{E076D3A0-BB1C-4FA5-BA9A-88E334646E63}.Release|Default.Build.0 = Release
+		{81521B40-5790-49A2-A948-577467990A4E}.Release|Default.ActiveCfg = Release
+		{81521B40-5790-49A2-A948-577467990A4E}.Release|Default.Build.0 = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {403E08AC-F7C0-430D-8FFC-6137C21815F1}
+	EndGlobalSection
+EndGlobal
