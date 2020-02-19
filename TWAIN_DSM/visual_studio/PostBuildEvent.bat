@@ -24,3 +24,7 @@ if exist "%OutDir%twaindsm.dll" (
 	echo copy "%OutDir%\twaindsm.dll" to "%Pub%\bin\%Dest%"
 	xcopy "%OutDir%twaindsm.dll" "%Pub%\bin\%Dest%" /r /y /q
 )
+if exist "%OutDir%twaindsm.lib" (
+	echo copy "%OutDir%\twaindsm.lib" to "%Pub%\bin\%Dest%"
+	xcopy "%OutDir%twaindsm.lib" "%Pub%\bin\%Dest%" /r /y /q
+)
