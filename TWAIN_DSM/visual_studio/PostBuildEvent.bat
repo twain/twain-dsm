@@ -8,8 +8,10 @@ set Dest=%3
 :: Create the folders if we don't have them...
 ::
 mkdir "%Pub%\include\twain" > NUL 2>&1
-mkdir "%Pub%\bin\twain32" > NUL 2>&1
-mkdir "%Pub%\bin\twain64" > NUL 2>&1
+mkdir "%Pub%\bin\Win32_Debug" > NUL 2>&1
+mkdir "%Pub%\bin\Win32_Release" > NUL 2>&1
+mkdir "%Pub%\bin\x64_Debug" > NUL 2>&1
+mkdir "%Pub%\bin\x64_Release" > NUL 2>&1
 
 ::
 :: Copy the header file...
