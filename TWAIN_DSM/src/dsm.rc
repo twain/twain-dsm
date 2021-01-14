@@ -77,8 +77,8 @@ BEGIN
             VALUE "FileDescription", TWNDSM_DESCRIPTION
             VALUE "FileVersion", TWNDSM_VERSION_STR
             VALUE "InternalName", "DSM"
-            VALUE "LegalCopyright", "(C) 1993-2012 TWAIN Working Group.  All rights reserved."
-            VALUE "OriginalFilename", "TWAIN_32.dll"
+            VALUE "LegalCopyright", "(C) 1993-2021 TWAIN Working Group.  All rights reserved."
+            VALUE "OriginalFilename", "TWAINDSM.dll"
             VALUE "ProductName", "TWAIN DSM Dynamic Link Library"
             VALUE "ProductVersion", TWNDSM_VERSION_STR
         END
