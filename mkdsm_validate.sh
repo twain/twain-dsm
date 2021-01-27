@@ -56,9 +56,9 @@ fi
 
 
 #
-# Stuff that Ubuntu needs...
+# Stuff that Ubuntu and Kylin needs...
 #
-if [ "$OSNAME" == "ubuntu" ]; then
+if [ "$OSNAME" == "ubuntu" ] || [ "$OSNAME" == "kylin" ]; then
 
 	# debhelper
 	echo "  ...checking for debhelper"
@@ -78,6 +78,46 @@ if [ "$OSNAME" == "ubuntu" ]; then
 	echo "  ...checking for gpg"
 	if ! which gpg &> /dev/null; then
 		echo "  Please install 'gpg'..."
+		exit 1
+	fi
+
+
+#
+# Stuff that Debian needs...
+#
+elif [ "$OSNAME" == "debian" ]; then
+
+	# debhelper
+	echo "  ...checking for debhelper"
+	if [ ! -e /usr/share/debhelper ]; then
+		echo "  Please install 'debhelper'..."
+		exit 1
+	fi
+
+	# debuild
+	echo "  ...checking for debuild"
+	if ! which debuild &> /dev/null; then
+		echo "  Please install 'devscripts'..."
+		exit 1
+	fi
+
+	# gpg
+	echo "  ...checking for gpg"
+	if ! which gpg &> /dev/null; then
+		echo "  Please install 'gpg'..."
+		exit 1
+	fi
+
+
+#
+# Stuff that NeoKylin needs...
+#
+elif [ "$OSNAME" == "neokylin" ]; then
+
+	# rpmbuild
+	echo "  ...checking for rpmbuild"
+	if ! which rpmbuild &> /dev/null; then
+		echo "  Please install 'rpmbuild'..."
 		exit 1
 	fi
 

@@ -31,6 +31,12 @@ ${ECHO} " ...fixing files in TWAIN_DSM"
 pushd TWAIN_DSM &> /dev/null
 if [ "${OSNAME}" == "ubuntu" ] ;then
 	${DOS2UNIX} -p Doxyfile twaindsm.spec *.txt
+elif [ "${OSNAME}" == "kylin" ] ;then
+	${DOS2UNIX} -p Doxyfile twaindsm.spec *.txt
+elif [ "${OSNAME}" == "debian" ] ;then
+	${DOS2UNIX} -p Doxyfile twaindsm.spec *.txt
+elif [ "$OSNAME" == "neokylin" ] ;then
+	${DOS2UNIX} -q -k -o Doxyfile twaindsm.spec *.txt 
 elif [ "$OSNAME" == "suse" ] ;then
 	${DOS2UNIX} -q -k -o Doxyfile twaindsm.spec *.txt 
 elif [ "$OSNAME" == "macosx" ] ;then
@@ -46,6 +52,12 @@ ${ECHO} " ...fixing files in TWAIN_DSM/debian"
 pushd TWAIN_DSM/debian &> /dev/null
 if [ "${OSNAME}" == "ubuntu" ] ;then
 	${DOS2UNIX} -p *
+elif [ "${OSNAME}" == "kylin" ] ;then
+	${DOS2UNIX} -p *
+elif [ "${OSNAME}" == "debian" ] ;then
+	${DOS2UNIX} -p *
+elif [ "$OSNAME" == "neokylin" ] ;then
+	${DOS2UNIX} -q -k -o *
 elif [ "$OSNAME" == "suse" ] ;then
 	${DOS2UNIX} -q -k -o *
 elif [ "$OSNAME" == "macosx" ] ;then
@@ -61,6 +73,12 @@ ${ECHO} " ...fixing files in TWAIN_DSM/src"
 pushd TWAIN_DSM/src &> /dev/null
 if [ "${OSNAME}" == "ubuntu" ] ;then
 	${DOS2UNIX} -p *
+elif [ "${OSNAME}" == "kylin" ] ;then
+	${DOS2UNIX} -p *
+elif [ "${OSNAME}" == "debian" ] ;then
+	${DOS2UNIX} -p *
+elif [ "$OSNAME" == "neokylin" ] ;then
+	${DOS2UNIX} -q -k -o *
 elif [ "$OSNAME" == "suse" ] ;then
 	${DOS2UNIX} -q -k -o *
 elif [ "$OSNAME" == "macosx" ] ;then

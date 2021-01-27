@@ -55,7 +55,7 @@ popd &> /dev/null
 #
 # Stuff that Ubuntu does...
 #
-if [ "$OSNAME" == "ubuntu" ] ;then
+if [ "$OSNAME" == "ubuntu" ] || [ "$OSNAME" == "kylin" ];then
 
         # Cleaning /usr/local/lib/libtwaindsm.so*...
         echo "  ...cleaning /usr/local/lib/libtwaindsm.so*"

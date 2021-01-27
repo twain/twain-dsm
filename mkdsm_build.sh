@@ -13,9 +13,9 @@ fi
 
 
 #
-# Running for ubuntu...
+# Running for ubuntu, debian, or kylin...
 #
-if [ "$OSNAME" == "ubuntu" ] ;then
+if [ "$OSNAME" == "ubuntu" ] || [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "kylin" ];then
 
 	# Run cmake...
 	echo "  ...running cmake"
@@ -162,6 +162,61 @@ if [ "$OSNAME" == "ubuntu" ] ;then
 
 
 #
+# Running for neokylin...
+#
+elif [ "$OSNAME" == "neokylin" ] ;then
+
+	# Copy TWAIN_DSM to the target directory...
+	echo "  ...copy TWAIN_DSM to twaindsm-$DSMMAJOR.$DSMMINOR.$DSMBUILD"
+	cp -R TWAIN_DSM twaindsm-$DSMMAJOR.$DSMMINOR.$DSMBUILD
+
+	# Make the source code bundle...
+	echo "  ...create twaindsm-$DSMMAJOR.$DSMMINOR.$DSMBUILD.tar.gz"
+	tar czvf twaindsm-$DSMMAJOR.$DSMMINOR.$DSMBUILD.tar.gz twaindsm-$DSMMAJOR.$DSMMINOR.$DSMBUILD
+	echo "  ...create finished successfully"
+
+	# Copy source to ${HOME}/rpmbuild/SOURCES...
+	echo "  ...copy source to ${HOME}/rpmbuild/SOURCES"
+	cp twaindsm-$DSMMAJOR.$DSMMINOR.$DSMBUILD.tar.gz ${HOME}/rpmbuild/SOURCES
+
+	# Run rpmbuild...
+	echo "  ...running rpmbuild (${OSTARGET})"
+	pushd twaindsm-$DSMMAJOR.$DSMMINOR.$DSMBUILD &>/dev/null
+	if ! rpmbuild -ba twaindsm.spec --target=${OSTARGET} ;then
+		echo "  rpmbuild failed..."
+		exit 1
+	fi
+	echo "  ...rpmbuild finished successfully"
+	popd &> /dev/null
+
+	# Copy the files to the final directory format...
+	echo "  ...copy files to ${DSMDIR}/${OSDIR}"
+	mkdir -p ${DSMDIR}/${OSDIR}
+	if ! cp ${DSMBASE}.tar.gz ${DSMDIR}/${OSDIR}/${DSMBASE}.orig.tar.gz ;then
+		echo "  cp failed..."
+		exit 1
+	fi
+	if ! cp ${HOME}/rpmbuild/RPMS/${OSTARGET}/${DSMBASE}-1.${OSTARGET}.rpm ${DSMDIR}/${OSDIR}/ ;then
+		echo "  cp failed..."
+		exit 1
+	fi
+	if ! cp ${HOME}/rpmbuild/SRPMS/${DSMBASE}-1.src.rpm ${DSMDIR}/${OSDIR}/ ;then
+		echo "  cp failed..."
+		exit 1
+	fi
+
+	# Test the package...
+	echo ""
+	echo "  ...test the package"
+	pushd ${DSMDIR}/${OSDIR} &> /dev/null
+	if ! rpm --test --install --force ${DSMBASE}-1.${OSTARGET}.rpm ;then
+		echo "  rpm test failed..."
+		exit 1
+	fi
+	popd &> /dev/null
+
+
+#
 # Running for SuSE...
 #
 elif [ "$OSNAME" == "suse" ] ;then
@@ -232,8 +287,6 @@ elif [ "$OSNAME" == "macosx" ] ;then
 	echo "  ...cmake finished successfully"
 	popd &> /dev/null
 
-if true; then
-
 	# Copy TWAIN_DSM to the target directory...
 	echo "  ...copy TWAIN_DSM to twaindsm-$DSMMAJOR.$DSMMINOR.$DSMBUILD"
 	cp -R TWAIN_DSM twaindsm-$DSMMAJOR.$DSMMINOR.$DSMBUILD
@@ -283,9 +336,6 @@ if true; then
 	fi
 	popd &> /dev/null
 	echo "  ...test finished successfully"
-else
-	echo
-fi
 
 #
 # Ruh-roh

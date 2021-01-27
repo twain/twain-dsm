@@ -1,6 +1,6 @@
 Summary: TWAIN Data Source Manager
 Name: twaindsm
-Version: 2.4.2
+Version: 2.4.3
 Release: 1
 Vendor: TWAIN Working Group
 License: LGPL
@@ -10,21 +10,22 @@ Source0: %{name}-%{version}.tar.gz
 Provides: libtwaindsm.so
 Prefix: /usr/local
 
+%define debug_package %{nil}
+
 %description
 The TWAIN Working Group's Data Source Manager (DSM) for managing communication
 between applications and TWAIN drivers (data sources).
 
 %prep
 %setup -q
-cmake src
+cmake src -DOSTARGET:STRING=$OSTARGET
 
 %build
 make
 
 %install
-rm -rf $RPM_BUILD_ROOT
-make install
-mkdir -p %{prefix}/twain
+make install DESTDIR=$RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/usr/local/lib/twain
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -44,6 +45,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc doc/*
 
 %changelog
+* Tue Jan 26 2021 TWAIN Working Group <twaindsm@twain.org>
+- use _pAppId for DAT_IDENTITY/MSG_GET for Linux and Mac
 * Wed Jan 17 2018 TWAIN Working Group <twaindsm@twain.org>
 - use _pAppId for DAT_IDENTITY/MSG_GET for Linux and Mac
 * Thu May 22 2014 TWAIN Working Group <twaindsm@twain.org>

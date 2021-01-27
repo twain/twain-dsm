@@ -1475,6 +1475,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
   // it to fail.  However, we can't rule out that somebody
   // might try to make this work.  So we'll check the file...
   #if (TWNDSM_OS == TWNDSM_OS_LINUX)
+    (void)hook;
     bool blSuccess = false;
 	char szData[2048] = { 0 };
 	snprintf(szData, sizeof(szData), "file \"%s\"", _pPath);
@@ -1485,16 +1486,16 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
       size_t sizet = fread(szData, 1, sizeof(szData), pf);
 	  szData[sizet] = 0;
       #if (TWNDSM_OS_64BIT == 1)
-	    blSuccess = (strstr(szData, "x86-64") != 0);
+	    blSuccess = (strstr(szData, "x86-64") != 0) || (strstr(szData, "MIPS64") != 0);
       #else
-	    blSuccess = (strstr(szData, "Intel 80386") != 0);
+	    blSuccess = (strstr(szData, "Intel 80386") != 0) || (strstr(szData, "MIPS64") != 0);
       #endif
 	  pclose(pf);
 	  pf = 0;
 	}
 	if (!blSuccess)
 	{
-	  kLOG((kLOGINFO, "driver doesn't support architecture: %s", _pPath));
+	  kLOG((kLOGINFO, "driver doesn't support architecture: %s <%s>", _pPath, szData));
       AppSetConditionCode(_pAppId, TWCC_OPERATIONERROR);
       return TWRC_FAILURE;
     }
@@ -1524,7 +1525,7 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
 	}
 	if (!blSuccess)
 	{
-	  kLOG((kLOGINFO, "driver doesn't support architecture: %s", _pPath));
+	  kLOG((kLOGINFO, "driver doesn't support architecture: %s <%s>", _pPath, szData));
       AppSetConditionCode(_pAppId, TWCC_OPERATIONERROR);
       return TWRC_FAILURE;
     }
@@ -1912,6 +1913,7 @@ void CTwnDsmApps::AppWakeup(TW_IDENTITY *_pAppId)
     // Make the compiler happy...
     void *unused = _pAppId;
     unused = 0;
+    (void)unused;
   #else
     #error Sorry, we do not recognize this system...
   #endif

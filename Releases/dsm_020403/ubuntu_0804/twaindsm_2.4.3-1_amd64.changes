@@ -1,9 +1,9 @@
 Format: 1.7
-Date: Wed, 17 Jan 2018 10:47:02 -0500
+Date: Tue, 26 Jan 2021 23:26:49 -0800
 Source: twaindsm
 Binary: twaindsm
 Architecture: source amd64
-Version: 2.4.2-1
+Version: 2.4.3-1
 Distribution: unstable
 Urgency: low
 Maintainer: TWAIN Working Group <twaindsm@twain.org>
@@ -11,10 +11,10 @@ Changed-By: TWAIN Working Group <twaindsm@twain.org>
 Description: 
  twaindsm   - TWAIN Data Source Manager
 Changes: 
- twaindsm (2.4.2-1) unstable; urgency=low
+ twaindsm (2.4.3-1) unstable; urgency=low
  .
     * use _pAppId for DAT_IDENTITY/MSG_GET for Linux and Mac
 Files: 
- 5a372f0a33c3aa7209531eafd65d6c0d 284 libdevel optional twaindsm_2.4.2-1.dsc
- 8f9c9b9a13a3225c6e5828a0561a826f 396622 libdevel optional twaindsm_2.4.2-1.tar.gz
- ae0019053b033d7309eabf126011bb05 54572 libdevel optional twaindsm_2.4.2-1_amd64.deb
+ fa9dd5be421542994698627c3ab394e3 284 libdevel optional twaindsm_2.4.3-1.dsc
+ 45682a6b6f5401b7ae6097541ac8703f 374809 libdevel optional twaindsm_2.4.3-1.tar.gz
+ aa05b98bbcd90aeda64d6ac4ba99021d 54300 libdevel optional twaindsm_2.4.3-1_amd64.deb

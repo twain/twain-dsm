@@ -31,7 +31,7 @@
 #
 export DSMMAJOR=2
 export DSMMINOR=4
-export DSMBUILD=2
+export DSMBUILD=3
 export DSMREASON="use _pAppId for DAT_IDENTITY/MSG_GET for Linux and Mac"
 
 # Don't touch these lines...
@@ -41,7 +41,7 @@ export DSMDIRRPM=`printf "dsm_%02d%02d%02d" ${DSMMAJOR} ${DSMMINOR} ${DSMBUILD}`
 export DSMEMAIL="TWAIN Working Group <twaindsm@twain.org>"
 
 # Say hi...
-/bin/echo "mkdsm v2.0 27-Oct-2017 [TWAIN DSM Build and Release Tool]"
+/bin/echo "mkdsm v3.1 27-Jun-2021 [TWAIN DSM Build and Release Tool]"
 /bin/echo ""
 
 # Make sure we're root...
@@ -51,10 +51,22 @@ if [ $(/usr/bin/id -u) -ne 0 ] ;then
 fi
 
 # Identify our machine...
-UNAME=`uname -m`
-if [ "${UNAME}" == "x86_64" ]; then
+UMACHINE=`uname -m`
+if [ "${UMACHINE}" == "x86_64" ]; then
         export MACHINE="amd64"
         export MACHINERPM="x86_64"
+elif [ "${UMACHINE}" == "mips64" ]; then
+	if [ "${OSTARGET}" == "" ]; then
+		OSTARGET=mips64el
+	fi
+	export OSTARGET
+	if [ "${OSTARGET}" == "mips64el" ]; then
+        	export MACHINE="mips64el"
+        	export MACHINERPM="mips64el"
+	else
+        	export MACHINE="mipsel"
+        	export MACHINERPM="mipsel"
+	fi
 else
         export MACHINE="i386"
         export MACHINERPM="i386"
@@ -93,6 +105,23 @@ elif grep "Ubuntu 10.04" /etc/lsb-release &> /dev/null; then
 	export OSDIRRPM="suse_1201"
 	export DSMBASE="twaindsm_${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}"
 	export DSMBASERPM="twaindsm-${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}"
+	export DEBUILD="debuild -d --no-tgz-check -us -uc"
+elif grep "NeoKylin" /etc/system-release &> /dev/null; then
+	export BOLD="[1m"
+	export NORM="[0m"
+	export ECHO="/bin/echo -e"
+	${ECHO} "Distro:      ${BOLD}NeoKylin 7.2 (${OSTARGET})${NORM}"
+	export OSNAME="neokylin"
+	export OSDIR="neokylin_0702"
+	export DSMBASE="twaindsm-${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}"
+elif grep "Kylin V10" /etc/os-release &> /dev/null; then
+	export BOLD="[1m"
+	export NORM="[0m"
+	export ECHO="/bin/echo -e"
+	${ECHO} "Distro:      ${BOLD}Kylin 10 (${OSTARGET})${NORM}"
+	export OSNAME="kylin"
+	export OSDIR="kylin_10"
+	export DSMBASE="twaindsm-${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}"
 	export DEBUILD="debuild -d --no-tgz-check -us -uc"
 elif grep "SUSE LINUX 10.1" /etc/SuSE-release &> /dev/null; then
 	export BOLD="[1m"
@@ -143,6 +172,12 @@ fi
 # git likes to 'fix' our files for us...
 if [ "${OSNAME}" == "ubuntu" ] ;then
         ${DOS2UNIX} -p mkdsm_*.sh
+elif [ "${OSNAME}" == "kylin" ] ;then
+        ${DOS2UNIX} -q -k -o mkdsm_*.sh
+elif [ "${OSNAME}" == "debian" ] ;then
+        ${DOS2UNIX} -p mkdsm_*.sh
+elif [ "$OSNAME" == "neokylin" ] ;then
+        ${DOS2UNIX} -q -k -o mkdsm_*.sh
 elif [ "$OSNAME" == "suse" ] ;then
         ${DOS2UNIX} -q -k -o mkdsm_*.sh
 elif [ "$OSNAME" == "macosx" ] ;then
