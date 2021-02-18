@@ -1,0 +1,6 @@
+TWAIN_DSM/pub/
+TWAIN_DSM/visual_studio/Win32_Debug/
+TWAIN_DSM/visual_studio/Win32_Release/
+TWAIN_DSM/visual_studio/x64_Debug/
+TWAIN_DSM/visual_studio/x64_Release/
+TWAIN_DSM/visual_studio/.vs/
