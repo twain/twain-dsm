@@ -39,7 +39,7 @@ ELSEIF("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "mips64")
 		ADD_DEFINITIONS(-Wall -Wextra -Werror -march=from-abi -mabi=32)
 	ENDIF()
 ELSE()
-	ADD_DEFINITIONS(-Wall -Wextra -Werror)
+	ADD_DEFINITIONS(-Wall -Wextra -Werror -Wno-implicit-fallthrough)
 ENDIF(APPLE)
 
 #let's not be sharing our symbols...
@@ -60,8 +60,8 @@ PROJECT(twaindsm)
 
 #project version
 SET(${PROJECT_NAME}_MAJOR_VERSION 2)
-SET(${PROJECT_NAME}_MINOR_VERSION 4)
-SET(${PROJECT_NAME}_PATCH_LEVEL 3)
+SET(${PROJECT_NAME}_MINOR_VERSION 5)
+SET(${PROJECT_NAME}_PATCH_LEVEL 0)
 
 #build a shared library
 ADD_LIBRARY(twaindsm SHARED dsm.cpp apps.cpp log.cpp)

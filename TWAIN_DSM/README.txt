@@ -1,5 +1,5 @@
 TWAIN Data Source Manager [DSM], 
-compliant with version 2.4 of the TWAIN specification. 
+compliant with version 2.5 of the TWAIN specification. 
 
 
 

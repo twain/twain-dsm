@@ -1,3 +1,15 @@
+twaindsm (2.5.0-1) unstable; urgency=low
+
+   * bumped up to TWAIN 2.5
+
+ -- TWAIN Working Group <twaindsm@twain.org>  Mon,  1 Nov 2021 17:18:08 -0400
+
+twaindsm (2.4.3-1) unstable; urgency=low
+
+   * use _pAppId for DAT_IDENTITY/MSG_GET for Linux and Mac
+
+ -- TWAIN Working Group <twaindsm@twain.org>  Tue, 26 Jan 2021 23:26:49 -0800
+
 twaindsm (2.4.2-1) unstable; urgency=low
 
    * use _pAppId for DAT_IDENTITY/MSG_GET for Linux and Mac

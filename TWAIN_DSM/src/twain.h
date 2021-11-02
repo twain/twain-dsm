@@ -92,7 +92,8 @@
     version 2.4a June 2016       Added TW_INT32 and TW_UINT32 fixes for Linux,
                                  (I just added this comment today)
     version 2.4b March 2017      Missing changeset from 2.3 verion (2013/06/20)
-
+    version 2.5  Jan 2021        Added new types and definitions required
+                                 for 2.5 Specification MLM
  
 \* ======================================================================== */
 
@@ -102,7 +103,7 @@
 /****************************************************************************
  * TWAIN Version                                                            *
  ****************************************************************************/
-#define TWON_PROTOCOLMINOR   4        /* Changed for Version 2.4            */
+#define TWON_PROTOCOLMINOR   5        /* Changed for Version 2.5            */
 #define TWON_PROTOCOLMAJOR   2
 
 /****************************************************************************
@@ -394,12 +395,12 @@ typedef struct {
         TW_UINT16   CondCode; // Deprecated, do not use
     };
     TW_UINTPTR  Item;
-}TW_INFO, FAR* pTW_INFO;
+} TW_INFO, FAR* pTW_INFO;
 
 typedef struct {
     TW_UINT32   NumInfos;
     TW_INFO     Info[1];
-}TW_EXTIMAGEINFO, FAR* pTW_EXTIMAGEINFO;
+} TW_EXTIMAGEINFO, FAR* pTW_EXTIMAGEINFO;
 
 /* Provides information about the currently selected device */
 typedef struct {
@@ -407,12 +408,12 @@ typedef struct {
    TW_STR255  OutputName;
    TW_MEMREF  Context;
    union {
-	 int 	    Recursive;
-	 TW_BOOL	Subdirectories;
+       int          Recursive;
+       TW_BOOL      Subdirectories;
    };
    union {
-	 TW_INT32 	FileType;
-	 TW_UINT32	FileSystemType;
+       TW_INT32     FileType;
+       TW_UINT32    FileSystemType;
    };
    TW_UINT32  Size;
    TW_STR32   CreateTimeDate;
@@ -446,13 +447,13 @@ typedef struct {
     #else
         TW_UINT32  Id;
     #endif
-    TW_VERSION 	   Version;
-    TW_UINT16  	   ProtocolMajor;
-    TW_UINT16  	   ProtocolMinor;
-    TW_UINT32  	   SupportedGroups;
-    TW_STR32   	   Manufacturer;
-    TW_STR32   	   ProductFamily;
-    TW_STR32   	   ProductName;
+    TW_VERSION     Version;
+    TW_UINT16      ProtocolMajor;
+    TW_UINT16      ProtocolMinor;
+    TW_UINT32      SupportedGroups;
+    TW_STR32       Manufacturer;
+    TW_STR32       ProductFamily;
+    TW_STR32       ProductName;
 } TW_IDENTITY, FAR * pTW_IDENTITY;
 
 /* Describes the "real" image data, that is, the complete image being transferred between the Source and application. */
@@ -511,7 +512,7 @@ typedef struct {
 
 /* Collects scanning metrics after returning to state 4 */
 typedef struct {
-   TW_UINT32   	SizeOf;
+   TW_UINT32    SizeOf;
    TW_UINT32    ImageCount;
    TW_UINT32    SheetCount; 
 } TW_METRICS, FAR * pTW_METRICS;
@@ -874,6 +875,14 @@ typedef struct {
 #define TWFY_IMAGE               7
 #define TWFY_UNKNOWN             8
 
+/* CAP_IAFIELD*_LEVEL values */ 
+#define TWIA_UNUSED              0
+#define TWIA_FIXED               1
+#define TWIA_LEVEL1              2
+#define TWIA_LEVEL2              3
+#define TWIA_LEVEL3              4
+#define TWIA_LEVEL4              5
+
 /* ICAP_ICCPROFILE values */ 
 #define TWIC_NONE                0
 #define TWIC_LINK                1
@@ -975,6 +984,7 @@ typedef struct {
 #define TWPM_SINGLESTRING        0
 #define TWPM_MULTISTRING         1
 #define TWPM_COMPOUNDSTRING      2
+#define TWPM_IMAGEADDRESSSTRING  3
 
 /* CAP_PRINTER values */
 #define TWPR_IMPRINTERTOPBEFORE     0
@@ -1753,7 +1763,7 @@ typedef struct {
 #define CAP_INDICATORSMODE          0x1044
 #define CAP_PRINTERVERTICALOFFSET   0x1045
 #define CAP_POWERSAVETIME           0x1046
-#define CAP_PRINTERCHARROTATION	    0x1047
+#define CAP_PRINTERCHARROTATION     0x1047
 #define CAP_PRINTERFONTSTYLE        0x1048
 #define CAP_PRINTERINDEXLEADCHAR    0x1049
 #define CAP_PRINTERINDEXMAXVALUE    0x104A
@@ -1762,8 +1772,27 @@ typedef struct {
 #define CAP_PRINTERINDEXTRIGGER     0x104D
 #define CAP_PRINTERSTRINGPREVIEW    0x104E
 #define CAP_SHEETCOUNT              0x104F
-
-
+#define CAP_IMAGEADDRESSENABLED     0x1050
+#define CAP_IAFIELDA_LEVEL          0x1051
+#define CAP_IAFIELDB_LEVEL          0x1052
+#define CAP_IAFIELDC_LEVEL          0x1053
+#define CAP_IAFIELDD_LEVEL          0x1054
+#define CAP_IAFIELDE_LEVEL          0x1055
+#define CAP_IAFIELDA_PRINTFORMAT    0x1056
+#define CAP_IAFIELDB_PRINTFORMAT    0x1057
+#define CAP_IAFIELDC_PRINTFORMAT    0x1058
+#define CAP_IAFIELDD_PRINTFORMAT    0x1059
+#define CAP_IAFIELDE_PRINTFORMAT    0x105A
+#define CAP_IAFIELDA_VALUE          0x105B
+#define CAP_IAFIELDB_VALUE          0x105C
+#define CAP_IAFIELDC_VALUE          0x105D
+#define CAP_IAFIELDD_VALUE          0x105E
+#define CAP_IAFIELDE_VALUE          0x105F
+#define CAP_IAFIELDA_LASTPAGE       0x1060
+#define CAP_IAFIELDB_LASTPAGE       0x1061
+#define CAP_IAFIELDC_LASTPAGE       0x1062
+#define CAP_IAFIELDD_LASTPAGE       0x1063
+#define CAP_IAFIELDE_LASTPAGE       0x1064
 
 /* image data sources MAY support these caps */
 #define ICAP_AUTOBRIGHT                   0x1100
@@ -1934,6 +1963,14 @@ typedef struct {
 #define TWEI_PAPERCOUNT             0x1249
 #define TWEI_PRINTERTEXT            0x124A
 #define TWEI_TWAINDIRECTMETADATA    0x124B
+#define TWEI_IAFIELDA_VALUE         0x124C
+#define TWEI_IAFIELDB_VALUE         0x124D
+#define TWEI_IAFIELDC_VALUE         0x124E
+#define TWEI_IAFIELDD_VALUE         0x124F
+#define TWEI_IAFIELDE_VALUE         0x1250
+#define TWEI_IALEVEL                0x1251
+#define TWEI_PRINTER                0x1252
+#define TWEI_BARCODETEXT2           0x1253
 
 #define TWEJ_NONE                   0x0000
 #define TWEJ_MIDSEPARATOR           0x0001

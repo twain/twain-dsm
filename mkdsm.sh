@@ -30,9 +30,9 @@
 # files like changelog or twaindsm.spec...
 #
 export DSMMAJOR=2
-export DSMMINOR=4
-export DSMBUILD=3
-export DSMREASON="use _pAppId for DAT_IDENTITY/MSG_GET for Linux and Mac"
+export DSMMINOR=5
+export DSMBUILD=0
+export DSMREASON="bumped up to TWAIN 2.5"
 
 # Don't touch these lines...
 export DSMBUILDER="good"
@@ -67,6 +67,9 @@ elif [ "${UMACHINE}" == "mips64" ]; then
         	export MACHINE="mipsel"
         	export MACHINERPM="mipsel"
 	fi
+elif [ "${UMACHINE}" == "aarch64" ]; then
+        export MACHINE="aarch64"
+        export MACHINERPM="aarch64"
 else
         export MACHINE="i386"
         export MACHINERPM="i386"
@@ -105,6 +108,15 @@ elif grep "Ubuntu 10.04" /etc/lsb-release &> /dev/null; then
 	export OSDIRRPM="suse_1201"
 	export DSMBASE="twaindsm_${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}"
 	export DSMBASERPM="twaindsm-${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}"
+	export DEBUILD="debuild -d --no-tgz-check -us -uc"
+elif grep "Ubuntu 20.04" /etc/lsb-release &> /dev/null; then
+	export BOLD="[1m"
+	export NORM="[0m"
+	export ECHO="/bin/echo -e"
+	${ECHO} "Distro:      ${BOLD}Ubuntu 20.04 (${OSTARGET})${NORM}"
+	export OSNAME="ubuntu"
+	export OSDIR="ubuntu_2004"
+	export DSMBASE="twaindsm-${DSMMAJOR}.${DSMMINOR}.${DSMBUILD}"
 	export DEBUILD="debuild -d --no-tgz-check -us -uc"
 elif grep "NeoKylin" /etc/system-release &> /dev/null; then
 	export BOLD="[1m"
@@ -170,7 +182,9 @@ fi
 
 # Repair files in our topmost folder, we need this because
 # git likes to 'fix' our files for us...
-if [ "${OSNAME}" == "ubuntu" ] ;then
+if [ "${OSDIR}" == "ubuntu_2004" ] ;then
+        ${DOS2UNIX} -q -k -o mkdsm_*.sh
+elif [ "${OSNAME}" == "ubuntu" ] ;then
         ${DOS2UNIX} -p mkdsm_*.sh
 elif [ "${OSNAME}" == "kylin" ] ;then
         ${DOS2UNIX} -q -k -o mkdsm_*.sh

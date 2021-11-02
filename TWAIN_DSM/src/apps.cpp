@@ -1486,9 +1486,9 @@ TW_INT16 CTwnDsmAppsImpl::LoadDS(TW_IDENTITY *_pAppId,
       size_t sizet = fread(szData, 1, sizeof(szData), pf);
 	  szData[sizet] = 0;
       #if (TWNDSM_OS_64BIT == 1)
-	    blSuccess = (strstr(szData, "x86-64") != 0) || (strstr(szData, "MIPS64") != 0);
+	    blSuccess = strstr(szData, "x86-64") || strstr(szData, "MIPS64") || strstr(szData, "aarch64");
       #else
-	    blSuccess = (strstr(szData, "Intel 80386") != 0) || (strstr(szData, "MIPS64") != 0);
+	    blSuccess = strstr(szData, "Intel 80386");
       #endif
 	  pclose(pf);
 	  pf = 0;
